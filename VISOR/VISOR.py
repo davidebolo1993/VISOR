@@ -699,135 +699,134 @@ def main():
 						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
 						
 
-			elif str(entries[3]) == 'translocation cut-paste':
-						
+				elif str(entries[3]) == 'translocation cut-paste':
 
-				entr_4 = re.split('[:]',str(entries[4]))
+					entr_4 = re.split('[:]',str(entries[4]))
 
-				if len(entr_4) != 3:
+					if len(entr_4) != 3:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#sys.exit(1)
-
-
-				if str(entr_4[0]) not in ['h1','h2']:
-
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#sys.exit(1)
-
-				if str(entr_4[1]) not in classic_chrs:
-
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#sys.exit(1)
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#sys.exit(1)
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						#sys.exit(1)
 
 
-				if entr_4[0] == 'h1':
+					if str(entr_4[0]) not in ['h1','h2']:
 
-					if str(entries[0]) not in hap2dict:
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						#sys.exit(1)
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
+					if str(entr_4[1]) not in classic_chrs:
 
-					else:
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						#sys.exit(1)
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
+					try:
 
-					if str(entr_4[1]) not in hap2dict:
+						int(entr_4[2])
 
-						hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+					except:
 
-					else:
-
-
-						hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-				elif entr_4[0] == 'h2':
-
-					if str(entries[0]) not in hap2dict:
-
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
-
-					else:
-
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
-
-					if str(entr_4[1]) not in hap2dict:
-
-						hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					else:
-
-						hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-			else: #is a translocation copy paste
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						#sys.exit(1)
 
 
-				entr_4 = re.split('[:]',str(entries[4]))
+					if entr_4[0] == 'h1':
 
-				if len(entr_4) != 3:
+						if str(entries[0]) not in hap2dict:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#sys.exit(1)
+							hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
 
+						else:
 
-				if str(entr_4[0]) not in ['h1','h2']:
+							hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#sys.exit(1)
+						if str(entr_4[1]) not in hap2dict:
 
-				if str(entr_4[1]) not in classic_chrs:
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#sys.exit(1)
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#sys.exit(1)
+						else:
 
 
-				if entr_4[0] == 'h2':
-
-					if str(entr_4[1]) not in hap2dict:
-
-						hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					else:
+							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
-						hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+					elif entr_4[0] == 'h2':
+
+						if str(entries[0]) not in hap2dict:
+
+							hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
+
+						else:
+
+							hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
+
+						if str(entr_4[1]) not in hap2dict:
+
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+						else:
+
+							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+				else: #is a translocation copy paste
 
 
-				elif entr_4[0] == 'h1':
+					entr_4 = re.split('[:]',str(entries[4]))
 
-					if str(entr_4[1]) not in hap1dict:
+					if len(entr_4) != 3:
 
-						hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						#sys.exit(1)
 
-					else:
 
-						hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+					if str(entr_4[0]) not in ['h1','h2']:
+
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						#sys.exit(1)
+
+					if str(entr_4[1]) not in classic_chrs:
+
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						#sys.exit(1)
+
+					try:
+
+						int(entr_4[2])
+
+					except:
+
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						#sys.exit(1)
+
+
+					if entr_4[0] == 'h2':
+
+						if str(entr_4[1]) not in hap2dict:
+
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+						else:
+
+
+							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+
+					elif entr_4[0] == 'h1':
+
+						if str(entr_4[1]) not in hap1dict:
+
+							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+						else:
+
+							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 
