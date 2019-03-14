@@ -1077,6 +1077,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 				else: #region not seen, insert variant
 
+					regions_seen.append((start,end))
 
 					if i == 0: #first entry for the cromosome, write until the first variant start
 
