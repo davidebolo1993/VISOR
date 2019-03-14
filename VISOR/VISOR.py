@@ -1150,6 +1150,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 						write_sequence_between(seq[thisend:nextstart-1], output_fasta)
 
 					i+=1
+					#end
 
 
 
