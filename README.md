@@ -32,15 +32,15 @@ Inputs to VISOR are:
 
 VISOR allows users to generate different type of variants specified in the ALT field:
 
--'deletion': deletes from start(included) to end(included)-
--'insertion': insert a specific sequence immediately after end
--'inversion': invert from start(included) to end(included)
--'tr expansion': expand an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the START/END format specified in the Examples/KnownRepetitions.bed file in this repository
--'tr contraction': contract an existent tandem repetition. Works as described before
--'ptr': insert a perfect tandem repetition immediately after end
--'atr': insert a approximate tandem repetition immediately after end
--'translocation cut-paste': translocate from start(included) to end(included) to another region. Translocated region is deleted from original position
--'translocation copy-paste': translocate from start(included) to end(included) to another region. Translocated region is not deleted from original position
+- 'deletion'. Deletes from start(included) to end(included)-
+- 'insertion'. Insert a specific sequence immediately after end
+- 'inversion'. Invert from start(included) to end(included)
+- 'tr expansion'. Expand an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the START/END format specified in the Examples/KnownRepetitions.bed file in this repository
+- 'tr contraction'. Contract an existent tandem repetition. Works as described before
+- 'ptr'. Insert a perfect tandem repetition immediately after end
+- 'atr' Insert a approximate tandem repetition immediately after end
+- 'translocation cut-paste'. Translocate from start(included) to end(included) to another region. Translocated region is deleted from original position
+- 'translocation copy-paste'. Translocate from start(included) to end(included) to another region. Translocated region is not deleted from original position
 
 
 ## INFO FIELD
