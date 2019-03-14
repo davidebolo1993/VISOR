@@ -211,15 +211,15 @@ def main():
 
 				if len(entr_4) != 2:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
 					#sys.exit(1)
 
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Motif must be a valid DNA motif')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Motif must be a valid DNA motif')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
 					#sys.exit(1)
 
 				try:
@@ -228,8 +228,8 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Length must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Length must be an integer')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
 					#sys.exit(1)
 
 				if str(entries[0]) not in hap1dict:
@@ -247,14 +247,14 @@ def main():
 
 				if len(entr_4) != 3:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
 					#sys.exit(1)
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Motif must be a valid DNA motif')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Motif must be a valid DNA motif')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
 					#sys.exit(1)
 
 				try:
@@ -263,8 +263,8 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Length must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Length must be an integer')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
 					#sys.exit(1)
 
 
@@ -274,8 +274,8 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Altnum must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Altnum must be an integer')
+					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
 					#sys.exit(1)
 
 
@@ -326,7 +326,7 @@ def main():
 					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
 					
 
-			elif str(entries[3]) == 'translocation cut-paste'
+			elif str(entries[3]) == 'translocation cut-paste':
 						
 
 				entr_4 = re.split('[:]',str(entries[4]))
@@ -584,15 +584,15 @@ def main():
 
 					if len(entr_4) != 2:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
 						#sys.exit(1)
 
 
 					elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Motif must be a valid DNA motif')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Motif must be a valid DNA motif')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
 						#sys.exit(1)
 
 					try:
@@ -601,8 +601,8 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Length must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length. Length must be an integer')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
 						#sys.exit(1)
 
 					if str(entries[0]) not in hap2dict:
@@ -620,14 +620,14 @@ def main():
 
 					if len(entr_4) != 3:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
 						#sys.exit(1)
 
 					elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Motif must be a valid DNA motif')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Motif must be a valid DNA motif')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
 						#sys.exit(1)
 
 					try:
@@ -636,8 +636,8 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Length must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Length must be an integer')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
 						#sys.exit(1)
 
 
@@ -647,8 +647,8 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Altnum must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:length:altnum. Altnum must be an integer')
+						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
 						#sys.exit(1)
 
 
@@ -699,7 +699,7 @@ def main():
 						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
 						
 
-			elif str(entries[3]) == 'translocation cut-paste'
+			elif str(entries[3]) == 'translocation cut-paste':
 						
 
 				entr_4 = re.split('[:]',str(entries[4]))
