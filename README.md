@@ -32,7 +32,7 @@ Inputs to VISOR are:
 
 VISOR allows users to generate different type of variants specified in the ALT field:
 
-- 'deletion'. Deletes from start(included) to end(included)-
+- 'deletion'. Deletes from start(included) to end(included)
 - 'insertion'. Insert a specific sequence immediately after end
 - 'inversion'. Invert from start(included) to end(included)
 - 'tr expansion'. Expand an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the START/END format specified in the Examples/KnownRepetitions.bed file in this repository
@@ -47,14 +47,14 @@ VISOR allows users to generate different type of variants specified in the ALT f
 
 VISOR allows users to specify parameters in the INFO field:
 
--INFO for 'deletion' must be None
--INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
--INFO for 'inversion' must be None
--INFO for 'tr expansion' must be motif:num; motif is a valid DNA motif, num is number of motif to insert
--INFO for 'tr contraction' must be motif:num; motif is a valid DNA motif, num is number of motif to delete
--INFO for 'ptr' must be motif:num; motif motif is a valid DNA motif, num is number of motif to insert
--INFO for 'atr' must be motif:num:altnum; motif is a valid DNA motif, num is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only.
--INFO for 'translocation cut-paste' must be hap:chr:break; hap is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed) and break is the breakpoint: translocation will be put immediately after the breakpoint.
+- INFO for 'deletion' must be None
+- INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
+- INFO for 'inversion' must be None
+- INFO for 'tr expansion' must be motif:num; motif is a valid DNA motif, num is number of motif to insert
+- INFO for 'tr contraction' must be motif:num; motif is a valid DNA motif, num is number of motif to delete
+- INFO for 'ptr' must be motif:num; motif motif is a valid DNA motif, num is number of motif to insert
+- INFO for 'atr' must be motif:num:altnum; motif is a valid DNA motif, num is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only.
+- INFO for 'translocation cut-paste' must be hap:chr:break; hap is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed) and break is the breakpoint: translocation will be put immediately after the breakpoint.
 
 # An example .bed file is included in Examples/example.bed
 
