@@ -830,15 +830,14 @@ def main():
 
 
 
-	if len(hap2dict) != 0: #do not ignore second haplpotype
+
+	ParseDict(classic_chrs, immutable_ref, hap1dict, os.path.abspath(args.output + '/h1.fa'))
+
+	if len(hap2dict) != 0:
+
+		ParseDict(classic_chrs, immutable_ref, hap2dict, os.path.abspath(args.output + '/h2.fa'))
 
 
-		runInParallel(ParseDict, (classic_chrs, immutable_ref, hap1dict, os.path.abspath(args.output + '/h1.fa')),(classic_chrs, immutable_ref, hap2dict, os.path.abspath(args.output + '/h2.fa')))
-
-	else:
-
-
-		ParseDict(chromosomes, fasta, hap1dict, os.path.abspath(args.output + '/h1.fa'))
 
 
 	end=timeit.default_timer()
@@ -889,20 +888,6 @@ class CustomFormat(HelpFormatter):
 		return action.dest.upper()
 
 
-
-def runInParallel(function, *arguments):
-
-	proc = []
-
-	for args in arguments:
-
-		p = Process(target=function, args=args)
-		p.start()
-		proc.append(p)
-
-	for p in proc:
-
-		p.join()
 
 
 
@@ -1155,18 +1140,16 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 						write_end_sequence(seq[end:], output_fasta) #end not included, as it was included in the variant
 
-						i+=1 #reached end for the chromosome
 
-
-					else:
+					elif i < len(alterations_list) -1:
 
 
 						nextstart=alterations_list[i+1][0]
 						thisend=end
 
-						write_sequence_between(seq[end:nextstart-1], output_fasta)
+						write_sequence_between(seq[thisend:nextstart-1], output_fasta)
 
-						i+=1
+					i+=1
 
 
 
