@@ -58,7 +58,23 @@ def main():
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
 	possible_variants = ['deletion', 'insertion', 'inversion', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste'] #allowed variants
 	valid_dna = 'NACGT' #allowed nucleotides
-	immutable_ref=pyfaidx.Fasta(args.genome) #load referene, that will be used to modify real .fasta
+	
+
+	try:
+
+		with open(os.path.abspath(args.genome),'r') as file:
+
+			assert(file.readline().startswith('>')) #genome .file starts with '>'
+
+	except:
+
+		print('Reference file does not exist, is not readable or is not a valid .fasta file')
+		#logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
+		#sys.exit(1)
+
+
+
+	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
 
 	bedh1 = pybedtools.BedTool(os.path.abspath(args.bedfile_haplotype_1)) #this one is required
 	varh1=dict()
