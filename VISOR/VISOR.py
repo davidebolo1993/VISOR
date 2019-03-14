@@ -10,13 +10,14 @@ import re
 from operator import itemgetter
 import argparse
 from argparse import HelpFormatter
+from multiprocessing import Process
 import timeit
 
 
 #additional libraries
 
 import pybedtools #useful to sort inside python
-import pyfaidx ## fastest way to deal with .fasta in python
+import pyfaidx # fastest way to deal with .fasta in python
 
 
 def main():
@@ -44,11 +45,11 @@ def main():
 
 		except:
 
-			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			#print('It was not possible to create the results folder. Specify a path for which you have write permissions')
 			sys.exit(1)
 
 
-	#logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 	start=timeit.default_timer()
 
@@ -67,9 +68,9 @@ def main():
 
 	except:
 
-		print('Reference file does not exist, is not readable or is not a valid .fasta file')
-		#logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
-		#sys.exit(1)
+		#print('Reference file does not exist, is not readable or is not a valid .fasta file')
+		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
+		sys.exit(1)
 
 
 
@@ -85,13 +86,13 @@ def main():
 
 	except:
 
-		print('Incorrect .bed format for haplotype 1')
-		#logging.error('Incorrect .bed format for haplotype 1')
-		#sys.exit(1)
+		#print('Incorrect .bed format for haplotype 1')
+		logging.error('Incorrect .bed format for haplotype 1')
+		sys.exit(1)
 
 
 
-	#logging.info('Organizing variants')
+	logging.info('Organizing variants')
 
 	#initialize dictionaries
 
@@ -103,9 +104,9 @@ def main():
 
 		if str(entries[0]) not in classic_chrs: #exclude errors in the first field
 
-			print(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-			#logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-			#sys.exit(1)
+			#print(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+			sys.exit(1)
 
 		try:
 
@@ -113,9 +114,9 @@ def main():
 
 		except:
 
-			print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
-			#logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
-			#sys.exit(1)
+			#print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
+			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
+			sys.exit(1)
 
 
 		try:
@@ -124,30 +125,30 @@ def main():
 
 		except:
 
-			print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
-			#logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
-			#sys.exit(1)
+			#print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
+			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
+			sys.exit(1)
 
 
 		if (int(entries[2]) - int(entries[1]) == 0):
 
-			print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
-			#logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
-			#sys.exit(1)
+			#print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
+			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
+			sys.exit(1)
 
 
 		if int(entries[1]) == 0:
 
-			print('Start ' + str(entries[1]) + ' cannot be 0')
-			#logging.error('Start ' + str(entries[1]) + ' cannot be 0')
-			#sys.exit(1)
+			#print('Start ' + str(entries[1]) + ' cannot be 0')
+			logging.error('Start ' + str(entries[1]) + ' cannot be 0')
+			sys.exit(1)
 
 
 		if str(entries[3]) not in possible_variants: #stop on variant different than expected
 
-			print(str(entries[3]) + ' is not a valid variant in .bed for haplotype 1.')
-			#logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 1.')
-			#sys.exit(1)
+			#print(str(entries[3]) + ' is not a valid variant in .bed for haplotype 1.')
+			logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 1.')
+			sys.exit(1)
 
 		
 		else: #everything fine
@@ -156,9 +157,9 @@ def main():
 
 				if str(entries[4]) != 'None':
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
+					sys.exit(1)
 
 				if str(entries[0]) not in hap1dict:
 
@@ -173,9 +174,9 @@ def main():
 
 				if str(entries[4]) != 'None':
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
+					sys.exit(1)
 
 				if str(entries[0]) not in hap1dict:
 
@@ -190,9 +191,9 @@ def main():
 
 				if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA sequence with only A,C,T,G,N chars')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA sequence with only A,C,T,G,N chars')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
+					sys.exit(1)
 						
 				if str(entries[0]) not in hap1dict:
 
@@ -210,16 +211,16 @@ def main():
 
 				if len(entr_4) != 2:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+					sys.exit(1)
 
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+					sys.exit(1)
 
 				try:
 
@@ -227,9 +228,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+					sys.exit(1)
 
 				if str(entries[0]) not in hap1dict:
 
@@ -246,15 +247,15 @@ def main():
 
 				if len(entr_4) != 3:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+					sys.exit(1)
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+					sys.exit(1)
 
 				try:
 
@@ -262,9 +263,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+					sys.exit(1)
 
 
 				try:
@@ -273,9 +274,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+					sys.exit(1)
 
 
 				if str(entries[0]) not in hap1dict:
@@ -294,15 +295,15 @@ def main():
 
 				if len(entr_4) != 2:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+					sys.exit(1)
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
+					sys.exit(1)
 
 				try:
 
@@ -310,9 +311,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+					sys.exit(1)
 
 
 				if str(entries[0]) not in hap1dict:
@@ -332,22 +333,22 @@ def main():
 
 				if len(entr_4) != 3:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+					sys.exit(1)
 
 
 				if str(entr_4[0]) not in ['h1','h2']:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+					sys.exit(1)
 
 				if str(entr_4[1]) not in classic_chrs:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+					sys.exit(1)
 
 				try:
 
@@ -355,9 +356,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+					sys.exit(1)
 
 
 				if entr_4[0] == 'h1':
@@ -405,22 +406,22 @@ def main():
 
 				if len(entr_4) != 3:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+					sys.exit(1)
 
 
 				if str(entr_4[0]) not in ['h1','h2']:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+					sys.exit(1)
 
 				if str(entr_4[1]) not in classic_chrs:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+					sys.exit(1)
 
 				try:
 
@@ -428,9 +429,9 @@ def main():
 
 				except:
 
-					print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-					#sys.exit(1)
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+					sys.exit(1)
 
 
 				if entr_4[0] == 'h1':
@@ -468,17 +469,17 @@ def main():
 
 		except:
 
-			print('Incorrect .bed format for haplotype 2')
-			#logging.error('Incorrect .bed format for haplotype 2')
-			#sys.exit(1)
+			#print('Incorrect .bed format for haplotype 2')
+			logging.error('Incorrect .bed format for haplotype 2')
+			sys.exit(1)
 
 		for entries in srtbedh2: #read, validate and organize
 
 			if str(entries[0]) not in classic_chrs: #exclude errors in the first field
 
-				print(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-				#logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-				#sys.exit(1)
+				#print(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+				logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+				sys.exit(1)
 
 			try:
 
@@ -486,9 +487,9 @@ def main():
 
 			except:
 
-				print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
-				#logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
-				#sys.exit(1)
+				#print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
+				logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
+				sys.exit(1)
 
 
 			try:
@@ -497,30 +498,30 @@ def main():
 
 			except:
 
-				print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
-				#logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
-				#sys.exit(1)
+				#print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
+				logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
+				sys.exit(1)
 
 
 			if (int(entries[2]) - int(entries[1]) == 0):
 
-				print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
-				#logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
-				#sys.exit(1)
+				#print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
+				logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
+				sys.exit(1)
 
 
 			if int(entries[1]) == 0:
 
-				print('Start ' + str(entries[1]) + ' cannot be 0')
-				#logging.error('Start ' + str(entries[1]) + ' cannot be 0')
-				#sys.exit(1)
+				#print('Start ' + str(entries[1]) + ' cannot be 0')
+				logging.error('Start ' + str(entries[1]) + ' cannot be 0')
+				sys.exit(1)
 
 
 			if str(entries[3]) not in possible_variants: #stop on variant different than expected
 
-				print(str(entries[3]) + ' is not a valid variant in .bed for haplotype 2.')
-				#logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 2.')
-				#sys.exit(1)
+				#print(str(entries[3]) + ' is not a valid variant in .bed for haplotype 2.')
+				logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 2.')
+				sys.exit(1)
 
 			
 			else: #everything fine
@@ -529,9 +530,9 @@ def main():
 
 					if str(entries[4]) != 'None':
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
+						sys.exit(1)
 
 					if str(entries[0]) not in hap2dict:
 
@@ -546,9 +547,9 @@ def main():
 
 					if str(entries[4]) != 'None':
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
+						sys.exit(1)
 
 					if str(entries[0]) not in hap2dict:
 
@@ -563,9 +564,9 @@ def main():
 
 					if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA sequence with only A,C,T,G,N chars')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA sequence with only A,C,T,G,N chars')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
+						sys.exit(1)
 							
 					if str(entries[0]) not in hap2dict:
 
@@ -583,16 +584,16 @@ def main():
 
 					if len(entr_4) != 2:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+						sys.exit(1)
 
 
 					elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+						sys.exit(1)
 
 					try:
 
@@ -600,9 +601,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+						sys.exit(1)
 
 					if str(entries[0]) not in hap2dict:
 
@@ -619,15 +620,15 @@ def main():
 
 					if len(entr_4) != 3:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
+						sys.exit(1)
 
 					elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
+						sys.exit(1)
 
 					try:
 
@@ -635,9 +636,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
+						sys.exit(1)
 
 
 					try:
@@ -646,9 +647,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
+						sys.exit(1)
 
 
 					if str(entries[0]) not in hap2dict:
@@ -667,15 +668,15 @@ def main():
 
 					if len(entr_4) != 2:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+						sys.exit(1)
 
 					elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
+						sys.exit(1)
 
 					try:
 
@@ -683,9 +684,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+						sys.exit(1)
 
 
 					if str(entries[0]) not in hap2dict:
@@ -704,22 +705,22 @@ def main():
 
 					if len(entr_4) != 3:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						sys.exit(1)
 
 
 					if str(entr_4[0]) not in ['h1','h2']:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						sys.exit(1)
 
 					if str(entr_4[1]) not in classic_chrs:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						sys.exit(1)
 
 					try:
 
@@ -727,9 +728,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						sys.exit(1)
 
 
 					if entr_4[0] == 'h1':
@@ -777,22 +778,22 @@ def main():
 
 					if len(entr_4) != 3:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint')
+						sys.exit(1)
 
 
 					if str(entr_4[0]) not in ['h1','h2']:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Haplotype must be h1 or h2')
+						sys.exit(1)
 
 					if str(entr_4[1]) not in classic_chrs:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Chromosomes are ch1-chr22, chrX, chrY and chrM')
+						sys.exit(1)
 
 					try:
 
@@ -800,9 +801,9 @@ def main():
 
 					except:
 
-						print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-						#logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
-						#sys.exit(1)
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint. Breakpoint must be an integer')
+						sys.exit(1)
 
 
 					if entr_4[0] == 'h2':
@@ -842,11 +843,11 @@ def main():
 	end=timeit.default_timer()
 	elapsed=(end-start)/60
 
-	print('Haplotypes generated in ' + str(elapsed) + ' minutes')
-	#logging.info('Haplotypes generated in ' + str(elapsed) + ' minutes')
+	#print('Haplotypes generated in ' + str(elapsed) + ' minutes')
+	logging.info('Haplotypes generated in ' + str(elapsed) + ' minutes')
 
-	print('Done')
-	#logging.info('Done')
+	#print('Done')
+	logging.info('Done')
 
 
 
