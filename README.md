@@ -56,7 +56,7 @@ VISOR allows users to specify parameters in the INFO field:
 - INFO for 'atr' must be motif:num:altnum; motif is a valid DNA motif, num is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only.
 - INFO for 'translocation cut-paste' must be hap:chr:break; hap is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed) and break is the breakpoint: translocation will be put immediately after the breakpoint.
 
-# An example .bed file is included in Examples/example.bed
+## An example .bed file is included in Examples/example.bed
 
 
 ## INSTALL VISOR
