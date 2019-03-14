@@ -68,11 +68,11 @@ VISOR allows users to specify parameters in the INFO field:
 - INFO for 'deletion' must be None
 - INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for 'inversion' must be None
-- INFO for 'tr expansion' must be motif:num; motif is a valid DNA motif, num is number of motif to insert
-- INFO for 'tr contraction' must be motif:num; motif is a valid DNA motif, num is number of motif to delete
-- INFO for 'ptr' must be motif:num; motif motif is a valid DNA motif, num is number of motif to insert
-- INFO for 'atr' must be motif:num:altnum; motif is a valid DNA motif, num is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only.
-- INFO for 'translocation cut-paste' must be hap:chr:break; hap is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed) and break is the breakpoint: translocation will be put immediately after the breakpoint.
+- INFO for 'tr expansion' must be motif:number; motif is a valid DNA motif, number is number of motif to insert
+- INFO for 'tr contraction' must be motif:number; motif is a valid DNA motif, number is number of motif to delete
+- INFO for 'ptr' must be motif:number; motif motif is a valid DNA motif, number is number of motif to insert
+- INFO for 'atr' must be motif:number:altnum; motif is a valid DNA motif, number is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only.
+- INFO for 'translocation cut-paste' must be haplotype:chromosome:breakpoint; haplotype is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed) and breakpoint is the number of the base immediately after which translocated region will be put.
 
 
 ### An example .bed file is included in Examples/example.bed
