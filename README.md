@@ -11,6 +11,24 @@ VISOR requires a working python 3.6 environment and depends on the following pyt
 - pyfaidx (v 0.5.5.2)
 - pybedtools (v 0.8.0)
 
+## Install VISOR
+
+```sh
+git clone https://github.com/davidebolo1993/VISOR.git
+cd VISOR
+python setup.py install
+
+```
+
+## Run VISOR
+
+```sh
+
+VISOR -g genome.fa -bedh1 bedh1.bed -bedh2 bedh2.bed -O pathout
+
+```
+
+
 ## Inputs
 
 Inputs to VISOR are:
@@ -58,27 +76,4 @@ VISOR allows users to specify parameters in the INFO field:
 
 
 ### An example .bed file is included in Examples/example.bed
-
-
-## INSTALL VISOR
-
-```sh
-git clone https://github.com/davidebolo1993/VISOR.git
-cd VISOR
-python setup.py install
-
-```
-
-## RUN VISOR
-
-```sh
-
-VISOR -g genome.fa -bedh1 bedh1.bed -bedh2 bedh2.bed -O pathout
-
-```
-
-
-
-
-
 
