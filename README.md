@@ -53,7 +53,7 @@ VISOR allows users to generate different type of variants specified in the ALT f
 - 'deletion'. Deletes from start(included) to end(included)
 - 'insertion'. Inserts a specific sequence immediately after end
 - 'inversion'. Inverts from start(included) to end(included)
-- 'tr expansion'. Expands an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the START/END format specified in the Examples/KnownRepetitions.bed file in this repository
+- 'tr expansion'. Expands an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the one of the START-END pair specified in the Examples/KnownRepetitions.bed file in this repository (this example is for GRCh38)
 - 'tr contraction'. Contracts an existent tandem repetition. Works as described before
 - 'ptr'. Inserts a perfect tandem repetition immediately after end
 - 'atr' Inserts a approximate tandem repetition immediately after end
