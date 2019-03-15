@@ -39,7 +39,7 @@ Inputs to VISOR are:
 
 .bed file must contain 5 columns without header: CHROMOSOME, START, END, ALT, INFO
 
-- CHROMOSOME: is the chromosome, in the format 'chr'. Accepted chromosomes are chr1-chr22,chrX,chrY and chrM
+- CHROMOSOME: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22,chrX,chrY and chrM
 - START: where the variant starts
 - END: where the variant ends
 - ALT: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
