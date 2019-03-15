@@ -42,7 +42,7 @@ Inputs to VISOR are:
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22,chrX,chrY and chrM
 - __START__: where the variant starts
 - __END__: where the variant ends
-- __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
+- __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
 - __INFO__: info for the alteration (more details below)
 
 _An example .bed file is included in Examples/example.bed_
@@ -60,6 +60,7 @@ VISOR allows users to generate different type of variants specified in the ALT f
 - __'insertion'__. Inserts a specific sequence immediately after end
 - __'inversion'__. Inverts from start (included) to end (included)
 - __'duplication'__. Duplicates from start (included) to end (included) immediately after end
+- __'snp'__. Introduces a single nucleotide polimorphism in end
 - __'tr expansion'__. Expands an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is for GRCh38)
 - __'tr contraction'__. Contracts an existent tandem repetition. Works as described before
 - __'ptr'__. Inserts a perfect tandem repetition immediately after end
@@ -76,6 +77,7 @@ VISOR requires some users-defined parameteres in the INFO field:
 - INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for 'inversion' must be __None__
 - INFO for 'duplication' must be __number__; number is the number of time segment appears
+- INFO for 'snp' must be __nuc__; nuc is the nucleotide that will be used to introduce the variant
 - INFO for 'tr expansion' must be __motif:number__ motif is a valid DNA motif, number is number of motif to insert
 - INFO for 'tr contraction' must be __motif:number__; motif is a valid DNA motif, number is number of motif to delete
 - INFO for 'ptr' must be __motif:number__; motif motif is a valid DNA motif, number is number of motif to insert
