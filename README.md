@@ -64,7 +64,7 @@ VISOR allows users to generate different type of variants specified in the ALT f
 
 ## INFO FIELD
 
-VISOR allows users to specify parameters in the INFO field:
+VISOR requires some users-defined parameteres in the INFO field:
 
 - INFO for 'deletion' must be _None_
 - INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
