@@ -56,16 +56,16 @@ A fasta (.fa) for each haplotype in the output folder (pathout/h1.fa and pathout
 
 VISOR allows users to generate different type of variants specified in the ALT field:
 
-- __'deletion'__. Deletes from start(included) to end(included)
+- __'deletion'__. Deletes from start (included) to end (included)
 - __'insertion'__. Inserts a specific sequence immediately after end
-- __'inversion'__. Inverts from start(included) to end(included)
-- __'duplication'__. Duplicates from start(included) to end(included) immediately after end
+- __'inversion'__. Inverts from start (included) to end (included)
+- __'duplication'__. Duplicates from start (included) to end (included) immediately after end
 - __'tr expansion'__. Expands an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is for GRCh38)
 - __'tr contraction'__. Contracts an existent tandem repetition. Works as described before
 - __'ptr'__. Inserts a perfect tandem repetition immediately after end
 - __'atr'__ Inserts a approximate tandem repetition immediately after end
-- __'translocation cut-paste'__. Translocates from start(included) to end(included) to another region. Translocated region is deleted from original position
-- __'translocation copy-paste'__. Translocates from start(included) to end(included) to another region. Translocated region is not deleted from original position
+- __'translocation cut-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is deleted from original position
+- __'translocation copy-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
 
 
 ## INFO FIELD
