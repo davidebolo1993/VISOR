@@ -8,4 +8,4 @@ chr7	502768	502810	tr expansion	CA:500
 chr7	1527396	1527448	tr contraction	AC:10
 chr18	17000000	17001000	translocation copy-paste	h1:chr19:17000000:reverse
 chr21	17000000	17001000	translocation cut-paste	h2:chr5:1000000:forward
-chr2  17000000  17000001  snp T
+chr2	17000000	17000001	snp	T
