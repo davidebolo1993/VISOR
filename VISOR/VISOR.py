@@ -209,7 +209,7 @@ def main():
 
 				try:
 
-					int(info)
+					int(entries[4])
 
 				except:
 
@@ -663,7 +663,7 @@ def main():
 
 					try:
 
-						int(info)
+						int(entries[4])
 
 					except:
 
