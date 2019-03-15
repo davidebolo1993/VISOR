@@ -57,7 +57,7 @@ def main():
 
 
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'duplication', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste'] #allowed variants
+	possible_variants = ['deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste'] #allowed variants
 	valid_dna = 'NACGT' #allowed nucleotides
 	
 
@@ -153,6 +153,25 @@ def main():
 
 		
 		else: #everything fine
+
+
+			if str(entries[3]) == 'snp':
+
+				if str(entries[4]) not in valid_dna:
+
+					#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA base included in A,C,T,G,N')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G,N')
+					sys.exit(1)
+
+
+				if str(entries[0]) not in hap1dict:
+
+					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+				else:
+
+					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
 		
 			if str(entries[3]) == 'inversion':
 
@@ -609,6 +628,24 @@ def main():
 			
 			else: #everything fine
 			
+				if str(entries[3]) == 'snp':
+
+					if str(entries[4]) not in valid_dna:
+
+						#print('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA base included in A,C,T,G,N')
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G,N')
+						sys.exit(1)
+
+
+					if str(entries[0]) not in hap2dict:
+
+						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+					else:
+
+						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+
 				if str(entries[3]) == 'inversion':
 
 					if str(entries[4]) != 'None':
@@ -1209,7 +1246,7 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 
 def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
-	trans = str.maketrans('ATGCN', 'TACGN')
+	trans = str.maketrans('ATGC', 'TACG')
 
 	for chrs in chromosomes:
 
@@ -1286,6 +1323,13 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 					elif typ == 'duplication':
 
 						write_sequence_between(seq[start-1:end]*info, output_fasta)
+
+
+					elif typ == 'snp':
+
+						until_end=seq[start-1:end-1]
+
+						write_sequence_between(until_end+info, output_fasta)
 
 
 					elif typ == 'ptr': #perfect tandem repetition
