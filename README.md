@@ -77,5 +77,5 @@ VISOR requires some users-defined parameteres in the INFO field:
 - INFO for 'translocation cut-paste' must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed), breakpoint is the number of the base immediately after which translocated region will be put and orientation is the orientation of the sequence ('forward', as it was for the original region, or 'reverse', inverted).
 - INFO for 'translocation copy-paste' is the same for 'translocation cut-paste'
 
-### An example .bed file is included in Examples/example.bed
+#### An example .bed file is included in Examples/example.bed
 
