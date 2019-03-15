@@ -957,9 +957,6 @@ def main():
 								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
-	print(hap1dict)
-	print(hap2dict)
-
 
 	ParseDict(classic_chrs, immutable_ref, hap1dict, os.path.abspath(args.output + '/h1.fa'))
 
