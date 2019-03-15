@@ -29,7 +29,7 @@ def main():
 
 	required.add_argument('-g','--genome', help='reference file', metavar='.fa', required=True)
 	required.add_argument('-bedh1', '--bedfile_haplotype_1', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 1', metavar='.bed', required=True)
-	required.add_argument('-O', '--output', help='name of the directory where the 2 .fa haplotype will be saved', metavar='folder', required=True)
+	required.add_argument('-O', '--output', help='name of the directory where the 2 .fa haplotypes will be saved', metavar='folder', required=True)
 
 	optional = parser.add_argument_group('Additional input')
 	optional.add_argument('-bedh2', '--bedfile_haplotype_2', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 2', metavar='', default=None)
