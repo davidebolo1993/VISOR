@@ -69,7 +69,7 @@ VISOR allows users to specify parameters in the INFO field:
 - INFO for 'deletion' must be _None_
 - INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for 'inversion' must be _None_
-- INFO for 'duplication' must be _number_; number is the number of time segment is duplicated
+- INFO for 'duplication' must be _number_; number is the number of time segment appears
 - INFO for 'tr expansion' must be _motif:number_; motif is a valid DNA motif, number is number of motif to insert
 - INFO for 'tr contraction' must be _motif:number_; motif is a valid DNA motif, number is number of motif to delete
 - INFO for 'ptr' must be _motif:number_; motif motif is a valid DNA motif, number is number of motif to insert
