@@ -6,4 +6,4 @@ chr1	6000000	6000001	atr	ATGG:10:5
 chr7	502768	502810	tr expansion	CA:5
 chr7	1527396	1527448	tr contraction	AC:5
 chr18	17000000	17000100	translocation copy-paste	h1:chr19:17000000
-chr18	17000000	17000100	translocation cut-paste	h2:chr1:100
+chr18	18000000	18000100	translocation cut-paste	h2:chr1:100
