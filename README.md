@@ -53,6 +53,7 @@ VISOR allows users to generate different type of variants specified in the ALT f
 - 'deletion'. Deletes from start(included) to end(included)
 - 'insertion'. Inserts a specific sequence immediately after end
 - 'inversion'. Inverts from start(included) to end(included)
+- 'duplication'. Duplicates from start(included) to end(included)
 - 'tr expansion'. Expands an existent tandem repetition. tr is meant to be one of the repetitions in microsatellites region with the one of the START-END pair specified in the Examples/KnownRepetitions.bed file in this repository (this example is for GRCh38)
 - 'tr contraction'. Contracts an existent tandem repetition. Works as described before
 - 'ptr'. Inserts a perfect tandem repetition immediately after end
@@ -68,6 +69,7 @@ VISOR allows users to specify parameters in the INFO field:
 - INFO for 'deletion' must be _None_
 - INFO for 'insertion' must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for 'inversion' must be _None_
+- INFO for 'duplication' must be _number_; number is the number of time segment is duplicated
 - INFO for 'tr expansion' must be _motif:number_; motif is a valid DNA motif, number is number of motif to insert
 - INFO for 'tr contraction' must be _motif:number_; motif is a valid DNA motif, number is number of motif to delete
 - INFO for 'ptr' must be _motif:number_; motif motif is a valid DNA motif, number is number of motif to insert
