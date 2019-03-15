@@ -2,7 +2,7 @@
 VarIant SimulatOR
 
 
-VISOR is a simple tool written in python for fast haplotype-specific variants simulation.
+VISOR is a small tool written in python for fast haplotype-specific variants simulation.
 
 ## Requirements
 
