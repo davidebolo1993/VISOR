@@ -1062,14 +1062,14 @@ def write_unmodified_chromosome(chromosome, seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write('>' + chromosome + '\n' + seq + '\n')
+		faout.write('>' + chromosome + '\n' + seq.upper() + '\n')
 
 
 def write_start_sequence(chromosome, seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write('>' + chromosome + '\n' + seq )
+		faout.write('>' + chromosome + '\n' + seq.upper() )
 
 
 
@@ -1077,7 +1077,7 @@ def write_sequence_between(seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write(seq)
+		faout.write(seq.upper())
 
 
 
@@ -1085,7 +1085,7 @@ def write_end_sequence(seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write(seq + '\n')
+		faout.write(seq.upper() + '\n')
 
 
 
@@ -1209,7 +1209,7 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 
 def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
-	trans = str.maketrans('ATGC', 'TACG')
+	trans = str.maketrans('ATGCN', 'TACGN')
 
 	for chrs in chromosomes:
 
