@@ -46,6 +46,7 @@ def main():
 		except:
 
 			#print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			logging.error('It was not possible to create the results folder. Specify a path for which you have write permissions')
 			sys.exit(1)
 
 
@@ -993,13 +994,16 @@ def main():
 								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
-
+	logging.info('Generating .fa file with variants for haplotype 1')
+	
 	ParseDict(classic_chrs, immutable_ref, hap1dict, os.path.abspath(args.output + '/h1.fa'))
-
+	
+	
 	if len(hap2dict) != 0:
-
+		
+		logging.info('Generating .fa file with variants for haplotype 2')
+		
 		ParseDict(classic_chrs, immutable_ref, hap2dict, os.path.abspath(args.output + '/h2.fa'))
-
 
 
 
