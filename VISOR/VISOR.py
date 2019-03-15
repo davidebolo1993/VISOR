@@ -173,7 +173,7 @@ def main():
 					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
 
 		
-			if str(entries[3]) == 'inversion':
+			elif str(entries[3]) == 'inversion':
 
 				if str(entries[4]) != 'None':
 
@@ -646,7 +646,7 @@ def main():
 						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
 
 
-				if str(entries[3]) == 'inversion':
+				elif str(entries[3]) == 'inversion':
 
 					if str(entries[4]) != 'None':
 
