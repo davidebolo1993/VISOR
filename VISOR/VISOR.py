@@ -401,11 +401,11 @@ def main():
 
 						if str(entr_4[3]) == 'forward':
 
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else: #orientation is reverse
 
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 
 					else:
@@ -413,11 +413,11 @@ def main():
 						if str(entr_4[3]) == 'forward':
 
 
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 						else: #orientation is reverse
 
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 				elif entr_4[0] == 'h2':
@@ -434,22 +434,22 @@ def main():
 
 						if str(entr_4[3]) == 'forward':
 
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else: #orientation is reverse
 
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 					else:
 
 						if str(entr_4[3]) == 'forward':
 
 
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 						else: #orientation is reverse
 
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 			
 			else: #is a translocation copy paste
@@ -497,11 +497,11 @@ def main():
 
 						if str(entr_4[3]) == 'forward':
 
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else: #orientation is reverse
 
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 					else:
 
@@ -509,11 +509,11 @@ def main():
 						if str(entr_4[3]) == 'forward':
 
 
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 						else: #orientation is reverse
 
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 				elif entr_4[0] == 'h2':
@@ -522,22 +522,22 @@ def main():
 
 						if str(entr_4[3]) == 'forward':
 
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else: #orientation is reverse
 
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 					else:
 
 						if str(entr_4[3]) == 'forward':
 
 
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 						else: #orientation is reverse
 
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 
@@ -855,11 +855,11 @@ def main():
 
 							if str(entr_4[3]) == 'forward':
 
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 							else: #orientation is reverse
 
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 
 						else:
@@ -867,11 +867,11 @@ def main():
 							if str(entr_4[3]) == 'forward':
 
 
-								hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 							else: #orientation is reverse
 
-								hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 					elif entr_4[0] == 'h1':
@@ -888,22 +888,22 @@ def main():
 
 							if str(entr_4[3]) == 'forward':
 
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 							else: #orientation is reverse
 
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else:
 
 							if str(entr_4[3]) == 'forward':
 
 
-								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 							else: #orientation is reverse
 
-								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 				
 				else: #is a translocation copy paste
@@ -951,11 +951,11 @@ def main():
 
 							if str(entr_4[3]) == 'forward':
 
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 							else: #orientation is reverse
 
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else:
 
@@ -963,11 +963,11 @@ def main():
 							if str(entr_4[3]) == 'forward':
 
 
-								hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 							else: #orientation is reverse
 
-								hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 					elif entr_4[0] == 'h1':
@@ -976,22 +976,22 @@ def main():
 
 							if str(entr_4[3]) == 'forward':
 
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 							else: #orientation is reverse
 
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 						else:
 
 							if str(entr_4[3]) == 'forward':
 
 
-								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 							else: #orientation is reverse
 
-								hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[2])+1, 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
 	logging.info('Generating .fa file with variants for haplotype 1')
