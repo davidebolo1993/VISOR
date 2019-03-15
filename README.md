@@ -45,6 +45,7 @@ Inputs to VISOR are:
 - __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
 - __INFO__: info for the alteration (more details below)
 
+_An example .bed file is included in Examples/example.bed_
 
 ## ALT FIELD
 
@@ -76,6 +77,3 @@ VISOR requires some users-defined parameteres in the INFO field:
 - INFO for 'atr' must be __motif:number:altnum__; motif is a valid DNA motif, number is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only
 - INFO for 'translocation cut-paste' must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed), breakpoint is the number of the base immediately after which translocated region will be put and orientation is the orientation of the sequence ('forward', as it was for the original region, or 'reverse', inverted).
 - INFO for 'translocation copy-paste' is the same for 'translocation cut-paste'
-
-#### An example .bed file is included in Examples/example.bed
-
