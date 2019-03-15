@@ -47,6 +47,11 @@ Inputs to VISOR are:
 
 _An example .bed file is included in Examples/example.bed_
 
+
+## Outputs
+
+A fasta (.fa) for each haplotype in the output folder (pathout/h1.fa and pathout/h2.fa) containing specified alterations.
+
 ## ALT FIELD
 
 VISOR allows users to generate different type of variants specified in the ALT field:
