@@ -1062,14 +1062,14 @@ def write_unmodified_chromosome(chromosome, seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write('>' + chromosome + '\n' + seq.upper() + '\n')
+		faout.write('>' + chromosome + '\n' + seq + '\n')
 
 
 def write_start_sequence(chromosome, seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write('>' + chromosome + '\n' + seq.upper() )
+		faout.write('>' + chromosome + '\n' + seq )
 
 
 
@@ -1077,7 +1077,7 @@ def write_sequence_between(seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write(seq.upper())
+		faout.write(seq)
 
 
 
@@ -1085,7 +1085,7 @@ def write_end_sequence(seq, output_fasta):
 
 	with open (os.path.abspath(output_fasta), 'a') as faout:
 
-		faout.write(seq.upper() + '\n')
+		faout.write(seq + '\n')
 
 
 
