@@ -57,7 +57,7 @@ def main():
 
 
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste'] #allowed variants
+	possible_variants = ['deletion', 'insertion', 'inversion', 'duplication', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste'] #allowed variants
 	valid_dna = 'NACGT' #allowed nucleotides
 	
 
@@ -204,6 +204,25 @@ def main():
 
 					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
 
+
+			elif str(entries[3]) == 'duplication':
+
+				try:
+
+					int(info)
+
+				except:
+
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with number of duplication. Number must be an integer')
+					sys.exit(1)
+
+				if str(entries[0]) not in hap1dict:
+
+					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+
+				else:
+
+					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
 
 
 			elif str(entries[3]) == 'ptr': #perfect tandem repetition
@@ -640,6 +659,24 @@ def main():
 
 						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
 
+				elif str(entries[3]) == 'duplication':
+
+					try:
+
+						int(info)
+
+					except:
+
+						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with number of duplication. Number must be an integer')
+						sys.exit(1)
+
+					if str(entries[0]) not in hap1dict:
+
+						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+
+					else:
+
+						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
 
 
 				elif str(entries[3]) == 'ptr': #perfect tandem repetition
@@ -1165,6 +1202,8 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 	return new_seq
 
 
+
+
 def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 	trans = str.maketrans('ATGC', 'TACG')
@@ -1240,6 +1279,10 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 						alt_seq=info[::-1].translate(trans)
 
 						write_sequence_between(alt_seq, output_fasta)
+
+					elif typ == 'duplication':
+
+						write_sequence_between(seq[start-1:end]*info, output_fasta)
 
 
 					elif typ == 'ptr': #perfect tandem repetition
