@@ -10,7 +10,6 @@ import re
 from operator import itemgetter
 import argparse
 from argparse import HelpFormatter
-from multiprocessing import Process
 import timeit
 import string
 
