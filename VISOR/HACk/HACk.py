@@ -35,6 +35,31 @@ def run(parser, args):
 			sys.exit(1)
 
 
+	if not os.path.exists(os.path.abspath(args.output + '/haplotype1')):
+
+		try:
+
+			os.makedirs(os.path.abspath(args.output+ '/haplotype1'))
+
+		except:
+
+			print('It was not possible to create haplotype 1 results folder. Specify a path for which you have write permissions')
+			sys.exit(1)
+
+			
+	if not os.path.exists(os.path.abspath(args.output + '/haplotype2')):
+
+		try:
+
+			os.makedirs(os.path.abspath(args.output+ '/haplotype2'))
+
+		except:
+
+			print('It was not possible to create haplotype 2 results folder. Specify a path for which you have write permissions')
+			sys.exit(1)
+			
+			
+			
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_HACk.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 	start=timeit.default_timer()
