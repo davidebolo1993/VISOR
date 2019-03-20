@@ -127,7 +127,7 @@ def crick_orientation(bamfilein):
 
             continue
 
-         elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
+        elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
 
             continue
 
