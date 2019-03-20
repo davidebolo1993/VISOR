@@ -1363,7 +1363,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 						alt_seq=info[::-1].translate(trans)
 
-						write_sequence_between(alt_seq, output_fasta)
+						write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
 
 					elif typ == 'duplication':
 
