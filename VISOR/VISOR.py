@@ -54,7 +54,7 @@ def main():
 
 	lon.add_argument('-ml','--meanlength', help='Mean length (#bps) for reads [8000]', default=8000, type=int,metavar='')
 	lon.add_argument('-ma','--meanaccuracy', help='Mean accuracy (#bps) for reads [0.90]', default=0.90, type=float,metavar='')
-	lon.add_argument('-dr', '--differenceratio', help='Ratio of substitutions:insertions:deletions[30:30:40]', default='30:30:40', type=str, metavar='')
+	lon.add_argument('-dr', '--differenceratio', help='Ratio of substitutions:insertions:deletions [30:30:40]', default='30:30:40', type=str, metavar='')
 	lon.add_argument('-mc','--meancoverage', help='Mean coverage [20]', default=0.90, type=float,metavar='')
 
 
