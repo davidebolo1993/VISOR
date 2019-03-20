@@ -31,8 +31,7 @@ def run(parser, args):
 
 		except:
 
-			#print('It was not possible to create the results folder. Specify a path for which you have write permissions')
-			logging.error('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
 			sys.exit(1)
 
 
