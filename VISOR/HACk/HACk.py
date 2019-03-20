@@ -36,7 +36,7 @@ def run(parser, args):
 			sys.exit(1)
 
 
-	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_HACk.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 	start=timeit.default_timer()
 
