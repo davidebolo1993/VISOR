@@ -25,7 +25,7 @@ def main():
 
     optional = parser.add_argument_group('Strand-seq type')
 
-    optional.add_argument('-t','--type', help='defining orientations of reads 1 (R1) and reads 2 (R2) in .bam file. If "watson", all R1 are forward and all R2 are reverse, if "crick", all R1 are reverse and all R2 are forward [watson]', metavar='', default='watson', choices=['crick', 'watson'])
+    optional.add_argument('-t','--type', help='define orientations of reads 1 (R1) and reads 2 (R2) in .bam file. If "watson", all R1 are forward and all R2 are reverse, if "crick", all R1 are reverse and all R2 are forward [watson]', metavar='', default='watson', choices=['crick', 'watson'])
 
     args = parser.parse_args()
 
