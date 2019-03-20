@@ -34,7 +34,7 @@ def main():
 	required.add_argument('-h1b', '--haplotype1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 1', metavar='.bed', required=True)
 	required.add_argument('-O', '--output', help='name of the directory where the 2 .fa haplotypes will be saved', metavar='folder', required=True)
 
-	optional = parser_gen.add_argument_group('Additional input')
+	optional = parser.add_argument_group('Additional input')
 	optional.add_argument('-h2b', '--haplotype2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 2', metavar='', default=None)
 
 	args = parser.parse_args()
