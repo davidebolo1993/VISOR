@@ -27,8 +27,43 @@ def main():
 
 	## SCoRE ##
 
-	#parser_gen = subparsers.add_parser('SCoRE', help='Simulations CREator. Simulate .bam files with reads confirming alterations in .fa files')
+	parser_sim = subparsers.add_parser('SCoRE', help='Simulations CREator. Simulate .bam files with reads containing alterations from .fa files')
 
+	required = parser_sim.add_argument_group('Required I/O arguments')
+	required.add_argument('-h1fa','--haplotype1fa', help='haplotype 1 .fa file contaning alterations', metavar='.fa', required=True)
+	required.add_argument('-h1b','--haplotype1bed', help='haplotype 1 .bed file containing regions to simulate with chromosome, start, end, label', metavar='.fa',required=True)
+	required.add_argument('-O', '--output', help='name of the directory where the simulated .bam files will be saved', metavar='folder', required=True)
+
+
+
+	mod = parser_sim.add_argument_group('Simulations parameters')
+
+	mod.add_argument('-m','--mode', help='Type of simulation [classic short-read]', default='classic short-read', choices=['classic short-read', 'strand-sequencing short-read', 'classic long-read'],metavar='')
+
+	short = parser_sim.add_argument_group('Short reads main parameters for wgsim')
+
+	short.add_argument('-er','--errorrate', help='Base error rate [0.010]', default=0.010, type=float,metavar='')
+	short.add_argument('-c','--coverage', help='Mean desired coverage [30]', default=30, type=int,metavar='')
+	short.add_argument('-l1','--length1', help='Length (#bps) of first read in pair [150]', default=150, type=int,metavar='')
+	short.add_argument('-l2','--length2', help='Length (#bps) of second read in pair [150]', default=150, type=int,metavar='')
+	short.add_argument('-ind','--indels', help='fraction of indels [0.000000001]', default=0.000000001, type=float,metavar='')
+	short.add_argument('-indext','--indelsextension', help='probability an indel is extended [0.000000001]', default=0.000000001, type=float,metavar='')
+
+
+	lon = parser_sim.add_argument_group('Long reads main parameters for pbsim')
+
+	lon.add_argument('-ml','--meanlength', help='Mean length (#bps) for reads [8000]', default=8000, type=int,metavar='')
+	lon.add_argument('-ma','--meanaccuracy', help='Mean accuracy (#bps) for reads [0.90]', default=0.90, type=float,metavar='')
+	lon.add_argument('-dr', '--differenceratio' help='Ratio of substitutions:insertions:deletions[30:30:40]', default='30:30:40', type=str, metavar='')
+	lon.add_argument('-mc','--meancoverage', help='Mean coverage [20]', default=0.90, type=float,metavar='')
+
+
+	optional = parser_sim.add_argument_group('Additional inputs')
+
+	optional.add_argument('-h2fa','--haplotype2fa', help='haplotype 2 .fa file containing (or not) alterations', metavar='')
+	optional.add_argument('-h2b','--haplotype2bed', help='haplotype 2 .bed file containing regions to simulate with chromosome, start, end, label', metavar='')
+
+	parser_sim.set_defaults(func=run_subtool)
 
 
 	args = parser.parse_args()
