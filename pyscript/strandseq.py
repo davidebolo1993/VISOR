@@ -134,7 +134,7 @@ def crick_orientation(bamfilein):
         elif not read.is_read1 and  read.is_reverse: #if read2 is reverse skip
 
             continue
- 
+
         else:
 
             qname = read.query_name
