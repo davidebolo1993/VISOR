@@ -10,6 +10,7 @@ import re
 from operator import itemgetter
 import timeit
 import string
+import shutil
 
 
 #additional libraries
@@ -1042,6 +1043,11 @@ def run(parser, args):
 		logging.info('Generating .fa file with variants for haplotype 2')
 		
 		ParseDict(classic_chrs, immutable_ref, hap2dict, os.path.abspath(args.output + '/h2.fa'))
+	
+	else:
+
+		logging.info('Generating .fa file without variants for haplotype 2')
+		shutil.copy2(os.path.abspath(args.genome), os.path.abspath(args.output + '/h2.fa'))
 
 
 
