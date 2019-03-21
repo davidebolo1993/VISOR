@@ -7,7 +7,7 @@ def main():
 
 	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This program was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI)''', formatter_class=CustomFormat) 
 
-	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk, SHORtS,LASeR') #two submodules
+	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR') #two submodules
 
 
 	## HACk ##
