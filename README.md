@@ -19,7 +19,7 @@ Moreover, for simulations it requires working installations of:
 - bwa (https://github.com/lh3/bwa)
 - minimap2 (https://github.com/lh3/minimap2)
 
-They can all be installed in a python 3.6 environment using anaconda ()
+They can all be installed in a python 3.6 environment using anaconda
 
 
 ## Install VISOR
@@ -40,7 +40,7 @@ VISOR is built on 3 submodules:
 - __VISOR LASeR__: simulate long-reads .bam files with variants
 
 
-## Run VISOR HACk
+## VISOR HACk
 
 ```sh
 VISOR HACk -h #print help
