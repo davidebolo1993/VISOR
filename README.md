@@ -17,21 +17,29 @@ VISOR requires a working python 3.6 environment and depends on the following pyt
 git clone https://github.com/davidebolo1993/VISOR.git
 cd VISOR
 python setup.py install
-
+VISOR -h #print help
 ```
 
-## Run VISOR
+## Submodules
+
+VISOR is built on 3 submodules:
+
+- VISOR HACk: generates .fa haplotypes with user-defined variants
+- VISOR SHORtS: simulate double-strand or single-strand short-reads .bam files with variants
+- VISOR LASeR: simulate long-reads .bam files with variants
+
+
+## Run VISOR HACk
 
 ```sh
 
-VISOR -g genome.fa -bedh1 bedh1.bed -bedh2 bedh2.bed -O pathout
+VISOR HACk -g genome.fa -bedh1 bedh1.bed -bedh2 bedh2.bed -O pathout
 
 ```
 
+## VISOR HACk Inputs
 
-## Inputs
-
-Inputs to VISOR are:
+Inputs to VISOR HACk are:
 
 - a genome .fasta file
 - a .bed file containing variants for haplotype 1
@@ -48,13 +56,13 @@ Inputs to VISOR are:
 _An example .bed file is included in Examples/example.bed_
 
 
-## Outputs
+## VISOR HACk Outputs
 
 A fasta (.fa) for each haplotype in the output folder (pathout/h1.fa and pathout/h2.fa) containing specified alterations.
 
-## ALT FIELD
+### ALT FIELD
 
-VISOR allows users to generate different type of variants specified in the ALT field:
+VISOR HACk allows users to generate different type of variants specified in the ALT field:
 
 - __'deletion'__. Deletes from start (included) to end (included)
 - __'insertion'__. Inserts a specific sequence immediately after end
@@ -69,9 +77,9 @@ VISOR allows users to generate different type of variants specified in the ALT f
 - __'translocation copy-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
 
 
-## INFO FIELD
+### INFO FIELD
 
-VISOR requires some users-defined parameteres in the INFO field:
+VISOR HACk requires some users-defined parameteres in the INFO field:
 
 - INFO for __'deletion'__ must be __None__
 - INFO for __'insertion'__ must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
