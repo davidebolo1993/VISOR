@@ -10,8 +10,6 @@ import subprocess
 import timeit
 import random
 from collections import defaultdict
-
-
 #additional modules
 
 import pybedtools
@@ -239,7 +237,7 @@ def run(parser,args):
 
 	for entries in srtbedh2: #validate each entry
 
-		if str(chromosome) not in classic_chrs:
+		if str(entries[0]) not in classic_chrs:
 
 			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
 			sys.exit(1)
