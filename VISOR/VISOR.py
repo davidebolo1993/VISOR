@@ -58,7 +58,7 @@ def main():
 	optional = parser_shorts.add_argument_group('Additional parameters')
 
 	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
-	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.0]', type=float, metavar='', default=0.0)
+	optional.add_argument('-n', '--noise', help='percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
 
 	parser_shorts.set_defaults(func=run_subtool)
 
