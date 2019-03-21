@@ -169,6 +169,7 @@ def run(parser,args):
 
 	start=timeit.default_timer()
 
+	logging.info('Simulating from haplotype 1')
 
 	for entries in srtbedh1: #validate each entry
 
@@ -232,8 +233,9 @@ def run(parser,args):
 			sys.exit(1)
 
 	
-	logging.info('Simulations for haplotype 1 completed')
+	logging.info('Simulations from haplotype 1 completed')
 
+	logging.info('Simulating from haplotype 2')
 
 	for entries in srtbedh2: #validate each entry
 
@@ -296,7 +298,7 @@ def run(parser,args):
 			sys.exit(1)
 
 	
-	logging.info('Simulations for haplotype 2 completed')
+	logging.info('Simulations from haplotype 2 completed')
 
 	end=timeit.default_timer()
 	elapsed=(end-start)/60
