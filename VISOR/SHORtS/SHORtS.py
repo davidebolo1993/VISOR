@@ -395,24 +395,24 @@ def SingleStrand(bamfilein, label, noisefraction, output):
 	crickbam.close()
 	bam.close()
 
-	with open(os.path.abspath(output + '/' + label + 'watson.srt.bam'), 'w') as srtbamout:
+	with open(os.path.abspath(output + '/' + label + '.watson.srt.bam'), 'w') as srtbamout:
 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/' + label + '.watson.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.watson.bam'))
 	os.remove(os.path.abspath(output + '/' + label + '.watson.bam.bai'))
 
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'watson.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
-	with open(os.path.abspath(output + '/' + label + 'crick.srt.bam'), 'w') as srtbamout:
+	with open(os.path.abspath(output + '/' + label + '.crick.srt.bam'), 'w') as srtbamout:
 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.crick.bam'))
 	os.remove(os.path.abspath(output + '/' + label + '.crick.bam.bai'))
 	
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
 
