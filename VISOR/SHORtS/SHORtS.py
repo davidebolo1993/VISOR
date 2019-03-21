@@ -215,7 +215,7 @@ def run(parser,args):
 
 					pass #do nothing
 
-				else if args.type == 'single-strand':
+				else:
 
 					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
 					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype1'))
@@ -280,8 +280,8 @@ def run(parser,args):
 
 					pass #do nothing
 
-				else if args.type == 'single-strand':
-
+				else:
+					
 					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
 					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype2'))
 
