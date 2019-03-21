@@ -1,5 +1,3 @@
-#!/usr/bin/python env
-
 import argparse
 from argparse import HelpFormatter
 
@@ -20,11 +18,11 @@ def main():
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
-	required.add_argument('-h1b', '--haplotype1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 1', metavar='.bed', required=True)
+	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 1', metavar='.bed', required=True)
 	required.add_argument('-O', '--output', help='where the 2 .fa haplotypes will be saved', metavar='folder', required=True)
 
 	optional = parser_hack.add_argument_group('Additional input')
-	optional.add_argument('-h2b', '--haplotype2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 2', metavar='', default=None)
+	optional.add_argument('-h2b', '--hap2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 2', metavar='', default=None)
 
 	parser_hack.set_defaults(func=run_subtool)
 
@@ -36,6 +34,7 @@ def main():
 
 	required = parser_shorts.add_argument_group('Required I/O arguments')
 
+	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
 	required.add_argument('-h1b','--hap1bed', help='.bed file containing regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
@@ -45,7 +44,7 @@ def main():
 	
 	simtype = parser_shorts.add_argument_group('Type of simulation')
 
-	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads .bam files. If simulating strand-seq short-read .bam files, for each haplotype, 2 will be created, named watson (R1 forward, R2 reverse) and crick (R1 reverse, R2 forward) [double-strand]', metavar='', default='double-strand', choices=['strand-seq', 'double-strand'])
+	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads .bam files. If simulating strand-seq short-read .bam files, for each haplotype, 2 will be created, named watson (R1 forward, R2 reverse) and crick (R1 reverse, R2 forward) [double-strand]', metavar='', default='double-strand', choices=['single-strand', 'double-strand'])
 
 	wgi = parser_shorts.add_argument_group('Wgsim parameters for simulation')
 
@@ -55,6 +54,11 @@ def main():
 	wgi.add_argument('-i', '--indels', help='Fractions of indels [0.000000001]', metavar='', default=0.000000001, type=float)
 	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
 
+
+	optional = parser_shorts.add_argument_group('Additional parameters')
+
+	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
+	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.0]', type=float, metavar='', default=0.0)
 
 	parser_shorts.set_defaults(func=run_subtool)
 
@@ -80,6 +84,12 @@ def main():
 	pbs.add_argument('-l', '--length', help='mean length for simulated reads [8000]', metavar='', default=8000, type=int)
 	pbs.add_argument('-c', '--coverage', help='mean coverage for the simulated region [20]', metavar='', default=20, type=int)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
+
+	optional = parser_long.add_argument_group('Additional parameter')
+
+	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
+
+
 
 	parser_long.set_defaults(func=run_subtool)
 
