@@ -217,12 +217,12 @@ def run(parser,args):
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/' + str(entries[3]) + '.srt.bam')
+					bamin=os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 			except:
 
-				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + start + '-' + 'end. Log is below.')
+				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
 
 
 
@@ -282,13 +282,13 @@ def run(parser,args):
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/' + str(entries[3]) + '.srt.bam')
+					bamin=os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
 
-				logging.exception('Something went wrong during simulations for haplotype 2, ' + str(entries[0]) + ':' + start + '-' + 'end. Log is below.')
+				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
 
 		else:
 
