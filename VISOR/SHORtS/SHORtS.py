@@ -209,7 +209,7 @@ def run(parser,args):
 
 			try:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
+				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 				if args.type == 'double-strand':
 
@@ -217,8 +217,8 @@ def run(parser,args):
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
-					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype1'))
+					bamin=os.path.abspath(args.output + '/' + str(entries[3]) + '.srt.bam')
+					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 			except:
 
@@ -274,7 +274,7 @@ def run(parser,args):
 
 			try:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
+				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 				if args.type == 'double-strand':
 
@@ -282,8 +282,8 @@ def run(parser,args):
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
-					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype2'))
+					bamin=os.path.abspath(args.output + '/' + str(entries[3]) + '.srt.bam')
+					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
