@@ -56,10 +56,6 @@ Inputs to VISOR HACk are:
 _An example .bed file is included in Examples/example.bed_
 
 
-## VISOR HACk Outputs
-
-A fasta (.fa) for each haplotype in the output folder (pathout/h1.fa and pathout/h2.fa) containing specified alterations.
-
 ### ALT FIELD
 
 VISOR HACk allows users to generate different type of variants specified in the ALT field:
@@ -92,3 +88,9 @@ VISOR HACk requires some users-defined parameteres in the INFO field:
 - INFO for __'atr'__ must be __motif:number:altnum__; motif is a valid DNA motif, number is number of motif to insert, altnum is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only
 - INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed), breakpoint is the number of the base immediately after which translocated region will be put and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
 - INFO for __'translocation copy-paste'__ is the __same for 'translocation cut-paste'__
+
+
+## VISOR HACk Outputs
+
+A fasta (.fa) for each haplotype in the output folder (pathout/haplotype1/h1.fa and pathout/haplotype2/h2.fa) containing specified alterations.
+
