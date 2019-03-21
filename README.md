@@ -47,7 +47,7 @@ Inputs to VISOR HACk are:
 
 .bed file must contain 5 columns without header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
 
-- __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22,chrX,chrY and chrM
+- __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
 - __START__: where the variant starts
 - __END__: where the variant ends
 - __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
