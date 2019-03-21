@@ -1,5 +1,3 @@
-#!/usr/bin/python env
-
 import argparse
 from argparse import HelpFormatter
 
@@ -41,7 +39,7 @@ def main():
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
 	required.add_argument('-h1b','--hap1bed', help='.bed file containing regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-h2b','--hap2bed', help='.bed file containing regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='.bam', required=True)
+	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	
 	simtype = parser_shorts.add_argument_group('Type of simulation')
@@ -77,7 +75,7 @@ def main():
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
 	required.add_argument('-h1b','--hap1bed', help='.bed file containing regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-h2b','--hap2bed', help='.bed file containing regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='.bam', required=True)
+	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for simulation')
 
