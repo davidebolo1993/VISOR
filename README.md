@@ -110,7 +110,7 @@ A fasta (.fa) for each haplotype in the output folder (pathout/haplotype1/h1.fa 
 
 
 
-## Run VISOR SHORtS
+## Run VISOR SHORtS and VISOR LASeR
 
 ```sh
 
@@ -120,9 +120,13 @@ VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O
 
 VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -O pathout #single-strand sequencing simulations
 
+VISOR LASeR -h #print help
+
+VISOR LASeR -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout
+
 ```
 
-## VISOR SHORtS Inputs
+## VISOR SHORtS and VISOR LASeR Inputs
 
 Inputs to VISOR SHORtS are:
 
@@ -146,9 +150,15 @@ _An example .bed file is included in Examples/SHORtS.LASeR.example.bed_
 
 Simulations for short-reads data are run using wgsim, most of which parameters can be specified by the user, bwa-mem and samtools. When working in single-strand mode (-t single-strand), for each region specified in the  haplotype-specific .bed files, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files
 
+## VISOR LASeR Simulations
+
+Simulations for long-reads data are run using pbsim, most of which parameters can be specified by the user (the model_qc_clr file required is included in VISOR), minimap2 and samtools.
+
 
 ## VISOR SHORtS Outputs
 
 A .srt.bam file (and its index) for each region in the haplotype-specific .bed files. When working in single-strand mode, 2 .srt.bam files (and their index) for each region in the haplotype-specific .bed files.
 
+## VISOR LASeR Outputs
 
+A .srt.bam file (and its index) for each region in the haplotype-specific .bed files.
