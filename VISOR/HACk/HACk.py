@@ -33,9 +33,6 @@ def run(parser,args):
 			sys.exit(1)
 
 
-	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-
 	if not os.path.exists(os.path.abspath(args.output + '/haplotype1')):
 
 		try:
@@ -1270,9 +1267,10 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 
 
 
-def ParseDict(chromosomes, fasta, dictionary, output_fasta):
+def ParseDict(chromosomes, fasta, dictionary, output_fasta, hapname):
 
 	trans = str.maketrans('ATGC', 'TACG')
+	skipped=0
 
 	for chrs in chromosomes:
 
@@ -1307,6 +1305,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 				if any(el[0] <=start <= el[1] or el[0] <= end <= el[1] for el in regions_seen): #skip region if start or end overlap another variant
 
 					i+=1
+					skipped+=1
 					continue
 
 				else: #region not seen, insert variant
@@ -1402,7 +1401,9 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 					i+=1
 
+	if skipped > 0 :
 
+		logging.warning('Skipped ' + skipped + ' variants for the current haplotype as they overlapped others')
 
 
 if __name__ == '__main__':
