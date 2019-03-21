@@ -1,5 +1,5 @@
 # VISOR
-![alt text](VISOR.png)
+![alt text](VISOR.jpg)
 
 VarIant SimulatOR
 
