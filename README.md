@@ -70,7 +70,7 @@ Inputs to VISOR HACk are:
 - __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
 - __INFO__: info for the alteration (more details below)
 
-_An example .bed file is included in Examples/HACk.example.bed_
+An example .bed file, meant to be used as input for -h1b, is included in _Examples/HACk.example.bed_
 
 
 ### ALT FIELD
