@@ -11,6 +11,17 @@ VISOR requires a working python 3.6 environment and depends on the following pyt
 - pyfaidx (v 0.5.5.2)
 - pybedtools (v 0.8.0)
 
+Moreover, for simulations it requires working installations of:
+
+- samtools (https://github.com/samtools/samtools)
+- wgsim (https://github.com/lh3/wgsim)
+- pbsim (https://github.com/pfaucon/PBSIM-PacBio-Simulator)
+- bwa (https://github.com/lh3/bwa)
+- minimap2 (https://github.com/lh3/minimap2)
+
+They can all be installed in a python 3.6 environment using anaconda ()
+
+
 ## Install VISOR
 
 ```sh
@@ -32,8 +43,11 @@ VISOR is built on 3 submodules:
 ## Run VISOR HACk
 
 ```sh
+VISOR HACk -h #print help
 
-VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout
+VISOR HACk -g genome.fa -h1b bedh1.bed -O pathout #.bed file just for haplotype 1
+
+VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file just for haplotype 2
 
 ```
 
@@ -100,13 +114,11 @@ A fasta (.fa) for each haplotype in the output folder (pathout/haplotype1/h1.fa 
 
 ```sh
 
-#double-strand sequencing simulations
+VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout 
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #double-strand sequencing simulations
 
-#double-strand sequencing simulations
-
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -O pathout 
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -O pathout #single-strand sequencing simulations
 
 ```
 
@@ -129,5 +141,14 @@ Inputs to VISOR SHORtS are:
 
 _An example .bed file is included in Examples/SHORtS.LASeR.example.bed_
 
+
+## VISOR SHORtS Simulations
+
+Simulations for short-reads data are run using wgsim, most of which parameters can be specified by the user, bwa-mem and samtools. When working in single-strand mode (-t single-strand), for each region specified in the  haplotype-specific .bed files, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files
+
+
+## VISOR SHORtS Outputs
+
+A .srt.bam file (and its index) for each region in the haplotype-specific .bed files. When working in single-strand mode, 2 .srt.bam files (and their index) for each region in the haplotype-specific .bed files.
 
 
