@@ -1,3 +1,5 @@
+#!/usr/bin/python env
+
 import argparse
 from argparse import HelpFormatter
 
