@@ -209,7 +209,7 @@ def run(parser,args):
 
 			try:
 
-				Simulate(args.genome, args.threads, args.hap1fa, str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
+				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 				if args.type == 'double-strand':
 
@@ -222,7 +222,7 @@ def run(parser,args):
 
 			except:
 
-				logging.exception('Something went wrong during simulations for haplotype 1, ' + chromosome + ':' + start + '-' + 'end. Log is below.')
+				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + start + '-' + 'end. Log is below.')
 
 
 
@@ -274,21 +274,21 @@ def run(parser,args):
 
 			try:
 
-				Simulate(args.genome, args.threads, args.hap2fa, str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
+				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 				if args.type == 'double-strand':
 
 					pass #do nothing
 
 				else:
-					
+
 					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
 					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
 
-				logging.exception('Something went wrong during simulations for haplotype 2, ' + chromosome + ':' + start + '-' + 'end. Log is below.')
+				logging.exception('Something went wrong during simulations for haplotype 2, ' + str(entries[0]) + ':' + start + '-' + 'end. Log is below.')
 
 		else:
 
@@ -327,7 +327,7 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, error, cov
 
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), os.path.abspath(args.genome), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.1.fq'))
 	os.remove(os.path.abspath(output + '/region.2.fq'))
