@@ -13,7 +13,7 @@ import string
 import shutil
 
 
-#additional libraries
+#additional modules
 
 import pybedtools #useful to sort inside python
 import pyfaidx # fastest way to deal with .fasta in python
@@ -30,6 +30,13 @@ def run(parser,args):
 		except:
 
 			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			sys.exit(1)
+
+	else: #path already exists
+
+		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
+
+			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
 			sys.exit(1)
 
 
@@ -82,22 +89,22 @@ def run(parser,args):
 	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
 
 
-	if not os.path.exists(os.path.abspath(args.haplotype1bed)):
+	if not os.path.exists(os.path.abspath(args.hap1bed)):
 
 		logging.error('.bed file for haplotype 1 does not exist')
 		sys.exit(1)
 
 
-	if not args.haplotype2bed is None:
+	if not args.hap2bed is None:
 
-		if not os.path.exists(os.path.abspath(args.haplotype2bed)):
+		if not os.path.exists(os.path.abspath(args.hap2bed)):
 
 			logging.error('.bed file for haplotype 2 does not exist')
 			sys.exit(1)
 
 
 
-	bedh1 = pybedtools.BedTool(os.path.abspath(args.haplotype1bed)) #this one is required
+	bedh1 = pybedtools.BedTool(os.path.abspath(args.hap1bed)) #this one is required
 	varh1=dict()
 
 	
@@ -580,9 +587,9 @@ def run(parser,args):
 
 
 
-	if not args.haplotype2bed is None: #also second .bed provided
+	if not args.hap2bed is None: #also second .bed provided
 
-		bedh2 = pybedtools.BedTool(os.path.abspath(args.haplotype2bed))
+		bedh2 = pybedtools.BedTool(os.path.abspath(args.hap2bed))
 		varh2=dict()
 	
 		try:
@@ -1080,42 +1087,6 @@ def run(parser,args):
 
 
 
-
-class CustomFormat(HelpFormatter):
-
-	def _format_action_invocation(self, action):
-
-		if not action.option_strings:
-
-			default = self._get_default_metavar_for_positional(action)
-			metavar, = self._metavar_formatter(action, default)(1)
-			
-			return metavar
-
-		else:
-
-			parts = []
-
-			if action.nargs == 0:
-
-				parts.extend(action.option_strings)
-
-			else:
-
-				default = self._get_default_metavar_for_optional(action)
-				args_string = self._format_args(action, default)
-				
-				for option_string in action.option_strings:
-
-					parts.append(option_string)
-
-				return '%s %s' % (', '.join(parts), args_string)
-
-			return ', '.join(parts)
-
-	def _get_default_metavar_for_optional(self, action):
-
-		return action.dest.upper()
 
 
 def write_unmodified_chromosome(chromosome, seq, output_fasta):
