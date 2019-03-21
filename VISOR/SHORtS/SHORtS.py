@@ -211,19 +211,20 @@ def run(parser,args):
 
 				Simulate(args.genome, args.threads, args.hap1fa, str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
 
+				if args.type == 'double-strand':
+
+					pass #do nothing
+
+				else if args.type == 'single-strand':
+
+					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
+					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype1'))
+
 			except:
 
 				logging.exception('Something went wrong during simulations for haplotype 1, ' + chromosome + ':' + start + '-' + 'end. Log is below.')
 
 
-			if args.type == 'double-strand':
-
-				pass #do nothing
-
-			else if args.type == 'single-strand':
-
-				bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
-				SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 		else:
 
@@ -275,19 +276,19 @@ def run(parser,args):
 
 				Simulate(args.genome, args.threads, args.hap2fa, str(entries[0]), int(entries[1]), int(entries[2]), str(entries)[3], args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
 
+				if args.type == 'double-strand':
+
+					pass #do nothing
+
+				else if args.type == 'single-strand':
+
+					bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
+					SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype2'))
+
+
 			except:
 
 				logging.exception('Something went wrong during simulations for haplotype 2, ' + chromosome + ':' + start + '-' + 'end. Log is below.')
-
-
-			if args.type == 'double-strand':
-
-				pass #do nothing
-
-			else if args.type == 'single-strand':
-
-				bamin=os.path.abspath(args.output + '/' + label + '.srt.bam')
-				SingleStrand(bamin, label, noisefraction, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 		else:
 
