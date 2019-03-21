@@ -60,7 +60,7 @@ def main():
 	## LASeR ##
 
 
-	parser_long = subparsers.add_parser('LASeR', help='Long reAds SimulatoR. Simulate long reads .bam files from .fasta files using regions specified in .bed files, Simulations are run using pbsim')
+	parser_long = subparsers.add_parser('LASeR', help='Long reAds SimulatoR. Simulate long reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using pbsim')
 
 
 	required = parser_long.add_argument_group('Required I/O arguments')
