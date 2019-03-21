@@ -54,9 +54,9 @@ def main():
 
 
 
-	#args = parser.parse_args()
+	args = parser.parse_args()
 
-	#args.func(parser, args)
+	args.func(parser, args)
 
 
 
