@@ -33,7 +33,7 @@ VISOR is built on 3 submodules:
 
 ```sh
 
-VISOR HACk -g genome.fa -bedh1 bedh1.bed -bedh2 bedh2.bed -O pathout
+VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout
 
 ```
 
@@ -93,4 +93,20 @@ VISOR HACk requires some users-defined parameteres in the INFO field:
 ## VISOR HACk Outputs
 
 A fasta (.fa) for each haplotype in the output folder (pathout/haplotype1/h1.fa and pathout/haplotype2/h2.fa) containing specified alterations.
+
+
+
+## Run VISOR SHORtS
+
+```sh
+
+#double-strand sequencing simulations
+
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout 
+
+#double-strand sequencing simulations
+
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -O pathout 
+
+```
 
