@@ -110,3 +110,24 @@ VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t
 
 ```
 
+## VISOR SHORtS Inputs
+
+Inputs to VISOR SHORtS are:
+
+- a genome .fasta file
+- the h1.fa file generated with _VISOR HACk_
+- the h2.fa file generated with _VISOR HACk_
+- a .bed file containing regions to simulate from haplotype 1
+- a .bed file containing regions to simulate from haplotype 2
+
+.bed file must contain 4 columns without header: __CHROMOSOME__, __START__, __END__, __LABEL__
+
+- __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
+- __START__: start position for the region that will be simulated
+- __END__: end position for the region that will be simulated
+- __LABEL__: label to identify the simulation results
+
+_An example .bed file is included in Examples/SHORtS.LASeR.example.bed_
+
+
+
