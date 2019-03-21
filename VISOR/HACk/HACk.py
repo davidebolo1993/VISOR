@@ -734,7 +734,7 @@ def run(parser,args):
 						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with number of duplication. Number must be an integer')
 						sys.exit(1)
 
-					if str(entries[0]) not in hap1dict:
+					if str(entries[0]) not in hap2dict:
 
 						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
 
@@ -948,7 +948,7 @@ def run(parser,args):
 
 							hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
 
-						if str(entr_4[1]) not in hap2dict:
+						if str(entr_4[1]) not in hap1dict:
 
 							if str(entr_4[3]) == 'forward':
 
@@ -1036,7 +1036,7 @@ def run(parser,args):
 
 					elif entr_4[0] == 'h1':
 
-						if str(entr_4[1]) not in hap2dict:
+						if str(entr_4[1]) not in hap1dict:
 
 							if str(entr_4[3]) == 'forward':
 
