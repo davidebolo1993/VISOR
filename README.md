@@ -50,7 +50,7 @@ VISOR HACk -h #print help
 
 VISOR HACk -g genome.fa -h1b bedh1.bed -O pathout #.bed file just for haplotype 1
 
-VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file just for haplotype 2
+VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file also for haplotype 2
 
 ```
 
