@@ -24,9 +24,9 @@ VISOR -h #print help
 
 VISOR is built on 3 submodules:
 
-- VISOR HACk: generates .fa haplotypes with user-defined variants
-- VISOR SHORtS: simulate double-strand or single-strand short-reads .bam files with variants
-- VISOR LASeR: simulate long-reads .bam files with variants
+- __VISOR HACk__: generates .fa haplotypes with user-defined variants
+- __VISOR SHORtS__: simulate double-strand or single-strand short-reads .bam files with variants
+- __VISOR LASeR__: simulate long-reads .bam files with variants
 
 
 ## Run VISOR HACk
