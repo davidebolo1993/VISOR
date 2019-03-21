@@ -2,6 +2,8 @@
 
 VarIant SimulatOR
 
+![alt text](VISOR.png)
+
 
 VISOR is a tool written in python for haplotype-specific variants simulation.
 
