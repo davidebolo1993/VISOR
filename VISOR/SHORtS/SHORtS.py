@@ -379,15 +379,17 @@ def SingleStrand(bamfilein, label, noisefraction, output):
 
 	if noisefraction > 0:
 
-		discordant_pair_to_add= round((paircount*noisefraction)/100)
-		sample_crick=random.sample(cricklist,discordant_pair_to_add)
+		discordant_pair_watson= round((len(watslist)*noisefraction)/100)
+		discordant_pair_crick= round((len(cricklist)*noisefraction)/100)
+
+		sample_crick=random.sample(cricklist,discordant_pair_watson)
 
 		for read1,read2 in sample_crick:
 
 			watsonbam.write(read1)
 			watsonbam.write(read2)
 
-		sample_watson=random.sample(watslist,discordant_pair_to_add)
+		sample_watson=random.sample(watslist,discordant_pair_crick)
 
 		for read1,read2 in sample_watson:
 
