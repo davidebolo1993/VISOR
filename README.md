@@ -129,7 +129,7 @@ VISOR LASeR -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -O 
 
 ### Inputs
 
-Inputs to VISOR SHORtS are:
+Inputs to VISOR SHORtS and VISOR LASeR are:
 
 - a genome .fasta file
 - the h1.fa file generated with _VISOR HACk_
