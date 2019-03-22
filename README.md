@@ -164,11 +164,29 @@ VISOR SHORtS can simulate single-strand (strand-seq) .bam files
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -O pathout #single-strand simulations without noise
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -O pathout #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -n 0.10 -O pathout #single-strand simulations with 0.10 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 0.10 -O pathout #single-strand simulations with 0.10 % of read pairs with incorrect orientation
 
 ```
 
 When working in single-strand mode (-t single-strand), for each region specified in the  haplotype-specific .bed files, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter.
 
+### Plot pairs count for single-strand (strand-seq) simulations
+
+When simulating haplotype-specific variants in single-strand simulations, one can re-create the possible inherited template strands in daughter cells by combining the watson and crick .bam files for haplotype 1 (W1 and C1) with  the ones from haplotype 2 (W2 and C2):
+
+- W1 and W2
+- W1 and C2
+- C1 and W2
+- C1 and C2
+
+VISOR/scripts/sscounter.py offers the possibility to plot an interactive visualization of the read pairs count for each strand from one or more of these combined .bam files. For each chromosome, a plot showing the read pairs count for each strand for the given .bam file/s is generated using:
+
+```sh
+
+python VISOR/scripts/sscounter.py -h #print help
+
+python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2 .bam3 -O pathout #generate an .html for each chromosome that compare read pairs count for watson and crick strands of the 3 .bam files given.
+
+```
