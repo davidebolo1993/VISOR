@@ -221,7 +221,8 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
-
+					os.remove(bamin)
+					os.remove(bamin + '.bai')
 			except:
 
 				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
@@ -287,7 +288,8 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
-
+					os.remove(bamin)
+					os.remove(bamin + '.bai')
 
 			except:
 
@@ -509,3 +511,6 @@ def crick_orientation(bam):
 
 				del read_dict[qname]
 
+if __name__ == '__main__':
+
+	main()
