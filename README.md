@@ -1,11 +1,9 @@
 # VISOR
 
-VarIant SimulatOR
-
 ![alt text](VISOR.png)
 
 
-VISOR is a tool written in python for haplotype-specific variants simulation.
+VISOR is a tool written in python for haplotype-specific variants simulations.
 
 ## Requirements
 
@@ -14,7 +12,7 @@ VISOR requires a working python 3.6 environment and depends on the following pyt
 - pyfaidx (v 0.5.5.2)
 - pybedtools (v 0.8.0)
 
-Moreover, for simulations it requires working installations of:
+Moreover, for simulations, VISOR requires working installations of:
 
 - samtools (https://github.com/samtools/samtools)
 - wgsim (https://github.com/lh3/wgsim)
@@ -28,10 +26,11 @@ They can all be installed in a python 3.6 environment using anaconda
 ## Install VISOR
 
 ```sh
+
 git clone https://github.com/davidebolo1993/VISOR.git
 cd VISOR
 python setup.py install
-VISOR -h #print help
+
 ```
 
 ## VISOR Submodules
@@ -50,19 +49,17 @@ VISOR HACk -h #print help
 
 VISOR HACk -g genome.fa -h1b bedh1.bed -O pathout #.bed file just for haplotype 1
 
-VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file also for haplotype 2
+VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file for haplotype 1 and for haplotype 2
 
 ```
 
-### Inputs
-
 Inputs to VISOR HACk are:
 
-- a genome .fasta file
-- a .bed file containing variants for haplotype 1
-- a .bed file containing variants for haplotype 2 (optional)
+- the  genome.fa is the reference genome in .fasta format
+- the bedh1.bed is the .bed file containing variants to simulate on haplotype 1 (required), like the one in _Examples/HACk.example.bed_
+- the bedh2.bed is the .bed file containing variants to simulate on haplotype 2 (optional)
 
-.bed file must contain 5 columns without header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
+.bed files must contain 5 columns without header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
 - __START__: where the variant starts
@@ -70,10 +67,8 @@ Inputs to VISOR HACk are:
 - __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste' (more details below)
 - __INFO__: info for the alteration (more details below)
 
-An example .bed file, meant to be used as input for -h1b, is included in _Examples/HACk.example.bed_
 
-
-### ALT FIELD
+#### ALT FIELD
 
 VISOR HACk allows users to generate different type of variants specified in the ALT field:
 
@@ -90,7 +85,7 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'translocation copy-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
 
 
-### INFO FIELD
+#### INFO FIELD
 
 VISOR HACk requires some users-defined parameteres in the INFO field:
 
@@ -106,10 +101,7 @@ VISOR HACk requires some users-defined parameteres in the INFO field:
 - INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1' or 'h2'), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed), breakpoint is the number of the base immediately after which translocated region will be put and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
 - INFO for __'translocation copy-paste'__ is the __same for 'translocation cut-paste'__
 
-
-### Outputs
-
-A fasta (.fa) for each haplotype in the output folder (pathout/haplotype1/h1.fa and pathout/haplotype2/h2.fa) containing specified alterations.
+VISOR HACk outputs a fasta (.fa) file for each haplotype, containing specified variants, in the output folder (pathout/haplotype1/h1.fa and pathout/haplotype2/h2.fa) 
 
 
 
