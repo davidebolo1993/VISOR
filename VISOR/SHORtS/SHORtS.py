@@ -510,7 +510,3 @@ def crick_orientation(bam):
 					yield read_dict[qname][0], read
 
 				del read_dict[qname]
-
-if __name__ == '__main__':
-
-	main()
