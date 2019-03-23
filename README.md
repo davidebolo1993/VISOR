@@ -136,13 +136,12 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 - __END__: end position for the region that will be simulated
 - __LABEL__: label to identify the simulation results
 
-VISOR SHORtS and VISOR LASeR Outputs output a .srt.bam file (and its index) for each region in the haplotype-specific .bed files. 
+VISOR SHORtS and VISOR LASeR outputs a .srt.bam file (and its index) for each region in the haplotype-specific .bed files. 
 
 
 #### VISOR SHORtS and VISOR LASeR Simulations
 
 Simulations for short-reads data are run using wgsim, most of which parameters can be specified by the user, bwa and samtools. Simulations for long-reads data are run using pbsim, most of which parameters can be specified by the user (the model_qc_clr file required is included in VISOR), minimap2 and samtools.
-
 
 
 ## VISOR SHORtS for single-strand (strand-seq) simulations
