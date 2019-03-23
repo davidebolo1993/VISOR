@@ -181,12 +181,11 @@ When simulating haplotype-specific variants in single-strand simulations, one ca
 - C1 and W2
 - C1 and C2
 
-VISOR/scripts/sscounter.py offers the possibility to plot an interactive visualization of the read pairs count for each strand from one or more of these combined .bam files. For each chromosome, a plot showing the read pairs count for each strand for the given .bam file/s is generated using:
-
+VISOR/scripts/sscounter.py offers the possibility to plot an interactive visualization of the read pairs count for each strand from one or more of these combined .bam files:
 ```sh
 
 python VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2 .bam3 -O pathout #generate an .html for each chromosome that compare read pairs count for watson and crick strands of the 3 .bam files given.
+python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2 .bam3 -O pathout #generate an .html for each chromosome that compares read pairs count for watson and crick strands of the 3 .bam files given.
 
 ```
