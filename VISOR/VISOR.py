@@ -21,7 +21,7 @@ def main():
 
 	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 1', metavar='.bed', required=True)
-	required.add_argument('-O', '--output', help='where the 2 .fasta haplotypes will be saved', metavar='folder', required=True)
+	required.add_argument('-O', '--output', help='Where the 2 .fasta haplotypes will be saved', metavar='folder', required=True)
 
 	optional = parser_hack.add_argument_group('Additional input .bed')
 	optional.add_argument('-h2b', '--hap2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 2', metavar='', default=None)
