@@ -20,11 +20,11 @@ def main():
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
-	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 1', metavar='.bed', required=True)
-	required.add_argument('-O', '--output', help='where the 2 .fa haplotypes will be saved', metavar='folder', required=True)
+	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 1', metavar='.bed', required=True)
+	required.add_argument('-O', '--output', help='where the 2 .fasta haplotypes will be saved', metavar='folder', required=True)
 
-	optional = parser_hack.add_argument_group('Additional input')
-	optional.add_argument('-h2b', '--hap2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" for haplotype 2', metavar='', default=None)
+	optional = parser_hack.add_argument_group('Additional input .bed')
+	optional.add_argument('-h2b', '--hap2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 2', metavar='', default=None)
 
 	parser_hack.set_defaults(func=run_subtool)
 
