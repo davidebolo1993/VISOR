@@ -19,7 +19,7 @@ def main():
 
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
-	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
+	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 1', metavar='.bed', required=True)
 	required.add_argument('-O', '--output', help='where the 2 .fasta haplotypes will be saved', metavar='folder', required=True)
 
@@ -36,12 +36,12 @@ def main():
 
 	required = parser_shorts.add_argument_group('Required I/O arguments')
 
-	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
+	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
 	required.add_argument('-h1b','--hap1bed', help='.bed file containing regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-h2b','--hap2bed', help='.bed file containing regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	
 	simtype = parser_shorts.add_argument_group('Type of simulation')
@@ -60,7 +60,7 @@ def main():
 	optional = parser_shorts.add_argument_group('Additional parameters')
 
 	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
-	optional.add_argument('-n', '--noise', help='percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
+	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
 
 	parser_shorts.set_defaults(func=run_subtool)
 
@@ -72,19 +72,20 @@ def main():
 
 
 	required = parser_long.add_argument_group('Required I/O arguments')
-
+	
+	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
 	required.add_argument('-h1b','--hap1bed', help='.bed file containing regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-h2b','--hap2bed', help='.bed file containing regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for simulation')
 
 
-	pbs.add_argument('-a', '--accuracy', help='mean accuracy for simulated reads [0.90]', metavar='', default=0.90, type=float)
-	pbs.add_argument('-l', '--length', help='mean length for simulated reads [8000]', metavar='', default=8000, type=int)
-	pbs.add_argument('-c', '--coverage', help='mean coverage for the simulated region [20]', metavar='', default=20, type=int)
+	pbs.add_argument('-a', '--accuracy', help='Mean accuracy for simulated reads [0.90]', metavar='', default=0.90, type=float)
+	pbs.add_argument('-l', '--length', help='Mean length for simulated reads [8000]', metavar='', default=8000, type=int)
+	pbs.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [20]', metavar='', default=20, type=int)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
 
 	optional = parser_long.add_argument_group('Additional parameter')
