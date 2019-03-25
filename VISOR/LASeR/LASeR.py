@@ -312,6 +312,7 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 	#simulate reads
 
 	os.chdir(os.path.abspath(output))
+	
 
 	subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', 'sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
