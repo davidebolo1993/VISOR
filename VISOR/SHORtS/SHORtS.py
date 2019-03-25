@@ -77,7 +77,7 @@ def run(parser,args):
 
 		if which(tools) is None:
 
-			logging.error(tools + ' was not found as an executable command. Install ' + tools + ' and re-run TRiCoLOR REFER')
+			logging.error(tools + ' was not found as an executable command. Install ' + tools + ' and re-run VISOR SHORtS')
 			sys.exit(1)
 
 
@@ -221,8 +221,7 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
-					os.remove(bamin)
-					os.remove(bamin + '.bai')
+
 			except:
 
 				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
@@ -288,8 +287,7 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
-					os.remove(bamin)
-					os.remove(bamin + '.bai')
+
 
 			except:
 
@@ -510,3 +508,4 @@ def crick_orientation(bam):
 					yield read_dict[qname][0], read
 
 				del read_dict[qname]
+
