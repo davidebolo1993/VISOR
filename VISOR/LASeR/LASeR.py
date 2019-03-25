@@ -8,8 +8,6 @@ import logging
 from shutil import which
 import subprocess
 import timeit
-import random
-from collections import defaultdict
 
 #additional modules
 
