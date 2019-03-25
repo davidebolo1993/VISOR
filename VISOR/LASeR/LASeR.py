@@ -12,8 +12,6 @@ import timeit
 #additional modules
 
 import pybedtools
-import pysam
-
 
 
 def run(parser,args):
