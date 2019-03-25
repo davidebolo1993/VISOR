@@ -319,7 +319,7 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 	os.remove(os.path.abspath(output + '/sim_0001.maf'))
 
 
-	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi'))
+	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')):
 
 		if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')): #checks for the presence of a .fa ref for the chromosome in the reference folder. If not present, creates it. Will save time during alignments.
 
