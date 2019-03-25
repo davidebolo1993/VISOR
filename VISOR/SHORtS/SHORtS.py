@@ -221,6 +221,8 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
+					os.remove(bamin)
+					os.remove(bamin+'.bai')
 
 			except:
 
@@ -287,6 +289,8 @@ def run(parser,args):
 
 					bamin=os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam')
 					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
+					os.remove(bamin)
+					os.remove(bamin+'.bai')
 
 
 			except:
