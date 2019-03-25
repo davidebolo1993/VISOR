@@ -315,17 +315,17 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 	os.remove(os.path.abspath(output + '/sim_0001.maf'))
 
 
-	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')):
+	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi'))
 
 		if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')): #checks for the presence of a .fa ref for the chromosome in the reference folder. If not present, creates it. Will save time during alignments.
 
-			with open(os.path.abspath(os.path.dirname(reference) +'/' + chromosome + '.fa'),'w') as fout: 
+			with open(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa'),'w') as fout: 
 
-				subprocess.call(['samtools', 'faidx', reference, chromosome], stdout=fout, stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'faidx', genome, chromosome], stdout=fout, stderr=open(os.devnull, 'wb'))
 
-		subprocess.call(['minimap2', '-d', os.path.abspath(os.path.dirname(reference) +'/' + chromosome + '.mmi'), os.path.abspath(os.path.dirname(reference) +'/' + chromosome + '.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome
+		subprocess.call(['minimap2', '-d', os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi'), os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome
 
-	new_mmi=os.path.abspath(os.path.dirname(reference) +'/' + chromosome + '.mmi')
+	new_mmi=os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')
 
 	#align to reference
 
