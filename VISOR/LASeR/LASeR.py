@@ -305,12 +305,9 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
 
-	#simulate reads
+	#simulate reads	
 
-	os.chdir(os.path.abspath(output))
-	
-
-	subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', 'sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+	subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
