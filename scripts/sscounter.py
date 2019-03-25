@@ -30,14 +30,14 @@ def main():
 	required = parser.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
-	required.add_argument('-bam', '--bamfile', help='single-strand .bam files (crick + watson orientation) to plot', metavar='.bam', nargs='*', action='append', required=True)
+	required.add_argument('-bam', '--bamfile', help='single-strand .bam file/s (crick or watson or crick + watson) to plot', metavar='.bam', nargs='*', action='append', required=True)
 	required.add_argument('-O', '--output', help='where plots will be saved', metavar='folder', required=True)
 
 
 	optional = parser.add_argument_group('Bin size')
 
 	optional.add_argument('-bin', '--binsize', help= 'bin size for counting [200000]', metavar='', default=200000, type=int)
-	optional.add_argument('-l', '--label', help= 'label to identify each sample [None]', metavar='', nargs='*', action='append', default=None)
+	optional.add_argument('-l', '--label', help= 'label/s to identify sample/s [None]', metavar='', nargs='*', action='append', default=None)
 
 
 	args = parser.parse_args()
