@@ -537,12 +537,12 @@ def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 	os.remove(os.path.abspath(output + '/crick.tmp.sam'))
 
 
-	with open(os.path.abspath(output + '/' + label + 'watson.srt.bam'), 'w') as watsonsort:
+	with open(os.path.abspath(output + '/' + label + '.watson.srt.bam'), 'w') as watsonsort:
 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/watson.tmp.bam')], stdout=watsonsort, stderr=open(os.devnull, 'wb'))
 
 
-	with open(os.path.abspath(output + '/' + label + 'crick.srt.bam'), 'w') as cricksort:
+	with open(os.path.abspath(output + '/' + label + '.crick.srt.bam'), 'w') as cricksort:
 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/crick.tmp.bam')], stdout=cricksort, stderr=open(os.devnull, 'wb'))
 
