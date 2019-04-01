@@ -551,8 +551,8 @@ def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 	os.remove(os.path.abspath(output + '/crick.tmp.bam'))
 
 
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'watson.srt.bam')],stderr=open(os.devnull, 'wb'))
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
 
