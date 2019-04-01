@@ -400,6 +400,8 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
 
+	print('SS')
+
 	#prepare region
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
@@ -503,7 +505,7 @@ def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 
 	with open(os.path.abspath(output + '/' + label + '.crick.fq'), 'w') as crickfq:
 
-		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=watsonfq, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=crickfq, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.crick.bam'))
 	
