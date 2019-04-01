@@ -399,9 +399,7 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 
 def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
-
-	print('SS')
-
+	
 	#prepare region
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
