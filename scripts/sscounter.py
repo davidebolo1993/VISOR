@@ -206,7 +206,7 @@ def Plotter(reslist, labels, output):
 			chromtraces.append((tracewatson,tracecrick))
 
 
-		fig = tools.make_subplots(rows=len(chromtraces), cols=1, subplot_titles=labels,vertical_spacing=0.03)
+		fig = tools.make_subplots(rows=len(chromtraces), cols=1, subplot_titles=labels,vertical_spacing=0.05)
 		
 		for i in range(len(chromtraces)):
 
@@ -471,5 +471,3 @@ def crick(bam, chromosome, start, end):
 if __name__ == '__main__':
 
 	main()
-
-
