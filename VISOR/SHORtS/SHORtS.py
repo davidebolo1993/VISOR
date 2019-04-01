@@ -10,7 +10,7 @@ import subprocess
 import timeit
 import random
 from collections import defaultdict
-
+from multiprocessing import Process
 
 #additional modules
 
@@ -131,13 +131,13 @@ def run(parser,args):
 
 		try:
 
-			logging.info('Creating bwa index for haplotype 1 .fasta')
-			subprocess.check_call(['bwa', 'index', os.path.abspath(args.hap1fa)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+			runInParallel(BWA_Index,os.path.abspath(args.hap1fa),os.path.abspath(args.hap2fa))
 
 		except:
 
-			logging.error('It was not possible to generate bwa index for haplotype 1 .fasta. Aborted')
+			logging.error('Could not create bwa indexes. Aborted.')
 			sys.exit(1)
+
 
 	#validate h2.fa
 
@@ -154,17 +154,6 @@ def run(parser,args):
 		sys.exit(1)
 
 
-	if not os.path.exists(os.path.abspath(args.hap2fa + '.sa')) and args.type=='single-strand'
-
-		try:
-
-			logging.info('Creating bwa index for haplotype 2 .fasta')
-			subprocess.check_call(['bwa', 'index', os.path.abspath(args.hap2fa)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-
-		except:
-
-			logging.error('It was not possible to generate bwa index for haplotype 2 .fasta. Aborted')
-			sys.exit(1)
 
 
 	#validate .bed1
@@ -342,6 +331,29 @@ def run(parser,args):
 	elapsed=(end-start)/60
 	logging.info('Simulations generated in ' + str(elapsed) + ' minutes')
 	logging.info('Done')
+
+
+
+
+def runInParallel(function, *arguments):
+
+	proc = []
+
+	for args in arguments:
+
+		p = Process(target=function, args=args)
+		p.start()
+		proc.append(p)
+
+	for p in proc:
+
+		p.join()
+
+
+def BWA_Index(fasta):
+
+	subprocess.call(['bwa', 'index', os.path.abspath(fasta)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
 
 
 def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
