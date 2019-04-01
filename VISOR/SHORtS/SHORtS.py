@@ -127,7 +127,7 @@ def run(parser,args):
 		sys.exit(1)
 
 
-	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand'
+	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand':
 
 		try:
 
