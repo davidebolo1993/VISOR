@@ -247,8 +247,8 @@ def run(parser,args):
 
 				else:
 
-					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'), args.noise)
-					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(output + '/simulations_haplotype1'))
+					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
+					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 			except:
 
@@ -312,7 +312,7 @@ def run(parser,args):
 				else:
 
 					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(output + '/simulations_haplotype2'))
+					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
@@ -398,8 +398,7 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 
 
-def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output, noise):
-
+def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
 
 	#prepare region
 
@@ -504,7 +503,7 @@ def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 
 	with open(os.path.abspath(output + '/' + label + '.crick.fq'), 'w') as crickfq:
 
-		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=watsonfq, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=crickfq, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.crick.bam'))
 	
