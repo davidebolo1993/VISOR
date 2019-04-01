@@ -189,7 +189,7 @@ def run(parser,args):
 		sys.exit(1)
 
 
-
+	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
 
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
 
@@ -248,7 +248,7 @@ def run(parser,args):
 				else:
 
 					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
-					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
+					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 			except:
 
@@ -312,7 +312,7 @@ def run(parser,args):
 				else:
 
 					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
+					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
@@ -421,8 +421,8 @@ def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage,
 
 		subprocess.call(['bwa', 'mem', '-t', str(cores), haplotype, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
-	os.remove(os.path.abspath(output + '/region.1.fq'))
-	os.remove(os.path.abspath(output + '/region.2.fq'))
+	#os.remove(os.path.abspath(output + '/region.1.fq'))
+	#os.remove(os.path.abspath(output + '/region.2.fq'))
 
 	with open(os.path.abspath(output + '/region.tmp.bam'), 'w') as bamout:
 
@@ -441,28 +441,34 @@ def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage,
 
 
 
-def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
+def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, output):
 
 	bam = pysam.AlignmentFile(bamfilein, "rb")
 
-	watsonbam = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.watson.bam'), "wb", template=bam)
+	#watsonreads = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.watson.bam'), "wb", template=bam)
 
 	watslist=list(watson_orientation(bam))
 
-	for read1,read2 in watslist:
-			
-		watsonbam.write(read1)
-		watsonbam.write(read2)
+	with open(os.path.abspath(output + '/watsonreads.txt'), 'w') as watsonreads:
+
+		for read1,read2 in watslist:
+				
+			watsonreads.write(read1.query_name + '\n')
+			watsonreads.write(read2.query_name + '\n')	
+
 
 	
-	crickbam = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.crick.bam'), "wb", template=bam)
+	#crickbam = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.crick.bam'), "wb", template=bam)
 
 	cricklist=list(crick_orientation(bam))
 
-	for read1,read2 in cricklist:
-			
-		crickbam.write(read1)
-		crickbam.write(read2)
+	with open(os.path.abspath(output + '/crickreads.txt'), 'w') as crickreads:
+
+		for read1,read2 in cricklist:
+				
+			crickreads.write(read1.query_name + '\n')
+			crickreads.write(read2.query_name + '\n')	
+
 
 
 	if noisefraction > 0:
@@ -472,57 +478,51 @@ def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 
 		sample_crick=random.sample(cricklist,discordant_pair_watson)
 
-		for read1,read2 in sample_crick:
+		with open(os.path.abspath(output + '/watsonreads.txt'), 'a') as watsonreads:
 
-			watsonbam.write(read1)
-			watsonbam.write(read2)
+			for read1,read2 in sample_crick:
+
+				watsonreads.write(read1.query_name + '\n')
+				watsonreads.write(read2.query_name + '\n')	
+
 
 		sample_watson=random.sample(watslist,discordant_pair_crick)
 
-		for read1,read2 in sample_watson:
+		with open(os.path.abspath(output + '/crickreads.txt'), 'a') as crickreads:
 
-			crickbam.write(read1)
-			crickbam.write(read2)
+			for read1,read2 in sample_watson:
 
-	watsonbam.close()
-	crickbam.close()
+				crickreads.write(read1.query_name + '\n')
+				crickreads.write(read2.query_name + '\n')	
+
+
+	#watsonbam.close()
+	#crickbam.close()
 	bam.close()
 
 	os.remove(bamfilein)
 	os.remove(bamfilein + '.bai')
 
 
-	with open(os.path.abspath(output + '/' + label + '.watson.fq'), 'w') as watsonfq:
-
-		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.watson.bam')], stdout=watsonfq, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/' + label + '.watson.bam'))
-
-	#subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-
-	with open(os.path.abspath(output + '/' + label + '.crick.fq'), 'w') as crickfq:
-
-		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=crickfq, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/' + label + '.crick.bam'))
-	
-	
-	#subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['bash', generate, os.path.abspath(output)])
 
 
 	with open(os.path.abspath(output + '/watson.tmp.sam'), 'w') as watsonsam:
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/' + label + '.watson.fq')], stdout=watsonsam, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/watson.1.fq'), os.path.abspath(output + '/watson.2.fq')], stdout=watsonsam, stderr=open(os.devnull, 'wb'))
 
 
 	with open(os.path.abspath(output + '/crick.tmp.sam'), 'w') as cricksam:
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/' + label + '.crick.fq')], stdout=cricksam, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/crick.1.fq'), os.path.abspath(output + '/crick.2.fq')], stdout=cricksam, stderr=open(os.devnull, 'wb'))
 
 
-	os.remove(os.path.abspath(output + '/' + label + '.watson.fq'))
-	os.remove(os.path.abspath(output + '/' + label + '.crick.fq'))
+	os.remove(os.path.abspath(output + '/' + label + '.watson.1.fq'))
+	os.remove(os.path.abspath(output + '/' + label + '.watson.2.fq'))
+
+	os.remove(os.path.abspath(output + '/' + label + '.crick.1.fq'))
+	os.remove(os.path.abspath(output + '/' + label + '.crick.2.fq'))
+
 
 	with open(os.path.abspath(output + '/watson.tmp.bam'), 'w') as watsonbam:
 
