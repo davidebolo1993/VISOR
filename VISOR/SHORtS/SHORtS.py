@@ -11,6 +11,7 @@ import timeit
 import random
 from collections import defaultdict
 
+
 #additional modules
 
 import pybedtools
@@ -98,6 +99,19 @@ def run(parser,args):
 
 
 
+	if not os.path.exists(os.path.abspath(args.genome + '.sa')):
+
+		try:
+
+			logging.info('Creating bwa index for reference genome')
+			subprocess.check_call(['bwa', 'index', os.path.abspath(args.genome)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
+		except:
+
+			logging.error('It was not possible to generate bwa index for reference genome. Aborted')
+			sys.exit(1)
+
+
 	#validate h1.fa
 
 
@@ -112,6 +126,19 @@ def run(parser,args):
 		logging.error('Specified haplotype 1 .fasta file does not exist, is not readable or is not a valid .fasta file')
 		sys.exit(1)
 
+
+	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand'
+
+		try:
+
+			logging.info('Creating bwa index for haplotype 1 .fasta')
+			subprocess.check_call(['bwa', 'index', os.path.abspath(args.hap1fa)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
+		except:
+
+			logging.error('It was not possible to generate bwa index for haplotype 1 .fasta. Aborted')
+			sys.exit(1)
+
 	#validate h2.fa
 
 
@@ -125,6 +152,19 @@ def run(parser,args):
 
 		logging.error('Specified haplotype 2 .fasta file does not exist, is not readable or is not a valid .fasta file')
 		sys.exit(1)
+
+
+	if not os.path.exists(os.path.abspath(args.hap2fa + '.sa')) and args.type=='single-strand'
+
+		try:
+
+			logging.info('Creating bwa index for haplotype 2 .fasta')
+			subprocess.check_call(['bwa', 'index', os.path.abspath(args.hap2fa)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
+		except:
+
+			logging.error('It was not possible to generate bwa index for haplotype 2 .fasta. Aborted')
+			sys.exit(1)
 
 
 	#validate .bed1
@@ -207,22 +247,19 @@ def run(parser,args):
 
 		if str(entries[3]) not in labels_seen_h1:
 
+
 			labels_seen_h1.add(str(entries[3]))
 
 			try:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
-
 				if args.type == 'double-strand':
 
-					pass #do nothing
+					ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam')
-					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
-					os.remove(bamin)
-					os.remove(bamin+'.bai')
+					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'), args.noise)
+					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(output + '/simulations_haplotype1'))
 
 			except:
 
@@ -279,18 +316,14 @@ def run(parser,args):
 
 			try:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-
 				if args.type == 'double-strand':
 
-					pass #do nothing
+					ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 				else:
 
-					bamin=os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam')
-					SingleStrand(bamin, str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
-					os.remove(bamin)
-					os.remove(bamin+'.bai')
+					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
+					SingleStrand(os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(output + '/simulations_haplotype2'))
 
 
 			except:
@@ -311,9 +344,7 @@ def run(parser,args):
 	logging.info('Done')
 
 
-
-
-def Simulate(genome, cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
+def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
 
 
 	#prepare region
@@ -330,11 +361,54 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, error, cov
 
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
 
-	#align to reference
+	#align to modified reference
 
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['bwa', 'mem', '-t', str(cores), reference, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+
+	os.remove(os.path.abspath(output + '/region.1.fq'))
+	os.remove(os.path.abspath(output + '/region.2.fq'))
+
+	with open(os.path.abspath(output + '/region.tmp.bam'), 'w') as bamout:
+
+		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/region.tmp.sam')], stdout=bamout, stderr=open(os.devnull, 'wb'))
+
+	os.remove(os.path.abspath(output + '/region.tmp.sam'))
+
+	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
+
+		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+
+	os.remove(os.path.abspath(output + '/region.tmp.bam'))
+
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+
+
+def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output, noise):
+
+
+	#prepare region
+
+	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
+
+		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
+
+	numreads= round((coverage*(end-start)) / length) 
+
+	#simulate reads
+
+	subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+
+	os.remove(os.path.abspath(output + '/region.tmp.fa'))
+
+	#align to modified reference
+
+
+	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
+
+		subprocess.call(['bwa', 'mem', '-t', str(cores), haplotype, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.1.fq'))
 	os.remove(os.path.abspath(output + '/region.2.fq'))
@@ -356,8 +430,7 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, error, cov
 
 
 
-
-def SingleStrand(bamfilein, label, noisefraction, output):
+def SingleStrand(genome, cores, bamfilein, label, noisefraction, output):
 
 	bam = pysam.AlignmentFile(bamfilein, "rb")
 
@@ -404,22 +477,73 @@ def SingleStrand(bamfilein, label, noisefraction, output):
 	crickbam.close()
 	bam.close()
 
-	with open(os.path.abspath(output + '/' + label + '.watson.srt.bam'), 'w') as srtbamout:
+	os.remove(bamfilein)
+	os.remove(bamfilein + '.bai')
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/' + label + '.watson.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+
+	with open(os.path.abspath(output + '/' + label + '.watson.fq'), 'w') as watsonfq:
+
+		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.watson.bam')], stdout=watsonfq, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.watson.bam'))
 
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
+	#subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
-	with open(os.path.abspath(output + '/' + label + '.crick.srt.bam'), 'w') as srtbamout:
+	with open(os.path.abspath(output + '/' + label + '.crick.fq'), 'w') as crickfq:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'fastq', os.path.abspath(output + '/' + label + '.crick.bam')], stdout=watsonfq, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/' + label + '.crick.bam'))
 	
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+	
+	#subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+
+	with open(os.path.abspath(output + '/watson.tmp.sam'), 'w') as watsonsam:
+
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/' + label + '.watson.fq')], stdout=watsonsam, stderr=open(os.devnull, 'wb'))
+
+
+	with open(os.path.abspath(output + '/crick.tmp.sam'), 'w') as cricksam:
+
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/' + label + '.crick.fq')], stdout=cricksam, stderr=open(os.devnull, 'wb'))
+
+
+	os.remove(os.path.abspath(output + '/' + label + '.watson.fq'))
+	os.remove(os.path.abspath(output + '/' + label + '.crick.fq'))
+
+	with open(os.path.abspath(output + '/watson.tmp.bam'), 'w') as watsonbam:
+
+		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/watson.tmp.sam')], stdout=watsonbam, stderr=open(os.devnull, 'wb'))
+
+
+	with open(os.path.abspath(output + '/crick.tmp.bam'), 'w') as crickbam:
+
+		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/crick.tmp.sam')], stdout=crickbam, stderr=open(os.devnull, 'wb'))
+
+	os.remove(os.path.abspath(output + '/watson.tmp.sam'))
+	os.remove(os.path.abspath(output + '/crick.tmp.sam'))
+
+
+	with open(os.path.abspath(output + '/' + label + 'watson.srt.bam'), 'w') as watsonsort:
+
+		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/watson.tmp.bam')], stdout=watsonsort, stderr=open(os.devnull, 'wb'))
+
+
+	with open(os.path.abspath(output + '/' + label + 'crick.srt.bam'), 'w') as cricksort:
+
+		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/crick.tmp.bam')], stdout=cricksort, stderr=open(os.devnull, 'wb'))
+
+
+	os.remove(os.path.abspath(output + '/watson.tmp.bam'))
+	os.remove(os.path.abspath(output + '/crick.tmp.bam'))
+
+
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'watson.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + 'crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+
 
 
 
@@ -512,4 +636,3 @@ def crick_orientation(bam):
 					yield read_dict[qname][0], read
 
 				del read_dict[qname]
-
