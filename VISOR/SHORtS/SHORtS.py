@@ -500,6 +500,9 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 
 	subprocess.call(['bash', generate, os.path.abspath(output)])
 
+	os.remove(os.path.abspath(output + '/watsonreads.txt'))
+	os.remove(os.path.abspath(output + '/crickreads.txt'))
+
 
 	with open(os.path.abspath(output + '/watson.tmp.sam'), 'w') as watsonsam:
 
