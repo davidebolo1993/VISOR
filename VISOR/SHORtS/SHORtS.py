@@ -247,8 +247,8 @@ def run(parser,args):
 
 				else:
 
-					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
-					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
+					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
+					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
 
 			except:
 
@@ -311,8 +311,8 @@ def run(parser,args):
 
 				else:
 
-					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/' + str(entries[3]) + '.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
+					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
+					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 
 			except:
@@ -398,7 +398,7 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 
 
-def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage, length, indels, probability, output):
+def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length, indels, probability, output):
 
 	#prepare region
 
@@ -430,13 +430,13 @@ def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage,
 
 	os.remove(os.path.abspath(output + '/region.tmp.sam'))
 
-	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
+	with open(os.path.abspath(output + '/region.tmp.srt.bam'), 'w') as srtbamout:
 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/region.tmp.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
 
@@ -444,8 +444,6 @@ def SSSimulate(cores, haplotype, chromosome, start, end, label, error, coverage,
 def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, output):
 
 	bam = pysam.AlignmentFile(bamfilein, "rb")
-
-	#watsonreads = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.watson.bam'), "wb", template=bam)
 
 	watslist=list(watson_orientation(bam))
 
@@ -458,7 +456,6 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 
 
 	
-	#crickbam = pysam.AlignmentFile(os.path.abspath(output + '/' + label + '.crick.bam'), "wb", template=bam)
 
 	cricklist=list(crick_orientation(bam))
 
@@ -468,7 +465,6 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 				
 			crickreads.write(read1.query_name + '\n')
 			crickreads.write(read2.query_name + '\n')	
-
 
 
 	if noisefraction > 0:
@@ -496,8 +492,6 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 				crickreads.write(read2.query_name + '\n')	
 
 
-	#watsonbam.close()
-	#crickbam.close()
 	bam.close()
 
 	os.remove(bamfilein)
@@ -517,11 +511,11 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/crick.1.fq'), os.path.abspath(output + '/crick.2.fq')], stdout=cricksam, stderr=open(os.devnull, 'wb'))
 
 
-	os.remove(os.path.abspath(output + '/' + label + '.watson.1.fq'))
-	os.remove(os.path.abspath(output + '/' + label + '.watson.2.fq'))
+	os.remove(os.path.abspath(output + '/watson.1.fq'))
+	os.remove(os.path.abspath(output + '/watson.2.fq'))
 
-	os.remove(os.path.abspath(output + '/' + label + '.crick.1.fq'))
-	os.remove(os.path.abspath(output + '/' + label + '.crick.2.fq'))
+	os.remove(os.path.abspath(output + '/crick.1.fq'))
+	os.remove(os.path.abspath(output + '/crick.2.fq'))
 
 
 	with open(os.path.abspath(output + '/watson.tmp.bam'), 'w') as watsonbam:
