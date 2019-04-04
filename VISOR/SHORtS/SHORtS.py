@@ -130,7 +130,7 @@ def run(parser,args):
 	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand':
 
 		try:
-
+			logging.info('Creating bwa index for the 2 haplotype .fasta file')
 			runInParallel(BWA_Index,(os.path.abspath(args.hap1fa),),(os.path.abspath(args.hap2fa),))
 
 		except:
