@@ -373,8 +373,6 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
 
-	#align to modified reference
-
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
 		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
