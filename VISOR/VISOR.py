@@ -51,7 +51,7 @@ def main():
 	wgi = parser_shorts.add_argument_group('Wgsim parameters for simulation')
 
 	wgi.add_argument('-e', '--error', help='Base error rate [0.010]', metavar='', default=0.010, type=float)
-	wgi.add_argument('-c', '--coverage', help='Desired coverage for the simulated region [30]', metavar='', default=30.0, type=float)
+	wgi.add_argument('-c', '--coverage', help='Desired coverage for the simulated region [30.0]', metavar='', default=30.0, type=float)
 	wgi.add_argument('-l', '--length', help='Length of reads [150]', metavar='', default=150, type=int)
 	wgi.add_argument('-i', '--indels', help='Fractions of indels [0.000000001]', metavar='', default=0.000000001, type=float)
 	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
