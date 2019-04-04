@@ -1374,5 +1374,5 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 	if skipped > 0 :
 
-		logging.warning('Skipped ' + skipped + ' variants for the current haplotype as they overlapped others')
+		logging.warning('Skipped ' + str(skipped) + ' variants for the current haplotype as they overlapped others')
 
