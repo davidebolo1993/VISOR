@@ -126,19 +126,8 @@ def run(parser,args):
 		logging.error('Specified haplotype 1 .fasta file does not exist, is not readable or is not a valid .fasta file')
 		sys.exit(1)
 
-
-	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand':
-
-		try:
-			logging.info('Creating bwa index for the 2 haplotype .fasta file')
-			runInParallel(BWA_Index,(os.path.abspath(args.hap1fa),),(os.path.abspath(args.hap2fa),))
-
-		except:
-
-			logging.error('Could not create bwa indexes. Aborted.')
-			sys.exit(1)
-
-
+		
+		
 	#validate h2.fa
 
 
@@ -153,7 +142,19 @@ def run(parser,args):
 		logging.error('Specified haplotype 2 .fasta file does not exist, is not readable or is not a valid .fasta file')
 		sys.exit(1)
 
+	
+	#generate .bwa indexes for the 2 haps in parallel
+	
+	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand':
 
+		try:
+			logging.info('Creating bwa index for the 2 haplotype .fasta file')
+			runInParallel(BWA_Index,(os.path.abspath(args.hap1fa),),(os.path.abspath(args.hap2fa),))
+
+		except:
+
+			logging.error('Could not create bwa indexes. Aborted.')
+			sys.exit(1)
 
 
 	#validate .bed1
