@@ -377,7 +377,7 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, err
 
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), reference, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.1.fq'))
 	os.remove(os.path.abspath(output + '/region.2.fq'))
