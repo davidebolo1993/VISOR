@@ -131,7 +131,7 @@ def run(parser,args):
 
 		try:
 
-			runInParallel(BWA_Index,os.path.abspath(args.hap1fa,),os.path.abspath(args.hap2fa,))
+			runInParallel(BWA_Index,(os.path.abspath(args.hap1fa),),(os.path.abspath(args.hap2fa),))
 
 		except:
 
