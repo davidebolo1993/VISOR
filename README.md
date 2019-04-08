@@ -87,7 +87,7 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'atr'__ Inserts a approximate tandem repetition immediately after end
 - __'translocation cut-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is deleted from original position
 - __'translocation copy-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
-- __'reciprocal translocation'__. Translocates from start(included) to end (included) to another region and translocates the destination region back to the first one.
+- __'reciprocal translocation'__. Translocates from start (included) to end (included) to another region and translocates the destination region back to the first one.
 
 
 ##### INFO FIELD
