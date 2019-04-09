@@ -190,6 +190,54 @@ def run(parser,args):
 		sys.exit(1)
 
 
+
+
+	#validate scebed1:
+
+
+	if args.scebed1 is not None:
+
+		scebed1=pybedtools.BedTool(os.path.abspath(args.scebed1))
+
+		try:
+
+			srtscebed1 = scebed1.sort()
+
+		except:
+
+			logging.error('Incorrect .bed format for sister chromatid exchange .bed for haplotype 1')
+			sys.exit(1)
+
+
+	else:
+
+		srtscebed1 = None
+
+
+
+
+	#validate scebed2:
+
+
+	if args.scebed2 is not None:
+
+		scebed1=pybedtools.BedTool(os.path.abspath(args.scebed2))
+
+		try:
+
+			srtscebed2 = scebed2.sort()
+
+		except:
+
+			logging.error('Incorrect .bed format for sister chromatid exchange .bed for haplotype 2')
+			sys.exit(1)
+
+
+	else:
+
+		srtscebed2 = None
+
+
 	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
 
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
@@ -249,7 +297,7 @@ def run(parser,args):
 				else:
 
 					SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
-					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'))
+					SingleStrand(str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'), srtscebed1)
 
 			except:
 
@@ -313,7 +361,7 @@ def run(parser,args):
 				else:
 
 					SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, args.coverage, args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-					SingleStrand(generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'))
+					SingleStrand(str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/region.tmp.srt.bam'), str(entries[3]), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'), srtscebed2)
 
 
 			except:
@@ -440,11 +488,26 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 
 
-def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, output):
+def SingleStrand(chromosome, generate, genome, cores, bamfilein, label, noisefraction, output, scebed):
 
 	bam = pysam.AlignmentFile(bamfilein, "rb")
 
-	watslist=list(watson_orientation(bam))
+	watslist=list(watson_orientation(bam))	
+	cricklist=list(crick_orientation(bam))
+
+	if scebed is not None:
+
+		for entries in scebed:
+
+			if str(entries[0]) == chromosome:
+
+				watsinregion = list(watson_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+				crickinregion = list(crick_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+
+				watslist=list(set(watslist)-set(watsinregion)) + crickinregion
+				cricklist = list(set(cricklist)-set(crickinregion)) + watsinregion
+
+
 
 	with open(os.path.abspath(output + '/watsonreads.txt'), 'w') as watsonreads:
 
@@ -454,9 +517,6 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 			watsonreads.write(read2.query_name + '\n')	
 
 
-	
-
-	cricklist=list(crick_orientation(bam))
 
 	with open(os.path.abspath(output + '/crickreads.txt'), 'w') as crickreads:
 
@@ -464,6 +524,7 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 				
 			crickreads.write(read1.query_name + '\n')
 			crickreads.write(read2.query_name + '\n')	
+
 
 
 	if noisefraction > 0:
@@ -491,10 +552,12 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 				crickreads.write(read2.query_name + '\n')	
 
 
+
 	bam.close()
 
 	os.remove(bamfilein)
 	os.remove(bamfilein + '.bai')
+
 
 
 	subprocess.call(['bash', generate, os.path.abspath(output)])
@@ -549,6 +612,98 @@ def SingleStrand(generate, genome, cores, bamfilein, label, noisefraction, outpu
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+
+
+
+
+def watson_orientation_inregion(bam, chromosome, start, end):
+
+	read_dict = defaultdict(lambda: [None, None])
+
+	for read in bam.fetch(chromosome, start, end):
+
+		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
+
+			continue
+
+		elif read.is_read1 and read.is_reverse: #if read1 is reverse skip
+
+			continue
+
+		elif read.is_read2 and not read.is_reverse: #if read2 is not reverse skip
+
+			continue
+
+		else: #read 1 is forward and read 2 is reverse
+
+			qname = read.query_name
+
+			if qname not in read_dict:
+
+				if read.is_read1:
+
+					read_dict[qname][0] = read
+
+				else:
+
+					read_dict[qname][1] = read
+			else:
+
+				if read.is_read1:
+
+					yield read, read_dict[qname][1]
+				
+				else:
+
+					yield read_dict[qname][0], read
+
+				del read_dict[qname]
+
+
+
+def crick_orientation_inregion(bam, chromosome, start, end):
+
+	read_dict = defaultdict(lambda: [None, None])
+
+	for read in bam.fetch(chromosome, start, end):
+
+		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
+
+			continue
+
+		elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
+
+			continue
+
+		elif read.is_read2 and read.is_reverse: #if read2 is reverse skip
+
+			continue
+
+		else:
+
+			qname = read.query_name
+
+			if qname not in read_dict:
+
+				if read.is_read1:
+
+					read_dict[qname][0] = read
+
+				else:
+
+					read_dict[qname][1] = read
+			else:
+
+				if read.is_read1:
+
+					yield read, read_dict[qname][1]
+				
+				else:
+
+					yield read_dict[qname][0], read
+
+				del read_dict[qname]
 
 
 
