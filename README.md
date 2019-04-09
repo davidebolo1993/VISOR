@@ -155,11 +155,14 @@ VISOR SHORtS -h #print help
 
 VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -O pathout #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 0.10 -O pathout #single-strand simulations with 0.10 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -O pathout #single-strand simulations with 5 % of read pairs with incorrect orientation
+
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -sceb1 sce1.bed -O pathout #single-strand simulations with 5 % of read pairs with incorrect orientation
+
 
 ```
 
-When working in single-strand mode (-t single-strand), for each region specified in the  haplotype-specific .bed files, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter.
+When working in single-strand mode (-t single-strand), for each region specified in the  haplotype-specific .bed files, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify .bed files (-sceb1, -sceb2) containing informations (chromosome, start, end) for regions in which sister chromatid exchange will be performed.
 
 #### Plot read pairs count
 
