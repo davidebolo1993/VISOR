@@ -61,6 +61,9 @@ def main():
 
 	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
 	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
+	optional.add_argument('-sceb1', '--scebed1', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 1 [None]', metavar='', default=None)
+	optional.add_argument('-sceb2', '--scebed2', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 2 [None]', metavar='', default=None)
+
 
 	parser_shorts.set_defaults(func=run_subtool)
 
