@@ -134,12 +134,108 @@ def main():
 	print('Plotting')
 
 
-	Plotter(reslist,labels, os.path.abspath(args.output + '/comparison'))
+	Plotter(reslist,labels, os.path.abspath(args.output))
 
 	print('Done')
 
 
 	sys.exit(0)
+
+
+
+class CustomFormat(HelpFormatter):
+
+	def _format_action_invocation(self, action):
+
+		if not action.option_strings:
+
+			default = self._get_default_metavar_for_positional(action)
+			metavar, = self._metavar_formatter(action, default)(1)
+			
+			return metavar
+
+		else:
+
+			parts = []
+
+			if action.nargs == 0:
+
+				parts.extend(action.option_strings)
+
+			else:
+
+				default = self._get_default_metavar_for_optional(action)
+				args_string = self._format_args(action, default)
+				
+				for option_string in action.option_strings:
+
+					parts.append(option_string)
+
+				return '%s %s' % (', '.join(parts), args_string)
+
+			return ', '.join(parts)
+
+	def _get_default_metavar_for_optional(self, action):
+
+		return action.dest.upper()
+
+
+
+class AutoVivification(dict):
+
+	def __getitem__(self, item):
+		
+		try:
+			
+			return dict.__getitem__(self, item)
+		
+		except KeyError:
+			
+			value = self[item] = type(self)()
+			
+			return value
+
+
+
+class ProgressBar(object):
+
+	DEFAULT = 'Progress: %(bar)s %(percent)3d%%'
+	FULL = '%(bar)s %(current)d/%(total)d (%(percent)3d%%) %(remaining)d to go'
+
+	def __init__(self, total, width=40, fmt=DEFAULT, symbol='=',output=sys.stderr):
+		
+		assert len(symbol) == 1
+
+		self.total = total
+		self.width = width
+		self.symbol = symbol
+		self.output = output
+		self.fmt = re.sub(r'(?P<name>%\(.+?\))d',r'\g<name>%dd' % len(str(total)), fmt)
+		self.current = 0
+
+	def __call__(self):
+
+		percent = self.current / float(self.total)
+		size = int(self.width * percent)
+		remaining = self.total - self.current
+		bar = '[' + self.symbol * size + ' ' * (self.width - size) + ']'
+		args = {
+			'total': self.total,
+			'bar': bar,
+			'current': self.current,
+			'percent': percent * 100,
+			'remaining': remaining
+		}
+
+		print('\r' + self.fmt % args, file=self.output, end='')
+
+	def done(self):
+
+		self.current = self.total
+		self()
+		print('', file=self.output)
+
+
 
 
 def Plotter(reslist, labels, output):
@@ -231,102 +327,8 @@ def Plotter(reslist, labels, output):
 				fig['layout']['xaxis' + str(i+1)]['title'] = 'Genomic position'
 
 
-		plot(fig, filename = os.path.abspath(output + '/' + chroms + '.comparison.html'), auto_open=False)
+		plot(fig, filename = os.path.abspath(output + '/' + chroms + '.html'), auto_open=False)
 
-
-
-
-class AutoVivification(dict):
-
-	def __getitem__(self, item):
-		
-		try:
-			
-			return dict.__getitem__(self, item)
-		
-		except KeyError:
-			
-			value = self[item] = type(self)()
-			
-			return value
-
-
-
-class CustomFormat(HelpFormatter):
-
-	def _format_action_invocation(self, action):
-
-		if not action.option_strings:
-
-			default = self._get_default_metavar_for_positional(action)
-			metavar, = self._metavar_formatter(action, default)(1)
-			
-			return metavar
-
-		else:
-
-			parts = []
-
-			if action.nargs == 0:
-
-				parts.extend(action.option_strings)
-
-			else:
-
-				default = self._get_default_metavar_for_optional(action)
-				args_string = self._format_args(action, default)
-				
-				for option_string in action.option_strings:
-
-					parts.append(option_string)
-
-				return '%s %s' % (', '.join(parts), args_string)
-
-			return ', '.join(parts)
-
-	def _get_default_metavar_for_optional(self, action):
-
-		return action.dest.upper()
-
-
-
-class ProgressBar(object):
-
-	DEFAULT = 'Progress: %(bar)s %(percent)3d%%'
-	FULL = '%(bar)s %(current)d/%(total)d (%(percent)3d%%) %(remaining)d to go'
-
-	def __init__(self, total, width=40, fmt=DEFAULT, symbol='=',output=sys.stderr):
-		
-		assert len(symbol) == 1
-
-		self.total = total
-		self.width = width
-		self.symbol = symbol
-		self.output = output
-		self.fmt = re.sub(r'(?P<name>%\(.+?\))d',r'\g<name>%dd' % len(str(total)), fmt)
-		self.current = 0
-
-	def __call__(self):
-
-		percent = self.current / float(self.total)
-		size = int(self.width * percent)
-		remaining = self.total - self.current
-		bar = '[' + self.symbol * size + ' ' * (self.width - size) + ']'
-		args = {
-			'total': self.total,
-			'bar': bar,
-			'current': self.current,
-			'percent': percent * 100,
-			'remaining': remaining
-		}
-
-		print('\r' + self.fmt % args, file=self.output, end='')
-
-	def done(self):
-
-		self.current = self.total
-		self()
-		print('', file=self.output)
 
 
 
