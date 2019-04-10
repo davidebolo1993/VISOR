@@ -347,7 +347,7 @@ def run(parser,args):
 
 				elif not (all(i in valid_dna for i in entr_4[0].upper())):
 
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
+					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
 					sys.exit(1)
 
 				try:
