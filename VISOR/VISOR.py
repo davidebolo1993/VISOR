@@ -39,8 +39,7 @@ def main():
 	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
-	required.add_argument('-h1b','--hap1bed', help='.bed file containing "CHROM, START, END, LABEL" entries of regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-h2b','--hap2bed', help='.bed file containing "CHROM, START, END, LABEL" entries of regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on haplotype 1 and haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	
@@ -57,14 +56,24 @@ def main():
 	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
 
 
-	optional = parser_shorts.add_argument_group('Additional parameters')
+	optional = parser_shorts.add_argument_group('Additional single-strand parameters')
 
-	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
-	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
 	optional.add_argument('-sceb1', '--scebed1', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 1 [None]', metavar='', default=None)
 	optional.add_argument('-sceb2', '--scebed2', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 2 [None]', metavar='', default=None)
+	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
 
+	
+	optional1 = parser_shorts.add_argument_group('Additional double-strand parameter')
 
+	optional1.add_argument('-af', '--allelicfraction', help='Percentage of total reads that will support simulated variants [100.0]', type=float, metavar='', default=100.0)
+	
+	optional2 = parser_shorts.add_argument_group('Additional general parameters')
+		
+	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
+	optional2.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
+	
+	
+	
 	parser_shorts.set_defaults(func=run_subtool)
 
 
@@ -91,10 +100,11 @@ def main():
 	pbs.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [20]', metavar='', default=20, type=int)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
 
-	optional = parser_long.add_argument_group('Additional parameter')
+	optional = parser_long.add_argument_group('Additional parameters')
 
+	optional.add_argument('-af', '--allelicfraction', help='Percentage of total reads that will support simulated variants [100.0]', type=float, metavar='', default=100.0)
+	optional.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
-
 
 
 	parser_long.set_defaults(func=run_subtool)
