@@ -8,6 +8,7 @@ import logging
 from shutil import which
 import subprocess
 import timeit
+import glob
 
 #additional modules
 
@@ -36,6 +37,12 @@ def run(parser,args):
 
 			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
 			sys.exit(1)
+
+		if os.listdir(os.path.abspath(args.output)):
+
+			print('You must specify an empty folder to write out the results')
+			sys.exit(1)
+
 
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_LASeR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
@@ -68,8 +75,6 @@ def run(parser,args):
 
 			logging.error('It was not possible to create haplotype 2 results folder. Specify a path for which you have write permissions')
 			sys.exit(1)
-
-
 
 
 	#check if external tools can be executed
@@ -130,45 +135,25 @@ def run(parser,args):
 		sys.exit(1)
 
 
-	#validate .bed1
 
+	#validate .bed
 
-	bedh1 = pybedtools.BedTool(os.path.abspath(args.hap1bed)) #this one is required
-
-	
-	try:
-	
-		srtbedh1 = bedh1.sort() #sorting here is not necessary, but allows to look for general formatting errors
-
-	except:
-
-		logging.error('Incorrect .bed format for haplotype 1')
-		sys.exit(1)
-
-
-
-	bedh2 = pybedtools.BedTool(os.path.abspath(args.hap2bed)) #this one is required
-
-
-	#validate .bed2
+	bed = pybedtools.BedTool(os.path.abspath(args.bedfile)) #this one is required
 
 	
 	try:
-	
-		srtbedh2 = bedh1.sort() #sorting here is not necessary, but allows to look for general formatting errors
+
+		srtbed = bed.sort() #sorting here is not necessary, but allows to look for general formatting errors
 
 	except:
 
-		logging.error('Incorrect .bed format for haplotype 2')
+		logging.error('Incorrect .bed format for -b/--bedfile')
 		sys.exit(1)
 
 
-
+	allelic=args.allelicfraction
 
 	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-
-	labels_seen_h1=set()
-	labels_seen_h2=set()
 
 	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
 
@@ -176,12 +161,16 @@ def run(parser,args):
 
 	logging.info('Simulating from haplotype 1')
 
+	counter = 0
 
-	for entries in srtbedh1: #validate each entry
+	for entries in srtbed: #validate each entry
 
+		counter +=1
+
+		
 		if str(entries[0]) not in classic_chrs:
 
-			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
 			sys.exit(1)
 
 		try:
@@ -190,7 +179,7 @@ def run(parser,args):
 
 		except:
 
-			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
+			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
 			sys.exit(1)
 
 
@@ -200,92 +189,106 @@ def run(parser,args):
 
 		except:
 
-			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
+			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
 			sys.exit(1)
 
 
 		if (int(entries[2]) - int(entries[1]) == 0):
 
-			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
+			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
 			sys.exit(1)
 
 
-		if str(entries[3]) not in labels_seen_h1:
+		try:
 
-			labels_seen_h1.add(str(entries[3]))
+			float(entries[3])
 
-			try:
+		except:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), model_qc, args.accuracy, args.coverage, args.length, args.ratio, os.path.abspath(args.output + '/simulations_haplotype1'))
-
-			except:
-
-				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
-
-
-
-		else:
-
-			logging.error('Multiple entries with same label in .bed file for haplotype 1')
+			logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
 			sys.exit(1)
+
+		try:
+
+			Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), allelic, args.length, args.ratio, os.path.abspath(args.output + '/simulations_haplotype1'))
+
+		except:
+
+			logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
 
 	
 	logging.info('Simulations from haplotype 1 completed')
 
 	logging.info('Simulating from haplotype 2')
 
-	for entries in srtbedh2: #validate each entry
 
-		if str(entries[0]) not in classic_chrs:
+	counter = 0
 
-			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-			sys.exit(1)
+	for entries in srtbed: #validate each entry
 
-		try:
-
-			int(entries[1])
-
-		except:
-
-			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
-			sys.exit(1)
+		counter +=1
 
 
 		try:
 
-			int(entries[2])
+			Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), allelic, args.length, args.ratio, os.path.abspath(args.output + '/simulations_haplotype2'))
 
 		except:
 
-			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
-			sys.exit(1)
-
-
-		if (int(entries[2]) - int(entries[1]) == 0):
-
-			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
-			sys.exit(1)
-
-
-		if str(entries[3]) not in labels_seen_h2:
-
-			labels_seen_h2.add(str(entries[3]))
-
-			try:
-
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), str(entries[3]), model_qc, args.accuracy, args.coverage, args.length, args.ratio, os.path.abspath(args.output + '/simulations_haplotype2'))
-
-			except:
-
-				logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
-
-		else:
-
-			logging.error('Multiple entries with same label in .bed file for haplotype 2')
-			sys.exit(1)
+			logging.exception('Something went wrong during simulations for haplotype 2, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
 
 	
 	logging.info('Simulations from haplotype 2 completed')
+
+
+	if len(srtbed) == 1:
+
+
+		os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam'))
+		os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam.bai'))
+		os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam'))
+		os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam.bai'))
+
+	else:
+
+
+		bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype1/' + '*.srt.bam'))
+
+		with open(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), 'a') as bamout:
+
+			for file in bams:
+
+				bamout.write(file + '\n')
+
+		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam')])
+		os.remove(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'))
+		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam')])
+
+		for b in bams:
+
+			os.remove(b)
+			os.remove(b + '.bai')
+
+
+		bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype2/' + '*.srt.bam'))
+
+		with open(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), 'a') as bamout:
+
+			for file in bams:
+
+				bamout.write(file + '\n')
+
+		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam')])
+		os.remove(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'))
+		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam')])
+
+
+		for b in bams:
+
+			os.remove(b)
+			os.remove(b + '.bai')
+
+
 
 	end=timeit.default_timer()
 	elapsed=(end-start)/60
@@ -295,7 +298,8 @@ def run(parser,args):
 
 
 
-def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, length, ratio, output):
+def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output):
+
 
 
 	#prepare region
@@ -305,14 +309,49 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
 
-	#simulate reads	
 
-	subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+	if not allelic == 100: #simulate part from modified and part from reference
+
+		with open(os.path.abspath(output + '/reference.region.tmp.fa'), 'w') as regionout:
+
+			subprocess.call(['samtools', 'faidx', genome, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
 
-	os.remove(os.path.abspath(output + '/region.tmp.fa'))
-	os.remove(os.path.abspath(output + '/sim_0001.ref'))
-	os.remove(os.path.abspath(output + '/sim_0001.maf'))
+		coveragevar = (coverage/100)*allelic
+		coverageref = coverage - coveragevar
+
+
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/simref','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverageref), os.path.abspath(output + '/reference.region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+
+		os.remove(os.path.abspath(output + '/reference.region.tmp.fa'))
+		os.remove(os.path.abspath(output + '/simref_0001.ref'))
+		os.remove(os.path.abspath(output + '/simref_0001.maf'))
+
+
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/simvar','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coveragevar), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+
+		os.remove(os.path.abspath(output + '/region.tmp.fa'))
+		os.remove(os.path.abspath(output + '/simvar_0001.ref'))
+		os.remove(os.path.abspath(output + '/simvar_0001.maf'))
+
+
+		with open (os.path.abspath(output + '/sim_0001.fastq'), 'w') as regionout:
+
+			subprocess.call(['cat', os.path.abspath(output + '/simref_0001.fastq'), os.path.abspath(output + '/simvar_0001.fastq')], stdout=regionout, stderr=open(os.devnull, 'wb'))
+
+
+		os.remove(os.path.abspath(output + '/simref_0001.fastq'))
+		os.remove(os.path.abspath(output + '/simvar_0001.fastq'))
+
+
+	else:
+
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+
+		os.remove(os.path.abspath(output + '/region.tmp.fa'))
+		os.remove(os.path.abspath(output + '/sim_0001.ref'))
+		os.remove(os.path.abspath(output + '/sim_0001.maf'))
+
 
 
 	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')):
@@ -331,7 +370,7 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-		subprocess.call(['minimap2', '-ax', 'map-ont', new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['minimap2', '-ax', 'map-ont', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/sim_0001.fastq'))
 
