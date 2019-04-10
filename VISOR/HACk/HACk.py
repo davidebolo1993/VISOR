@@ -1404,10 +1404,9 @@ def EXPTR(infofield, sequence, start, end): #expand tr
 	trseq=sequence[start-1:end]
 
 	firstbase=trseq[0]
-	lastbase=trseq[-1]
-	exprep=trseq[1:-1] + motif*num
+	exprep=trseq[1:] + motif*num
 
-	new_seq=firstbase + exprep + lastbase
+	new_seq=firstbase + exprep
 
 	return new_seq
 
@@ -1420,11 +1419,10 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 	trseq=sequence[start-1:end]
 
 	firstbase=trseq[0]
-	lastbase=trseq[-1]
-	rep=trseq[1:-1]
+	rep=trseq[1:]
 	newind=len(motif)*num
 	delrep=rep[newind:]
-	new_seq=firstbase + delrep + lastbase
+	new_seq=firstbase + delrep
 
 	return new_seq
 
