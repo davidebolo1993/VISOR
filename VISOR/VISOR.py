@@ -88,8 +88,7 @@ def main():
 	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
 	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
 	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
-	required.add_argument('-h1b','--hap1bed', help='.bed file containing "CHROM, START, END, LABEL" entries of regions to simulate for haplotype 1. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-h2b','--hap2bed', help='.bed file containing "CHROM, START, END, LABEL" entries of regions to simulate for haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on haplotype 1 and haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
 	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for simulation')
