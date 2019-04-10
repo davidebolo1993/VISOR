@@ -153,11 +153,11 @@ VISOR SHORtS can simulate single-strand (strand-seq) .bam files
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -O shortsout #single-strand simulations without noise
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -t single-strand -c 2 -O shortsout #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -t single-strand -c 2 -n 5 -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -sceb1 sce1.bed -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange in regions specified in sce1.bed
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -t single-strand -c 2 -n 5 -sceb1 sce1.bed -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange in regions specified in sce1.bed
 
 
 ```
