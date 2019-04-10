@@ -47,9 +47,9 @@ VISOR is built on 3 submodules:
 ```sh
 VISOR HACk -h #print help
 
-VISOR HACk -g genome.fa -h1b bedh1.bed -O pathout #.bed file just for haplotype 1
+VISOR HACk -g genome.fa -h1b bedh1.bed -O hackout #.bed file just for haplotype 1
 
-VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O pathout #.bed file for haplotype 1 and for haplotype 2
+VISOR HACk -g genome.fa -h1b bedh1.bed -h2b bedh2.bed -O hackout #.bed file for haplotype 1 and for haplotype 2
 
 ```
 
@@ -114,11 +114,11 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -O pathout #default double-strand sequencing simulations
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -O shortsout #default double-strand sequencing simulations
 
 VISOR LASeR -h #print help
 
-VISOR LASeR -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -O pathout #long-reads sequencing simulations
+VISOR LASeR -g genome.fa -h1f h1.fa -h2f h2.fa -bed sim.bed -O laserout #long-reads sequencing simulations
 
 ```
 
@@ -153,11 +153,11 @@ VISOR SHORtS can simulate single-strand (strand-seq) .bam files
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -O pathout #single-strand simulations without noise
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -O shortsout #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -O pathout #single-strand simulations with 5 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation
 
-VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -sceb1 sce1.bed -O pathout #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange in regions specified in sce1.bed
+VISOR SHORtS -g genome.fa -h1f h1.fa -h2f h2.fa -h1b bedh1.bed -h2b bedh2.bed -t single-strand -c 2 -n 5 -sceb1 sce1.bed -O shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange in regions specified in sce1.bed
 
 
 ```
@@ -179,6 +179,6 @@ VISOR/scripts/sscounter.py offers the possibility to plot an interactive visuali
 
 python VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2 .bam3 -O pathout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
+python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2 .bam3 -O sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
 
 ```
