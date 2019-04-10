@@ -59,11 +59,11 @@ Inputs to VISOR HACk are:
 - bedh1.bed is the .bed file containing variants to insert in haplotype 1 (required), like the one in _Examples/HACk.h1.bed_
 - bedh2.bed is the .bed file containing variants to insert in on haplotype 2 (optional), like the one in _Examples/HACk.h2.bed_
 
-VISOR HACk outputs a fasta (.fa) file with specified variants for each haplotype in the output folder (pathout/haplotype1/h1.fa and pathout/haplotype2/h2.fa) 
+VISOR HACk outputs a fasta (.fa) file with specified variants for each haplotype in the output folder (hackout/haplotype1/h1.fa and hackout/haplotype2/h2.fa) 
 
-#### Construct the .bed files
+#### Construct the .bed file/s
 
-.bed files must contain 5 columns without header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
+.bed file/s must contain 5 columns without header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
 - __START__: where the variant starts
