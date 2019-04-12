@@ -155,12 +155,12 @@ Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic frac
 
 .bed file must contain 4 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__
 
-- __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
+- __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
 - __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
 
-VISOR SHORtS and VISOR LASeR outputs a .srt.bam file (and its index) for each region in the haplotype-specific .bed files. 
+VISOR SHORtS and VISOR LASeR outputs a .srt.bam file (and its index) for each region in the haplotype-specific .bed files (shortsout/simulations_h1/sim.srt.bam and shortsout/simulations_h2/sim.srt.bam in this example for VISOR SHORtS)
 
 #### VISOR SHORtS and VISOR LASeR Simulations
 
