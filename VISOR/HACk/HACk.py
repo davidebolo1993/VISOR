@@ -6,7 +6,6 @@ import os
 import sys
 import random
 import logging
-import re
 from operator import itemgetter
 import string
 import shutil
