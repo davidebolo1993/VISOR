@@ -8,10 +8,9 @@ import random
 import logging
 import re
 from operator import itemgetter
-import timeit
 import string
 import shutil
-
+import re
 
 #additional modules
 
@@ -39,37 +38,13 @@ def run(parser,args):
 			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
 			sys.exit(1)
 
+		if os.listdir(os.path.abspath(args.output)):
 
-	if not os.path.exists(os.path.abspath(args.output + '/haplotype1')):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output+ '/haplotype1'))
-
-		except:
-
-			logging.error('It was not possible to create haplotype 1 results folder. Specify a path for which you have write permissions')
+			print('Specified output directory is not empty. Specify another directory or clean the chosen one')
 			sys.exit(1)
 
-			
-	if not os.path.exists(os.path.abspath(args.output + '/haplotype2')):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output+ '/haplotype2'))
-
-		except:
-
-			logging.error('It was not possible to create haplotype 2 results folder. Specify a path for which you have write permissions')
-			sys.exit(1)
-			
-			
-			
+		
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_HACk.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'duplication', 'snp', 'tr expansion', 'tr contraction', 'ptr', 'atr', 'translocation cut-paste', 'translocation copy-paste', 'reciprocal translocation'] #allowed variants
-	valid_dna = 'NACGT' #allowed nucleotides
 	
 
 	try:
@@ -86,1195 +61,549 @@ def run(parser,args):
 
 
 	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
+	classic_chrs = immutable_ref.keys() #allowed chromosomes
+	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
+	valid_dna = 'ACGT' #allowed nucleotides
+	haplopattern=re.compile("^h[0-9]+$") #allowed haplotypes for inter-haplotypes SVs are h1,h2,h3 ...
+
+	bedlist=[]
+
+	for bed in args.bedfile[0]:
+
+		if bed not in bedlist:
+
+			bedlist.append(bed) #remove possible duplicates but mantain input order that should be lost in set
 
 
-	if not os.path.exists(os.path.abspath(args.hap1bed)):
+	d=dict() #initialize one empty dict for each haplotype
 
-		logging.error('.bed file for haplotype 1 does not exist')
-		sys.exit(1)
-
-
-	if not args.hap2bed is None:
-
-		if not os.path.exists(os.path.abspath(args.hap2bed)):
-
-			logging.error('.bed file for haplotype 2 does not exist')
-			sys.exit(1)
-
-
-
-	bedh1 = pybedtools.BedTool(os.path.abspath(args.hap1bed)) #this one is required
-	varh1=dict()
-
-	
-	try:
-	
-		srtbedh1 = bedh1.sort() #sorting here is not necessary, but allows to look for general formatting errors
-
-	except:
-
-		logging.error('Incorrect .bed format for haplotype 1')
-		sys.exit(1)
-
-	start=timeit.default_timer()
 
 	logging.info('Organizing variants')
 
-	#initialize dictionaries
 
-	hap1dict=dict() # will be filled
-	hap2dict=dict() # can be empty at the end
+	for i,bed in enumerate(bedlist):
 
+		if not os.path.exists(os.path.abspath(bed)):
 
-	for entries in srtbedh1: #read, validate and organize
-
-		if str(entries[0]) not in classic_chrs: #exclude errors in the first field
-
-			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 1. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
+			logging.error('.bed file ' + os.path.abspath(bed) + ' does not exist')
 			sys.exit(1)
 
-		try:
+		else:
 
-			int(entries[1])
-
-		except:
-
-			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 1. Start must be an integer')
-			sys.exit(1)
-
-
-		try:
-
-			int(entries[2])
-
-		except:
-
-			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 1. End must be an integer')
-			sys.exit(1)
-
-
-		if (int(entries[2]) - int(entries[1]) == 0):
-
-			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 1')
-			sys.exit(1)
-
-
-		if int(entries[1]) == 0:
-
-			logging.error('Start ' + str(entries[1]) + ' cannot be 0')
-			sys.exit(1)
-
-
-		if str(entries[3]) not in possible_variants: #stop on variant different than expected
-
-			logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 1.')
-			sys.exit(1)
-
-		
-		else: #everything fine
-
-
-			if str(entries[3]) == 'snp':
-
-				if str(entries[4]) not in valid_dna:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G,N')
-					sys.exit(1)
-
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-		
-			elif str(entries[3]) == 'inversion':
-
-				if str(entries[4]) != 'None':
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					sys.exit(1)
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-			elif str(entries[3]) == 'deletion':
-
-				if str(entries[4]) != 'None':
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be None')
-					sys.exit(1)
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-			elif str(entries[3]) == 'insertion':
-
-				if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
-					sys.exit(1)
-						
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper())]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
-
-
-			elif str(entries[3]) == 'duplication':
-
-				try:
-
-					int(entries[4])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with number of duplication. Number must be an integer')
-					sys.exit(1)
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
-
-
-			elif str(entries[3]) == 'ptr': #perfect tandem repetition
-
-				entr_4 = re.split('[:]',entries[4])
-
-				if len(entr_4) != 2:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					sys.exit(1)
-
-
-				elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[1])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					sys.exit(1)
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-			elif str(entries[3]) == 'atr': #approximative tandem repetition
-
-				entr_4 = re.split('[:]',entries[4])
-
-				if len(entr_4) != 3:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-					sys.exit(1)
-
-				elif not (all(i in valid_dna for i in entr_4[0].upper())):
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[1])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-					sys.exit(1)
-
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-					sys.exit(1)
-
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-
-			elif str(entries[3]) == 'tr expansion' or str(entries[3]) == 'tr contraction':
-
-				entr_4 = re.split('[:]',entries[4])
-
-				if len(entr_4) != 2:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-					sys.exit(1)
-
-				elif not (all(i in valid_dna for i in entr_4[0].upper())):
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[1])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-					sys.exit(1)
-
-
-				if str(entries[0]) not in hap1dict:
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-				else:
-
-
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-					
-
-			elif str(entries[3]) == 'reciprocal translocation':
-						
-
-				entr_4 = re.split('[:]',str(entries[4]))
-
-				if len(entr_4) != 6:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2')
-					sys.exit(1)
-
-
-				if str(entr_4[0]) not in ['h1','h2']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Haplotype must be h1 or h2')
-					sys.exit(1)
-
-				if str(entr_4[1]) not in classic_chrs:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Start must be an integer')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[3])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. End must be an integer')
-					sys.exit(1)
-
-
-
-				if str(entr_4[4]) and str(entr_4[5]) not in ['forward', 'reverse']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Orientation1 and orientation2 can be forward or reverse')
-					sys.exit(1)
-
-
-
-				if str(entries[0]) not in hap1dict and str(entr_4[5]) == 'forward':
-
-
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq)]
-
-
-				elif str(entries[0]) not in hap1dict and str(entr_4[5]) == 'reverse':
-
-					
-					hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq)]
-
-
-				elif str(entries[0]) in hap1dict and str(entr_4[5]) == 'forward':
-
-					
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq))
-
-
-				elif str(entries[0]) in hap1dict and str(entr_4[5]) == 'reverse':
-
-					
-					hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq))
-
-
-
-
-				if str(entr_4[0]) == 'h1':
-
-
-					if str(entr_4[1]) not in hap1dict and str(entr_4[4]) == 'forward':
-
-
-						hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					elif str(entr_4[1]) not in hap1dict and str(entr_4[4]) == 'reverse':
-
-
-						hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-					elif str(entr_4[1]) in hap1dict and str(entr_4[4]) == 'forward':
-
-
-						hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-					elif str(entr_4[1]) in hap1dict and str(entr_4[4]) == 'reverse':
-
-						hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-				else:
-
-
-
-					if str(entr_4[1]) not in hap2dict and str(entr_4[4]) == 'forward':
-
-
-						hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					elif str(entr_4[1]) not in hap2dict and str(entr_4[4]) == 'reverse':
-
-
-						hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-					elif str(entr_4[1]) in hap2dict and str(entr_4[4]) == 'forward':
-
-
-						hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-					elif str(entr_4[1]) in hap2dict and str(entr_4[4]) == 'reverse':
-
-						hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-
-			elif str(entries[3]) == 'translocation cut-paste':
-						
-
-				entr_4 = re.split('[:]',str(entries[4]))
-
-				if len(entr_4) != 4:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation')
-					sys.exit(1)
-
-
-				if str(entr_4[0]) not in ['h1','h2']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be h1 or h2')
-					sys.exit(1)
-
-				if str(entr_4[1]) not in classic_chrs:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-					sys.exit(1)
-
-
-				if str(entr_4[3]) not in ['forward', 'reverse']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation can be forward or reverse')
-					sys.exit(1)
-
-
-				if entr_4[0] == 'h1':
-
-					if str(entries[0]) not in hap1dict:
-
-						hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
-
-					else:
-
-						hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
-
-					if str(entr_4[1]) not in hap1dict:
-
-						if str(entr_4[3]) == 'forward':
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else: #orientation is reverse
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-					else:
-
-						if str(entr_4[3]) == 'forward':
-
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-						else: #orientation is reverse
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-				elif entr_4[0] == 'h2':
-
-					if str(entries[0]) not in hap1dict:
-
-						hap1dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
-
-					else:
-
-						hap1dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
-
-					if str(entr_4[1]) not in hap2dict:
-
-						if str(entr_4[3]) == 'forward':
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else: #orientation is reverse
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					else:
-
-						if str(entr_4[3]) == 'forward':
-
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-						else: #orientation is reverse
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-			
-			else: #is a translocation copy paste
-
-
-				entr_4 = re.split('[:]',str(entries[4]))
-
-				if len(entr_4) != 4:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation')
-					sys.exit(1)
-
-
-				if str(entr_4[0]) not in ['h1','h2']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be h1 or h2')
-					sys.exit(1)
-
-				if str(entr_4[1]) not in classic_chrs:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-					sys.exit(1)
-
-				try:
-
-					int(entr_4[2])
-
-				except:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-					sys.exit(1)
-
-				if str(entr_4[3]) not in ['forward', 'reverse']:
-
-					logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 1 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation can be forward or reverse')
-					sys.exit(1)
-
-				if entr_4[0] == 'h1':
-
-					if str(entr_4[1]) not in hap1dict:
-
-						if str(entr_4[3]) == 'forward':
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else: #orientation is reverse
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					else:
-
-
-						if str(entr_4[3]) == 'forward':
-
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-						else: #orientation is reverse
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-				elif entr_4[0] == 'h2':
-
-					if str(entr_4[1]) not in hap2dict:
-
-						if str(entr_4[3]) == 'forward':
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else: #orientation is reverse
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-					else:
-
-						if str(entr_4[3]) == 'forward':
-
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-						else: #orientation is reverse
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-
-	if not args.hap2bed is None: #also second .bed provided
-
-		bedh2 = pybedtools.BedTool(os.path.abspath(args.hap2bed))
-		varh2=dict()
-	
-		try:
-
-			srtbedh2 = bedh2.sort()
-
-		except:
-
-			logging.error('Incorrect .bed format for haplotype 2')
-			sys.exit(1)
-
-		for entries in srtbedh2: #read, validate and organize
-
-			if str(entries[0]) not in classic_chrs: #exclude errors in the first field
-
-				logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file for haplotype 2. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-				sys.exit(1)
+			bedh = pybedtools.BedTool(os.path.abspath(bed))
 
 			try:
 
-				int(entries[1])
+				srtbedh = bedh.sort()
 
 			except:
 
-				logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file for haplotype 2. Start must be an integer')
+				logging.error('Incorrect .bed format for .bed file ' + os.path.abspath(bed))
 				sys.exit(1)
 
 
-			try:
-
-				int(entries[2])
-
-			except:
-
-				logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file for haplotype 2. End must be an integer')
-				sys.exit(1)
-
-
-			if (int(entries[2]) - int(entries[1]) == 0):
-
-				logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed for haplotype 2')
-				sys.exit(1)
-
-
-			if int(entries[1]) == 0:
-
-				logging.error('Start ' + str(entries[1]) + ' cannot be 0')
-				sys.exit(1)
-
-
-			if str(entries[3]) not in possible_variants: #stop on variant different than expected
-
-				logging.error(str(entries[3]) + ' is not a valid variant in .bed for haplotype 2.')
-				sys.exit(1)
+			logging.info('Organizing variants for ' + os.path.abspath(bed))
 
 			
-			else: #everything fine
+			d["h{0}".format(i+1)]=dict()
+
+
+			for entries in srtbedh: 
+
+				if str(entries[0]) not in classic_chrs: #exclude errors in the first field
+
+					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file ' + os.path.abspath(bed))
+					sys.exit(1)
+
+				try: #exclude errors in the second field
+
+					int(entries[1])
+
+				except:
+
+					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file  ' + os.path.abspath(bed) + '. Start must be an integer')
+					sys.exit(1)
+
+
+				try: #exclude errors in the third field
+
+					int(entries[2])
+
+				except:
+
+					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file  ' + os.path.abspath(bed) + '. End must be an integer')
+					sys.exit(1)
+
+
+				if (int(entries[2]) - int(entries[1]) == 0):
+
+					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed ' + os.path.abspath(bed) + '.')
+					sys.exit(1)
+
+
+
+				if str(entries[3]) not in possible_variants: #exclude errors in the third field
+
+					logging.error(str(entries[3]) + ' is not a valid variant in .bed ' + os.path.abspath(bed))
+					sys.exit(1)
+
+
+
+		
+				else: #everything fine for now
+
+
+					if str(entries[3]) == 'SNP':
+
+						if str(entries[4]) not in valid_dna: #information is just a valid nucleotide
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G')
+							sys.exit(1)
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+		
+					elif str(entries[3]) == 'inversion': #information must be None
+
+						if str(entries[4]) != 'None':
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
+							sys.exit(1)
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+
+					elif str(entries[3]) == 'deletion': #information must be None
+
+						if str(entries[4]) != 'None':
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
+							sys.exit(1)
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+
+
+					elif str(entries[3]) == 'insertion': #information must be a valid DNA sequence
+
+						if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA string with A,C,T,G characters')
+							sys.exit(1)
+								
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper())]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
+
+
+
+					elif str(entries[3]) == 'tandem duplication': #information must be an integer
+
+						try:
+
+							int(entries[4])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be an integer')
+							sys.exit(1)
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
+
+
+					elif str(entries[3]) == 'perfect tandem repetition': #perfect tandem repetition
+
+						entr_4 = re.split('[:]',entries[4]) #Information must contain 2 fields
+
+						if len(entr_4) != 2:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+							sys.exit(1)
+
+
+						if not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+							sys.exit(1)
+
+						try:
+
+							int(entr_4[1])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+							sys.exit(1)
+
+						
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+
+
+					elif str(entries[3]) == 'approximate tandem repetition': #approximative tandem repetition
+
+						entr_4 = re.split('[:]',entries[4]) #Information must contain 2 fields
+
+						if len(entr_4) != 3:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations')
+							sys.exit(1)
+
+						if not (all(i in valid_dna for i in entr_4[0].upper())):
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Motif must be a valid DNA motif')
+							sys.exit(1)
+
+						try:
+
+							int(entr_4[1])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Number must be an integer')
+							sys.exit(1)
+
+
+						try:
+
+							int(entr_4[2])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Alterations must be an integer')
+							sys.exit(1)
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+
+
+					
+					elif str(entries[3]) == 'tandem repeat expansion' or str(entries[3]) == 'tandem repeat contraction': #Information must contain 2 fields
+
+						entr_4 = re.split('[:]',entries[4])
+
+						if len(entr_4) != 2:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number')
+							sys.exit(1)
+
+						if not (all(i in valid_dna for i in entr_4[0].upper())):
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
+							sys.exit(1)
+
+						try:
+
+							int(entr_4[1])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
+							sys.exit(1)
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+
+						else:
+
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+					
+
+
+					elif str(entries[3]) == 'reciprocal translocation':
+								
+
+						entr_4 = re.split('[:]',str(entries[4]))
+
+						if len(entr_4) != 5:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. ')
+							sys.exit(1)
+
+
+						if not haplopattern.match(str(entr_4[0])):
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer.')
+							sys.exit(1)
+
+						if str(entr_4[1]) not in classic_chrs:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Chromosome must be a valid chromosome.')
+							sys.exit(1)
+
+						try:
+
+							int(entr_4[2])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Breakpoint must be an integer.')
+							sys.exit(1)
+
+
+
+						if str(entr_4[3]) and str(entr_4[4]) not in ['forward', 'reverse']:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Orientation1 and orientation2 must be forward or reverse.')
+							sys.exit(1)
+
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
+
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq)]
+
+
+						elif str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
+
+							
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq)]
+
+
+						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
+
+							
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq))
+
+
+						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
+
+							
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq))
+
+
+						
+						if str(entr_4[0]) not in d.keys():
+
+							d[entr_4[0]]=dict()
+
+
+						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
+
+
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+
+
+						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
+
+
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
+
+
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
+
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+
+					elif str(entries[3]) == 'translocation cut-paste':
+								
+
+						entr_4 = re.split('[:]',str(entries[4]))
+
+						if len(entr_4) != 4:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation.')
+							sys.exit(1)
+
+
+						if not haplopattern.match(str(entr_4[0])):
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be hN, with N being any integer.')
+							sys.exit(1)
+
+						if str(entr_4[1]) not in classic_chrs:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosome must be a valid chromosome.')
+							sys.exit(1)
+
+						try:
+
+							int(entr_4[2])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
+							sys.exit(1)
+
+
+						if str(entr_4[3]) not in ['forward', 'reverse']:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation must be forward or reverse')
+							sys.exit(1)
+
+
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
+
+					
+
+						if str(entr_4[0]) not in d.keys():
+
+							d[entr_4[0]]=dict()
+
+
+						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
+
+
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+
+						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
+
+
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+
+
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
+
+
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
+
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+
+
+
 			
-				if str(entries[3]) == 'snp':
+					else: #is a translocation copy paste or interspersed duplication, they are the same
 
-					if str(entries[4]) not in valid_dna:
 
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G,N')
-						sys.exit(1)
+						entr_4 = re.split('[:]',str(entries[4]))
 
+						if len(entr_4) != 4:
 
-					if str(entries[0]) not in hap2dict:
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation.')
+							sys.exit(1)
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
 
-					else:
+						if not haplopattern.match(str(entr_4[0])):
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be hN, with N being any integer.')
+							sys.exit(1)
 
+						if str(entr_4[1]) not in classic_chrs:
 
-				elif str(entries[3]) == 'inversion':
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosome must be a valid chromosome.')
+							sys.exit(1)
 
-					if str(entries[4]) != 'None':
+						try:
 
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						sys.exit(1)
+							int(entr_4[2])
 
-					if str(entries[0]) not in hap2dict:
+						except:
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
+							sys.exit(1)
 
-					else:
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+						if str(entr_4[3]) not in ['forward', 'reverse']:
 
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation must be forward or reverse')
+							sys.exit(1)
 
-				elif str(entries[3]) == 'deletion':
+					
 
-					if str(entries[4]) != 'None':
+						if str(entr_4[0]) not in d.keys():
 
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be None')
-						sys.exit(1)
+							d[entr_4[0]]=dict()
 
-					if str(entries[0]) not in hap2dict:
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
 
-					else:
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
 
-				elif str(entries[3]) == 'insertion':
+						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
-					if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
 
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a DNA sequence with A,C,T,G,N chars')
-						sys.exit(1)
-							
-					if str(entries[0]) not in hap2dict:
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper())]
 
-					else:
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
 
-				elif str(entries[3]) == 'duplication':
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
-					try:
 
-						int(entries[4])
+						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
-					except:
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with number of duplication. Number must be an integer')
-						sys.exit(1)
 
-					if str(entries[0]) not in hap2dict:
 
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+	logging.info('Generating .fasta haplotypes with variants')
 
-					else:
 
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
+	for i,dicts in enumerate(d.keys()):
 
 
-				elif str(entries[3]) == 'ptr': #perfect tandem repetition
+		os.makedirs(os.path.abspath(args.output + '/h' + str(i +1)))
+		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/h' + str(i +1) + '/' + str(dicts) + '.fa'))
 
-					entr_4 = re.split('[:]',entries[4])
-
-					if len(entr_4) != 2:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						sys.exit(1)
-
-
-					elif not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[1])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						sys.exit(1)
-
-					if str(entries[0]) not in hap2dict:
-
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-					else:
-
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-				elif str(entries[3]) == 'atr': #approximative tandem repetition
-
-					entr_4 = re.split('[:]',entries[4])
-
-					if len(entr_4) != 3:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum')
-						sys.exit(1)
-
-					elif not (all(i in valid_dna for i in entr_4[0].upper())):
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Motif must be a valid DNA motif')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[1])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Number must be an integer')
-						sys.exit(1)
-
-
-					try:
-
-						int(entr_4[2])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number:altnum. Altnum must be an integer')
-						sys.exit(1)
-
-
-					if str(entries[0]) not in hap2dict:
-
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-					else:
-
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
-
-
-				elif str(entries[3]) == 'tr expansion' or str(entries[3]) == 'tr contraction':
-
-					entr_4 = re.split('[:]',entries[4])
-
-					if len(entr_4) != 2:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-						sys.exit(1)
-
-					elif not (all(i in valid_dna for i in entr_4[0].upper())):
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number.  Motif must be a valid DNA motif')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[1])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-						sys.exit(1)
-
-
-					if str(entries[0]) not in hap2dict:
-
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
-
-					else:
-
-
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-						
-
-
-				elif str(entries[3]) == 'reciprocal translocation':
-							
-
-					entr_4 = re.split('[:]',str(entries[4]))
-
-					if len(entr_4) != 6:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2')
-						sys.exit(1)
-
-
-					if str(entr_4[0]) not in ['h1','h2']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Haplotype must be h1 or h2')
-						sys.exit(1)
-
-					if str(entr_4[1]) not in classic_chrs:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[2])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Start must be an integer')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[3])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. End must be an integer')
-						sys.exit(1)
-
-
-
-					if str(entr_4[4]) and str(entr_4[5]) not in ['forward', 'reverse']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:start:end:orientation1:orientation2. Orientation1 and orientation2 must be forward or reverse')
-						sys.exit(1)
-
-
-
-					if str(entries[0]) not in hap2dict and str(entr_4[5]) == 'forward':
-
-
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq)]
-
-
-					elif str(entries[0]) not in hap2dict and str(entr_4[5]) == 'reverse':
-
-						
-						hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq)]
-
-
-					elif str(entries[0]) in hap2dict and str(entr_4[5]) == 'forward':
-
-						
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq))
-
-
-					elif str(entries[0]) in hap2dict and str(entr_4[5]) == 'reverse':
-
-						
-						hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][int(entr_4[2])-1:int(entr_4[3])].seq))
-
-
-
-					if str(entr_4[0]) == 'h2':
-
-
-						if str(entr_4[1]) not in hap2dict and str(entr_4[4]) == 'forward':
-
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-						elif str(entr_4[1]) not in hap2dict and str(entr_4[4]) == 'reverse':
-
-
-							hap2dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-						elif str(entr_4[1]) in hap2dict and str(entr_4[4]) == 'forward':
-
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-						elif str(entr_4[1]) in hap2dict and str(entr_4[4]) == 'reverse':
-
-							hap2dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-
-					else:
-
-
-
-						if str(entr_4[1]) not in hap1dict and str(entr_4[4]) == 'forward':
-
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						elif str(entr_4[1]) not in hap1dict and str(entr_4[4]) == 'reverse':
-
-
-							hap1dict[str(entr_4[1])] = [(int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-						elif str(entr_4[1]) in hap1dict and str(entr_4[4]) == 'forward':
-
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-						elif str(entr_4[1]) in hap1dict and str(entr_4[4]) == 'reverse':
-
-							hap1dict[str(entr_4[1])].append((int(entr_4[2]), int(entr_4[3]), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-				elif str(entries[3]) == 'translocation cut-paste':
-							
-
-					entr_4 = re.split('[:]',str(entries[4]))
-
-					if len(entr_4) != 4:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation')
-						sys.exit(1)
-
-
-					if str(entr_4[0]) not in ['h1','h2']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be h1 or h2')
-						sys.exit(1)
-
-					if str(entr_4[1]) not in classic_chrs:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[2])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-						sys.exit(1)
-
-
-					if str(entr_4[3]) not in ['forward', 'reverse']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation can be forward or reverse')
-						sys.exit(1)
-
-
-					if entr_4[0] == 'h2':
-
-						if str(entries[0]) not in hap2dict:
-
-							hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
-
-						else:
-
-							hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
-
-						if str(entr_4[1]) not in hap2dict:
-
-							if str(entr_4[3]) == 'forward':
-
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-							else: #orientation is reverse
-
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-
-						else:
-
-							if str(entr_4[3]) == 'forward':
-
-
-								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-							else: #orientation is reverse
-
-								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-					elif entr_4[0] == 'h1':
-
-						if str(entries[0]) not in hap2dict:
-
-							hap2dict[str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
-
-						else:
-
-							hap2dict[str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
-
-						if str(entr_4[1]) not in hap1dict:
-
-							if str(entr_4[3]) == 'forward':
-
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-							else: #orientation is reverse
-
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else:
-
-							if str(entr_4[3]) == 'forward':
-
-
-								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-							else: #orientation is reverse
-
-								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-				
-				else: #is a translocation copy paste
-
-
-					entr_4 = re.split('[:]',str(entries[4]))
-
-					if len(entr_4) != 4:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation')
-						sys.exit(1)
-
-
-					if str(entr_4[0]) not in ['h1','h2']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be h1 or h2')
-						sys.exit(1)
-
-					if str(entr_4[1]) not in classic_chrs:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosomes are ch1-chr22, chrX, chrY and chrM')
-						sys.exit(1)
-
-					try:
-
-						int(entr_4[2])
-
-					except:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-						sys.exit(1)
-
-					if str(entr_4[3]) not in ['forward', 'reverse']:
-
-						logging.error('Incorrect info ' + str(entries[4]) + ' in .bed for haplotype 2 for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation can be forward or reverse')
-						sys.exit(1)
-
-					if entr_4[0] == 'h2':
-
-						if str(entr_4[1]) not in hap2dict:
-
-							if str(entr_4[3]) == 'forward':
-
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-							else: #orientation is reverse
-
-								hap2dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else:
-
-
-							if str(entr_4[3]) == 'forward':
-
-
-								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-							else: #orientation is reverse
-
-								hap2dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-					elif entr_4[0] == 'h1':
-
-						if str(entr_4[1]) not in hap1dict:
-
-							if str(entr_4[3]) == 'forward':
-
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-							else: #orientation is reverse
-
-								hap1dict[str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
-						else:
-
-							if str(entr_4[3]) == 'forward':
-
-
-								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-							else: #orientation is reverse
-
-								hap1dict[str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
-	logging.info('Generating .fa file with variants for haplotype 1')
-
-	
-	ParseDict(classic_chrs, immutable_ref, hap1dict, os.path.abspath(args.output + '/haplotype1/h1.fa'))
-	
-	
-	if len(hap2dict) != 0:
-		
-		logging.info('Generating .fa file with variants for haplotype 2')
-		
-		ParseDict(classic_chrs, immutable_ref, hap2dict, os.path.abspath(args.output + '/haplotype2/h2.fa'))
-	
-	else:
-
-		logging.info('Generating .fa file without variants for haplotype 2')
-		shutil.copy2(os.path.abspath(args.genome), os.path.abspath(args.output + '/haplotype2/h2.fa'))
-
-
-
-	end=timeit.default_timer()
-	elapsed=(end-start)/60
-
-	logging.info('Haplotypes generated in ' + str(elapsed) + ' minutes')
 
 	logging.info('Done')
 
@@ -1523,26 +852,26 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 						write_sequence_between(alt_seq, output_fasta)
 
 
-					elif typ == 'duplication':
+					elif typ == 'tandem duplication':
 
 						write_sequence_between(seq[start-1:end]*info, output_fasta)
 
 
-					elif typ == 'snp':
+					elif typ == 'SNP':
 
 						until_end=seq[start-1:end-1]
 
 						write_sequence_between(until_end+info, output_fasta)
 
 
-					elif typ == 'ptr': #perfect tandem repetition
+					elif typ == 'perfect tandem repetition': #perfect tandem repetition
 
 						alt_seq= PTR(info, seq, start, end)
 
 						write_sequence_between(alt_seq, output_fasta)
 
 
-					elif typ == 'atr': # approximate tandem repetition
+					elif typ == 'approximate tandem repetition': # approximate tandem repetition
 
 
 						alt_seq=ATR(info,seq,start,end)
@@ -1550,14 +879,14 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 						write_sequence_between(alt_seq, output_fasta)
 
 
-					elif typ == 'tr expansion': #expand a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+					elif typ == 'tandem repeat expansion': #expand a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
 
 
 						alt_seq=EXPTR(info,seq,start,end)
 
 						write_sequence_between(alt_seq, output_fasta)
 
-					elif typ == 'tr contraction': #contract a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+					elif typ == 'tandem repeat contraction': #contract a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
 
 						alt_seq=CTRTR(info,seq,start,end)
 				
