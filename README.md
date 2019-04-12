@@ -78,7 +78,7 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 Inputs to VISOR HACk are:
 
 - genome.fa is the reference genome in .fasta format
-- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype.
+- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype (like the one in _Examples/HACk.bed_)
 
 
 VISOR HACk outputs a fasta (.fa) file with specified variants for each .bed in the output folder (hackout/h1/h1.fa and hackout/h2/h2.fa in this example) 
@@ -184,7 +184,7 @@ VISOR SHORtS -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -t single-strand -c 1 
 
 ```
 
-When working in single-strand mode (-t single-strand), for each region specified in the .bed file, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify a .bed files (-scebed) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed.
+When working in single-strand mode (-t single-strand), for each region specified in the .bed file, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify a .bed file (-scebed) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ )
 
 #### Plot read pairs count
 
