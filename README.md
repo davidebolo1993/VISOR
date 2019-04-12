@@ -91,8 +91,8 @@ VISOR HACk outputs a fasta (.fa) file with specified variants for each .bed in t
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: where the variant starts
 - __END__: where the variant ends
-- __ALT__: alt type. Possible alt types are 'deletion', 'insertion', 'inversion', 'tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste' (or 'interspersed duplication'), 'reciprocal translocation' (more details below)
-- __INFO__: informations for the alteration (more details below)
+- __ALT__: type of alteration. Possible alteration types are 'deletion', 'insertion', 'inversion', 'tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste' (or 'interspersed duplication'), 'reciprocal translocation' (more details below)
+- __INFO__: informations for the alterations (more details below)
 
 
 ##### ALT FIELD
