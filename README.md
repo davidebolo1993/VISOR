@@ -148,7 +148,7 @@ VISOR LASeR -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -o laserout #long-reads
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
 - genome.fa is the reference genome in .fasta format
-- h1.fa and h2.fa (can be also more) are the haplotype .fasta file generated with VISOR HACk
+- h1.fa and h2.fa (can be also more) are the haplotype .fasta files generated with VISOR HACk
 - sim.bed is the .bed file containing regions to simulate from h1.fa and h2.fa like the one in _Examples/SHORtS.LASeR.bed_. If multiple regions are given, the .bam files generated for each region will then be merged.
 
 Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic fraction (-af), which is the fraction of reads that for the simulated region in sim.bed files will carry the structural variants.
