@@ -57,9 +57,9 @@ python setup.py install
 
 ```
 
-## VISOR Submodules
+## VISOR modules
 
-VISOR is built on 3 submodules:
+VISOR is built on 3 modules:
 
 - __VISOR HACk__: generates .fa haplotypes with user-defined variants
 - __VISOR SHORtS__: simulate double-strand or single-strand short-reads .bam files with variants
