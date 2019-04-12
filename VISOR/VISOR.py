@@ -19,28 +19,24 @@ def main():
 
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
-	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
-	required.add_argument('-h1b', '--hap1bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 1', metavar='.bed', required=True)
-	required.add_argument('-O', '--output', help='Where the 2 .fasta haplotypes will be saved', metavar='folder', required=True)
-
-	optional = parser_hack.add_argument_group('Additional input .bed')
-	optional.add_argument('-h2b', '--hap2bed', help='.bed file containing "CHROM, START, END, ALT, INFO" entries for haplotype 2', metavar='', default=None)
+	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
+	required.add_argument('-bed', '--bedfile', help='one or more .bed files containing "CHROM, START, END, ALT, INFO" entries for each haplotype to modify', metavar='.bed', nargs='+', action='append', required=True)
+	required.add_argument('-o', '--output', help='Where the .fasta haplotypes will be saved', metavar='folder', required=True)
 
 	parser_hack.set_defaults(func=run_subtool)
 
 
 	## SHORtS ##
 
-	parser_shorts = subparsers.add_parser('SHORtS', help='SHOrt Reads Simulator. Simulate short reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using wgsim')
+	parser_shorts = subparsers.add_parser('SHORtS', help='SHOrt Reads Simulator. Simulate short reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using wgsim.')
 
 
 	required = parser_shorts.add_argument_group('Required I/O arguments')
 
-	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
-	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
-	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on haplotype 1 and haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
+	required.add_argument('-hapfa','--haplotypefasta', help='.fasta file/s with SVs generated with VISOR HACk', metavar='.fa',  nargs='+', action='append', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on all the haplotypes. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
+	required.add_argument('-o','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	
 	simtype = parser_shorts.add_argument_group('Type of simulation')
@@ -58,8 +54,7 @@ def main():
 
 	optional = parser_shorts.add_argument_group('Additional single-strand parameters')
 
-	optional.add_argument('-sceb1', '--scebed1', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 1 [None]', metavar='', default=None)
-	optional.add_argument('-sceb2', '--scebed2', help='.bed file containing "CHROM, START, END" in which sister chromatid exchange will be performed for haplotype 2 [None]', metavar='', default=None)
+	optional.add_argument('-scebed', '--scebedfile', help='.bed file containing "CHROM, START, END, HAPLOTYPE" in which sister chromatid exchange will be performed [None]', metavar='', default=None)
 	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
 
 	
@@ -80,16 +75,15 @@ def main():
 	## LASeR ##
 
 
-	parser_long = subparsers.add_parser('LASeR', help='Long reAds SimulatoR. Simulate long reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using pbsim')
+	parser_long = subparsers.add_parser('LASeR', help='Long reAds SimulatoR. Simulate long reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using pbsim.')
 
 
 	required = parser_long.add_argument_group('Required I/O arguments')
 	
-	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
-	required.add_argument('-h1f','--hap1fa', help='.fasta file containing variants for haplotype 1', metavar='.fa', required=True)
-	required.add_argument('-h2f','--hap2fa', help='.fasta file containing (or not) variants for haplotype 2', metavar='.fa', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on haplotype 1 and haplotype 2. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-O','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
+	required.add_argument('-hapfa','--haplotypefasta', help='.fasta file/s with SVs generated with VISOR HACk', metavar='.fa',  nargs='+', action='append', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on all the haplotypes. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
+	required.add_argument('-o','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for simulation')
 
