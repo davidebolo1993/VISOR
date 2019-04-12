@@ -129,6 +129,7 @@ def run(parser,args):
 	for fastas in fastaslist:
 
 		haploname=os.path.basename(os.path.abspath(fastas)).split('.')[0]
+		os.makedirs(os.path.abspath(args.output + '/simulations_' + haploname))
 
 		counter = 0
 
