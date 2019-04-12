@@ -178,7 +178,7 @@ def run(parser,args):
 
 			try:
 
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), allelic, args.length, args.ratio, os.path.abspath(args.output + '/simulations_' +haploname))
+				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fastas), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), allelic, args.length, args.ratio, os.path.abspath(args.output + '/simulations_' +haploname))
 
 			except:
 
