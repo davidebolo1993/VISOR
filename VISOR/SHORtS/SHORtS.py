@@ -1,4 +1,4 @@
-=#!/usr/bin/python env
+#!/usr/bin/python env
 
 #python 3 standard library
 
@@ -174,7 +174,7 @@ def run(parser,args):
 	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
 	classic_chrs = fa.keys() #allowed chromosomes
 
-	logging.info('Starting simulations')
+	logging.info('Simulations begin')
 
 	for fastas in fastaslist:
 
