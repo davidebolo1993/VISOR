@@ -1,4 +1,4 @@
-#!/usr/bin/python env
+=#!/usr/bin/python env
 
 #python 3 standard library
 
@@ -180,6 +180,8 @@ def run(parser,args):
 
 		haploname=os.path.basename(os.path.abspath(fastas)).split('.')[0]
 
+		os.makedirs(os.path.abspath(args.output + '/simulations_' + haploname))
+		
 		counter =0
 
 		for entries in srtbed: #validate each entry
@@ -227,8 +229,6 @@ def run(parser,args):
 
 				logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
 				sys.exit(1)
-
-			os.makedirs(os.path.abspath(args.output + '/simulations_' + haploname))
 
 			try:
 
