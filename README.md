@@ -14,7 +14,7 @@ VISOR requires a unix machine and a working python 3.6 environment. Some python 
 - plotly (v 3.7.0)
 - pysam (0.15.2) - for the sscounter.py script -
 
-These modules will be automatically installed during VISOR setup and nothing from the user is required.
+These modules will be automatically installed during VISOR setup and nothing from users is required.
 
 Moreover, for simulations, VISOR requires working installations of:
 
