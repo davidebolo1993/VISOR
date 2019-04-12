@@ -123,7 +123,7 @@ def run(parser,args):
 
 	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
 
-	logging.info('Simulations starts now')
+	logging.info('Simulations begin')
 
 
 	for fastas in fastaslist:
