@@ -14,7 +14,7 @@ def main():
 
 	## HACk ##
 
-	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates 2 haplotypes in .fasta format containing variants specified in .bed files')
+	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates haplotypes in .fasta format containing variants specified in .bed files')
 
 
 	required = parser_hack.add_argument_group('Required I/O arguments')
@@ -41,7 +41,7 @@ def main():
 	
 	simtype = parser_shorts.add_argument_group('Type of simulation')
 
-	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads .bam files. If simulating strand-seq short-read .bam files, for each haplotype, 2 will be created, named watson (R1 forward, R2 reverse) and crick (R1 reverse, R2 forward) [double-strand]', metavar='', default='double-strand', choices=['single-strand', 'double-strand'])
+	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads .bam files. If simulating single-strand short-reads .bam files, for each haplotype, 2 will be created, named watson (R1 forward, R2 reverse) and crick (R1 reverse, R2 forward) [double-strand]', metavar='', default='double-strand', choices=['single-strand', 'double-strand'])
 
 	wgi = parser_shorts.add_argument_group('Wgsim parameters for simulation')
 
