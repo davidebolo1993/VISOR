@@ -78,7 +78,7 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 Inputs to VISOR HACk are:
 
 - genome.fa is the reference genome in .fasta format
-- bed1.bed is and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype.
+- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype.
 
 
 VISOR HACk outputs a fasta (.fa) file with specified variants for each .bed in the output folder (hackout/h1/h1.fa and hackout/h2/h2.fa in this example) 
@@ -102,9 +102,9 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'deletion'__. Deletes from start (included) to end (included)
 - __'insertion'__. Inserts a specific sequence immediately after end
 - __'inversion'__. Inverts from start (included) to end (included)
-- __'tandem duplication'__. Duplicates from start (included) to end (included) immediately after end
+- __'tandem duplication'__. Duplicates from start (included) to end (included)
 - __'SNP'__. Introduces a single nucleotide polimorphism in end
-- __'tandem repeat expansion'__. Expands an existent tandem repetition. tandem repeat is meant to be one of the repetitions present in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is taken from UCSC for GRCh38 reference)
+- __'tandem repeat expansion'__. Expands an existent tandem repetition. Tandem repeat is meant to be one of the repetitions present in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is taken from UCSC for GRCh38 reference)
 - __'tandem repeat contraction'__. Contracts an existent tandem repetition. Works as described for 'tandem repeat expansion'
 - __'perfect tandem repetition'__. Inserts a perfect tandem repetition immediately after end
 - __'approximate tandem repetition'__ Inserts a approximate tandem repetition immediately after end
@@ -120,15 +120,15 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 - INFO for __'deletion'__ must be __None__
 - INFO for __'insertion'__ must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for __'inversion'__ must be __None__
-- INFO for __'tandem duplication'__ must be __number__; number is the number of time segment appears
-- INFO for __'SNP'__ must be __nuc__; nuc is the nucleotide that will be used to introduce the variant
+- INFO for __'tandem duplication'__ must be __number__; number is the number of time segment will be duplicated
+- INFO for __'SNP'__ must be __nucleotide__; nucleotide is the nucleotide that will be used to introduce the variant
 - INFO for __'tandem repeat expansion'__ must be __motif:number__ motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'tandem repeat contraction'__ must be __motif:number__; motif is a valid DNA motif, number is number of motif to delete
 - INFO for __'perfect tandem repetition'__ must be __motif:number__; motif motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'approximate tandem repetition'__ must be __motif:number:alterations__ ; motif is a valid DNA motif, number is number of motif to insert, alterations is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only
-- INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (chr1-22, chrX, chrY and chrM are allowed), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
+- INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
 - INFO for __'translocation copy-paste'__ is the __same for 'translocation cut-paste'__
-- INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated; breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
+- INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok); breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
 
 
 ## VISOR SHORtS and VISOR LASeR
@@ -153,7 +153,7 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 
 Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic fraction (-af), which is the fraction of reads that for the simulated region in sim.bed files will carry the structural variants.
 
-.bed file must contain 4 columns without header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__
+.bed file must contain 4 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are chr1-chr22, chrX, chrY and chrM
 - __START__: start position for the region that will be simulated
