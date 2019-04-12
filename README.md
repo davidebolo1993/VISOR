@@ -160,7 +160,7 @@ Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic frac
 - __END__: end position for the region that will be simulated
 - __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
 
-VISOR SHORtS and VISOR LASeR outputs a .srt.bam file (and its index) for each region in the haplotype-specific .bed files (shortsout/simulations_h1/sim.srt.bam and shortsout/simulations_h2/sim.srt.bam in this example for VISOR SHORtS)
+VISOR SHORtS and VISOR LASeR outputs a .srt.bam file for each region in the haplotype-specific .bed files (shortsout/simulations_h1/sim.srt.bam and shortsout/simulations_h2/sim.srt.bam in this example for VISOR SHORtS)
 
 #### VISOR SHORtS and VISOR LASeR Simulations
 
