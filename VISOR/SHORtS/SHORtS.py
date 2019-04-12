@@ -8,16 +8,14 @@ import glob
 import logging
 from shutil import which
 import subprocess
-import timeit
 import random
 from collections import defaultdict
-from multiprocessing import Process
 
 #additional modules
 
 import pybedtools
 import pysam
-
+import pyfaidx
 
 
 def run(parser,args):
@@ -45,35 +43,11 @@ def run(parser,args):
 
 		if os.listdir(os.path.abspath(args.output)):
 
-			print('You must specify an empty folder to write out the results')
+			print('Specified output directory is not empty. Specify another directory or clean the chosen one')
 			sys.exit(1)
 
 
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_SHORtS.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-
-	if not os.path.exists(os.path.abspath(args.output + '/simulations_haplotype1')):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output+ '/simulations_haplotype1'))
-
-		except:
-
-			logging.error('It was not possible to create haplotype 1 results folder. Specify a path for which you have write permissions')
-			sys.exit(1)
-
-			
-	if not os.path.exists(os.path.abspath(args.output + '/simulations_haplotype2')):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output+ '/simulations_haplotype2'))
-
-		except:
-
-			logging.error('It was not possible to create haplotype 2 results folder. Specify a path for which you have write permissions')
-			sys.exit(1)
 
 
 
@@ -119,52 +93,37 @@ def run(parser,args):
 			sys.exit(1)
 
 
-	#validate h1.fa
 
 
-	try:
-
-		with open(os.path.abspath(args.hap1fa),'r') as file:
-
-			assert(file.readline().startswith('>')) 
-
-	except:
-
-		logging.error('Specified haplotype 1 .fasta file does not exist, is not readable or is not a valid .fasta file')
-		sys.exit(1)
-
-		
-		
-	#validate h2.fa
+	fastaslist=args.haplotypefasta[0]
 
 
-	try:
-
-		with open(os.path.abspath(args.hap2fa),'r') as file:
-
-			assert(file.readline().startswith('>')) 
-
-	except:
-
-		logging.error('Specified haplotype 2 .fasta file does not exist, is not readable or is not a valid .fasta file')
-		sys.exit(1)
-
-	
-	#generate .bwa indexes for the 2 haps in parallel
-	
-	if not os.path.exists(os.path.abspath(args.hap1fa + '.sa')) and args.type=='single-strand':
+	for fastas in fastaslist:
 
 		try:
-			logging.info('Creating bwa index for the 2 haplotype .fasta file')
-			runInParallel(BWA_Index,(os.path.abspath(args.hap1fa),),(os.path.abspath(args.hap2fa),))
+
+			with open(os.path.abspath(fastas),'r') as file:
+
+				assert(file.readline().startswith('>')) 
 
 		except:
 
-			logging.error('Could not create bwa indexes. Aborted.')
+			logging.error(os.path.abspath(fastas) + ' file does not exist, is not readable or is not a valid .fasta file')
 			sys.exit(1)
 
 
-	#validate .bed
+		if not os.path.exists(os.path.abspath(fastas + '.sa')):
+
+			try:
+
+				logging.info('Creating bwa index for ' + os.path.abspath(fastas))
+				BWA_Index(os.path.abspath(fastas))
+
+			except:
+
+				logging.error('It was not possible to generate bwa index for' + os.path.abspath(fastas))
+				sys.exit(1)
+
 
 
 	bed = pybedtools.BedTool(os.path.abspath(args.bedfile)) #this one is required
@@ -176,7 +135,7 @@ def run(parser,args):
 
 	except:
 
-		logging.error('Incorrect .bed format for -b/--bedfile')
+		logging.error('Incorrect .bed format for -bed/--bedfile')
 		sys.exit(1)
 
 
@@ -185,42 +144,23 @@ def run(parser,args):
 
 	if args.type=='single-strand':
 
-		if args.scebed1 is not None:
+		if args.scebedfile is not None:
 
-			scebed1=pybedtools.BedTool(os.path.abspath(args.scebed1))
+			scebed=pybedtools.BedTool(os.path.abspath(args.scebedfile))
 
 			try:
 
-				srtscebed1 = scebed1.sort()
+				srtscebed = scebed.sort()
 
 			except:
 
-				logging.error('Incorrect .bed format for -sceb1/--scebed1')
+				logging.error('Incorrect .bed format for -scebed/--scebedfile')
 				sys.exit(1)
 
 
 		else:
 
-			srtscebed1 = None
-
-
-		if args.scebed2 is not None:
-
-			scebed2=pybedtools.BedTool(os.path.abspath(args.scebed2))
-
-			try:
-
-				srtscebed2 = scebed2.sort()
-
-			except:
-
-				logging.error('Incorrect .bed format for -sceb2/--scebed2')
-				sys.exit(1)
-
-
-		else:
-
-			srtscebed2 = None
+			srtscebed = None
 
 	
 	else:
@@ -228,280 +168,167 @@ def run(parser,args):
 		allelic=args.allelicfraction
 
 
+	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
-	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-	start=timeit.default_timer()
+	classic_chrs = fa.keys() #allowed chromosomes
 
-	logging.info('Simulating from haplotype 1')
+	logging.info('Starting simulations')
 
+	for fastas in fastaslist:
 
-	counter = 0
+		haploname=os.path.basename(os.path.abspath(fastas)).split('.')[0]
 
-	for entries in srtbed: #validate each entry
+		counter =0
 
-
-		counter +=1
-
-		
-		if str(entries[0]) not in classic_chrs:
-
-			logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file. Allowed chromosomes are chr1-22, chrX, chrY and chrM')
-			sys.exit(1)
-
-		try:
-
-			int(entries[1])
-
-		except:
-
-			logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-			sys.exit(1)
+		for entries in srtbed: #validate each entry
 
 
-		try:
+			counter +=1
 
-			int(entries[2])
+			
+			if str(entries[0]) not in classic_chrs:
 
-		except:
+				logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file')
+				sys.exit(1)
 
-			logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-			sys.exit(1)
+			try:
 
+				int(entries[1])
 
-		if (int(entries[2]) - int(entries[1]) == 0):
+			except:
 
-			logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-			sys.exit(1)
-
-
-		try:
-
-			float(entries[3])
-
-		except:
-
-			logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
-			sys.exit(1)
+				logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
+				sys.exit(1)
 
 
-		try:
+			try:
 
-			if args.type == 'double-strand':
+				int(entries[2])
 
-				ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
+			except:
 
-			else:
+				logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
+				sys.exit(1)
 
-				SSSimulate(args.threads, os.path.abspath(args.hap1fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype1'))
-				SingleStrand(str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype1/region.tmp.srt.bam'), args.identifier + '.' + str(counter), args.noise, os.path.abspath(args.output + '/simulations_haplotype1'), srtscebed1)
 
-		except:
+			if (int(entries[2]) - int(entries[1]) == 0):
 
-			logging.exception('Something went wrong during simulations for haplotype 1, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
+				logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
+				sys.exit(1)
 
-	
-	logging.info('Simulations from haplotype 1 completed')
 
-	logging.info('Simulating from haplotype 2')
+			try:
 
-	counter = 0
+				float(entries[3])
 
-	for entries in srtbed: #entries were already validated, number of entries were already validated as well
+			except:
 
-		counter +=1
-		
-		try:
+				logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+				sys.exit(1)
+
+			os.makedirs(os.path.abspath(args.output + '/simulations_' + haploname))
+
+			try:
+
+				if args.type == 'double-strand':
+
+					ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fastas), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_' +haploname))
+
+				else:
+
+					SSSimulate(args.threads, os.path.abspath(fastas), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_' +haploname))
+					SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_' + haploname + '/region.tmp.srt.bam'), args.identifier + '.' + str(counter), args.noise, os.path.abspath(args.output + '/simulations_' +haploname), srtscebed)
+
+			except:
+
+				logging.exception('Something went wrong during simulations for ' + os.path.abspath(fastas) + '. Log is below.')
+
+
+		if counter == 1:
 
 			if args.type == 'double-strand':
 
-				ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_' + haploname + '/' +  args.identifier + '.srt.bam'))
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_' + haploname + '/' +  args.identifier + '.srt.bam.bai'))
+
 
 			else:
 
-				SSSimulate(args.threads, os.path.abspath(args.hap2fa), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3])), args.length, args.indels, args.probability, os.path.abspath(args.output + '/simulations_haplotype2'))
-				SingleStrand(str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/simulations_haplotype2/region.tmp.srt.bam'), args.identifier + '.' + str(counter), args.noise, os.path.abspath(args.output + '/simulations_haplotype2'), srtscebed2)
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.watson.srt.bam'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.watson.srt.bam'))
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.watson.srt.bam.bai'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.watson.srt.bam.bai'))
 
-		except:
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.crick.srt.bam'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.crick.srt.bam'))
+				os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.crick.srt.bam.bai'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.crick.srt.bam.bai'))
 
-			logging.exception('Something went wrong during simulations for haplotype 2, ' + str(entries[0]) + ':' + str(entries[1]) + '-' + str(entries[2]) + '. Log is below.')
-
-	
-	logging.info('Simulations from haplotype 2 completed')
-
-
-	if len(srtbed) == 1:
-
-		if args.type == 'double-strand':
-
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam.bai'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam.bai'))
 
 
 		else:
 
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.watson.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.watson.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.watson.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.watson.srt.bam.bai'))
 
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.crick.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.crick.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.' + str(counter) + '.crick.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.crick.srt.bam.bai'))
+			if args.type == 'double-strand':
 
+				bams = glob.glob(os.path.abspath(args.output + '/simulations_' + haploname + '/' + '*.srt.bam'))
 
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.watson.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.watson.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.watson.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.watson.srt.bam.bai'))
+				with open(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), 'a') as bamout:
 
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.crick.srt.bam'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.crick.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.' + str(counter) + '.crick.srt.bam.bai'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.crick.srt.bam.bai'))
+					for file in bams:
 
+						bamout.write(file + '\n')
 
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.srt.bam')])
+				os.remove(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'))
+				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.srt.bam')])
 
-	else:
 
+				for b in bams:
 
-		if args.type == 'double-strand':
+					os.remove(b)
+					os.remove(b + '.bai')
 
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype1/' + '*.srt.bam'))
+			else:
 
-			with open(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), 'a') as bamout:
 
-				for file in bams:
+				bams = glob.glob(os.path.abspath(args.output + '/simulations_' + haploname + '/' + '*watson.srt.bam'))
 
-					bamout.write(file + '\n')
+				with open(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), 'a') as bamout:
 
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.srt.bam')])
+					for file in bams:
 
+						bamout.write(file + '\n')
 
-			for b in bams:
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(argsc.output + '/simulations_' + haploname + '/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.watson.srt.bam')])
+				os.remove(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'))
+				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.watson.srt.bam')])
 
-				os.remove(b)
-				os.remove(b + '.bai')
 
+				for b in bams:
 
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype2/' + '*.srt.bam'))
+					os.remove(b)
+					os.remove(b + '.bai')
 
-			with open(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), 'a') as bamout:
 
-				for file in bams:
 
-					bamout.write(file + '\n')
+				bams = glob.glob(os.path.abspath(args.output + '/simulations_' + haploname + '/' + '*crick.srt.bam'))
 
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.srt.bam')])
+				with open(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), 'a') as bamout:
 
+					for file in bams:
 
-			for b in bams:
+						bamout.write(file + '\n')
 
-				os.remove(b)
-				os.remove(b + '.bai')
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.crick.srt.bam')])
+				os.remove(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'))
+				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.crick.srt.bam')])
 
-		else:
 
+				for b in bams:
 
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype1/' + '*watson.srt.bam'))
+					os.remove(b)
+					os.remove(b + '.bai')
 
-			with open(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), 'a') as bamout:
-
-				for file in bams:
-
-					bamout.write(file + '\n')
-
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.watson.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.watson.srt.bam')])
-
-
-			for b in bams:
-
-				os.remove(b)
-				os.remove(b + '.bai')
-
-
-
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype1/' + '*crick.srt.bam'))
-
-			with open(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), 'a') as bamout:
-
-				for file in bams:
-
-					bamout.write(file + '\n')
-
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.crick.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype1/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype1/' + args.identifier + '.crick.srt.bam')])
-
-
-			for b in bams:
-
-				os.remove(b)
-				os.remove(b + '.bai')
-
-
-
-
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype2/' + '*watson.srt.bam'))
-
-			with open(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), 'a') as bamout:
-
-				for file in bams:
-
-					bamout.write(file + '\n')
-
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.watson.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.watson.srt.bam')])
-
-
-			for b in bams:
-
-				os.remove(b)
-				os.remove(b + '.bai')
-
-
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_haplotype2/' + '*crick.srt.bam'))
-
-			with open(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), 'a') as bamout:
-
-				for file in bams:
-
-					bamout.write(file + '\n')
-
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.crick.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_haplotype2/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_haplotype2/' + args.identifier + '.crick.srt.bam')])
-
-
-			for b in bams:
-
-				os.remove(b)
-				os.remove(b + '.bai')
-
-
-
-	end=timeit.default_timer()
-	elapsed=(end-start)/60
-	logging.info('Simulations generated in ' + str(elapsed) + ' minutes')
 	logging.info('Done')
 
 
-
-
-def runInParallel(function, *arguments):
-
-	proc = []
-
-	for args in arguments:
-
-		p = Process(target=function, args=args)
-		p.start()
-		proc.append(p)
-
-	for p in proc:
-
-		p.join()
 
 
 def BWA_Index(fasta):
@@ -624,7 +451,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 
 
-def SingleStrand(chromosome, generate, genome, cores, bamfilein, label, noisefraction, output, scebed):
+def SingleStrand(haploname, chromosome, generate, genome, cores, bamfilein, label, noisefraction, output, scebed):
 
 	bam = pysam.AlignmentFile(bamfilein, "rb")
 
@@ -635,13 +462,15 @@ def SingleStrand(chromosome, generate, genome, cores, bamfilein, label, noisefra
 
 		for entries in scebed:
 
-			if str(entries[0]) == chromosome:
+			if str(entries[3]) == haploname: #perform SCE only on wanted haplotypes
 
-				watsinregion = list(watson_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
-				crickinregion = list(crick_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+				if str(entries[0]) == chromosome:
 
-				watslist=list(set(watslist)-set(watsinregion)) + crickinregion
-				cricklist = list(set(cricklist)-set(crickinregion)) + watsinregion
+					watsinregion = list(watson_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+					crickinregion = list(crick_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+
+					watslist=list(set(watslist)-set(watsinregion)) + crickinregion
+					cricklist = list(set(cricklist)-set(crickinregion)) + watsinregion
 
 
 	with open(os.path.abspath(output + '/watsonreads.txt'), 'w') as watsonreads:
