@@ -30,7 +30,6 @@ If you do not have a py36 environment, it can be generated with anaconda (https:
 
 conda create -n py36 python=3.6 anaconda
 
-
 ```
 
 If the aforementioned tools are not installed in your path, they can all be installed with anaconda:
