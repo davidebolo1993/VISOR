@@ -112,17 +112,19 @@ def run(parser,args):
 			sys.exit(1)
 
 
-		if not os.path.exists(os.path.abspath(fastas + '.sa')):
+		if args.type == 'single-strand':
 
-			try:
+			if not os.path.exists(os.path.abspath(fastas + '.sa')):
 
-				logging.info('Creating bwa index for ' + os.path.abspath(fastas))
-				BWA_Index(os.path.abspath(fastas))
+				try:
 
-			except:
+					logging.info('Creating bwa index for ' + os.path.abspath(fastas))
+					BWA_Index(os.path.abspath(fastas))
 
-				logging.error('It was not possible to generate bwa index for' + os.path.abspath(fastas))
-				sys.exit(1)
+				except:
+
+					logging.error('It was not possible to generate bwa index for' + os.path.abspath(fastas))
+					sys.exit(1)
 
 
 
