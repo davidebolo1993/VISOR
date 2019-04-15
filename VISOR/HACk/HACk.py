@@ -389,7 +389,7 @@ def run(parser,args):
 
 						if not haplopattern.match(str(entr_4[0])):
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer'.)
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer.')
 							sys.exit(1)
 
 						if str(entr_4[1]) not in classic_chrs:
