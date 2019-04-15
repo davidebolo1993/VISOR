@@ -22,6 +22,26 @@ def main():
 	folders=args.folder[0]
 	strands = args.strand[0]
 
+	if not os.path.exists(os.path.abspath(args.output)):
+
+		try:
+
+			os.makedirs(os.path.abspath(args.output))
+
+		except:
+
+			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			sys.exit(1)
+
+	else: #path already exists
+
+		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
+
+			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
+			sys.exit(1)
+
+
+
 	if len(folders) != len(strands):
 
 		print ('Different number of inputs for -f/--folder and -s/--sample')
@@ -38,7 +58,7 @@ def main():
 
 		if stra == 'W': #look for a watson.srt.bam
 
-			W = glo.glob(os.path.abspath(fol) + '/*.watson.srt.bam')
+			W = glob.glob(os.path.abspath(fol) + '/*.watson.srt.bam')
 
 			if W == []:
 
@@ -51,7 +71,7 @@ def main():
 
 		else:
 
-			C = glo.glob(os.path.abspath(fol) + '/*.crick.srt.bam')
+			C = glob.glob(os.path.abspath(fol) + '/*.crick.srt.bam')
 
 			if C == []:
 
@@ -61,17 +81,22 @@ def main():
 			else:
 
 				bams.extend(C)
+
+
+	print('Merging .bam files below:')
 			
 	with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
 
 		for bam in bams:
+
+			print(bam)
 
 			bamstomerge.write(bam + '\n')
 
 	identifier = ''.join(x for x in strands)
 
 	subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
-	subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+	subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
 
