@@ -81,8 +81,7 @@ Inputs to VISOR HACk are:
 - bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype (like the one in _Examples/HACk.bed_)
 
 
-VISOR HACk outputs a fasta (.fa) file with specified variants for each .bed in the output folder (hackout/h1/h1.fa and hackout/h2/h2.fa in this example) 
-
+VISOR HACk outputs a fasta (.fa) file with specified SVs for each .bed in the output folder
 
 #### Construct the .bed file/s
 
