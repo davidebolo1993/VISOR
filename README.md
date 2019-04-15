@@ -139,12 +139,12 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 VISOR SHORtS -h #print help
 
 VISOR SHORtS -g genome.fa -s folder -bed sim.bed -o singlesample #short reads data simulation for single input
-VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -f 50.0 50.0 #short reads data simulation for subclones
+VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 50.0 50.0 #short reads data simulation for subclones
 
 VISOR LASeR -h #print help
 
 VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample #long reads data simulation
-VISOR LASeR -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -f 50.0 50.0 #long reads data simulation for subclones
+VISOR LASeR -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 50.0 50.0 #long reads data simulation for subclones
 ```
 
 Inputs to VISOR SHORtS and VISOR LASeR are:
