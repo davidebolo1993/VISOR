@@ -144,7 +144,7 @@ VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 5
 VISOR LASeR -h #print help
 
 VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample #long reads data simulation
-VISOR LASeR -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 50.0 50.0 #long reads data simulation for subclones
+VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.0 50.0 #long reads data simulation for subclones
 ```
 
 Inputs to VISOR SHORtS and VISOR LASeR are:
