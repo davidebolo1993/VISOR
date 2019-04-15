@@ -288,7 +288,10 @@ def run(parser,args):
 								sys.exit(1)
 
 
+
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
+
+						print(fasta)
 
 						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(folder)))
 						SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
@@ -340,16 +343,16 @@ def run(parser,args):
 				watsons.extend(glob.glob(os.path.abspath(dirs + '*watson.srt.bam')))
 				cricks.extend(glob.glob(os.path.abspath(dirs + '*crick.srt.bam')))
 
-				with open(os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'),'w') as watsonstomerge:
+				with open(os.path.abspath(dirs + '/watsonstomerge.txt'),'w') as watsonstomerge:
 
 					for wats in watsons:
 
 						watsonstomerge.write(wats + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
-				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(dirs + '/watsonstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 
-				os.remove(os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'))
+				os.remove(os.path.abspath(dirs + '/watsonstomerge.txt'))
 
 				for wats in watsons:
 
@@ -357,16 +360,16 @@ def run(parser,args):
 					os.remove(wats + '.bai')
 
 
-				with open(os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'),'w') as crickstomerge:
+				with open(os.path.abspath(dirs + '/crickstomerge.txt'),'w') as crickstomerge:
 
 					for cri in cricks:
 
 						crickstomerge.write(cri + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
-				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(dirs + '/crickstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
 
-				os.remove(os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'))
+				os.remove(os.path.abspath(dirs + '/crickstomerge.txt'))
 
 				for cri in cricks:
 
