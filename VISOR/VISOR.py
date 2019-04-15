@@ -14,61 +14,58 @@ def main():
 
 	## HACk ##
 
-	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates haplotypes in .fasta format containing variants specified in .bed files')
+	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates one or more haplotypes in .fasta format containing SVs specified in .bed file/s')
 
 
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
-	required.add_argument('-bed', '--bedfile', help='one or more .bed files containing "CHROM, START, END, ALT, INFO" entries for each haplotype to modify', metavar='.bed', nargs='+', action='append', required=True)
-	required.add_argument('-o', '--output', help='Where the .fasta haplotypes will be saved', metavar='folder', required=True)
+	required.add_argument('-bed', '--bedfile', help='One or more .bed files containing "CHROM, START, END, ALT, INFO" entries for each haplotype to modify', metavar='.bed', nargs='+', action='append', required=True)
+	required.add_argument('-o', '--output', help='Output folder', metavar='folder', required=True)
 
 	parser_hack.set_defaults(func=run_subtool)
 
 
 	## SHORtS ##
 
-	parser_shorts = subparsers.add_parser('SHORtS', help='SHOrt Reads Simulator. Simulate short reads .bam files from .fasta files using regions specified in .bed files. Simulations are run using wgsim.')
+	parser_shorts = subparsers.add_parser('SHORtS', help='SHOrt Reads Simulator. Simulate short reads .bam files from .fasta files using regions specified in .bed file.')
 
 
 	required = parser_shorts.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
-	required.add_argument('-hapfa','--haplotypefasta', help='.fasta file/s with SVs generated with VISOR HACk', metavar='.fa',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on all the haplotypes. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-o','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-s','--sample', help='One or more folders containing .fasta haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='folder/s',  nargs='+', action='append', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, COVERAGE BIAS, ALLELIC FRACTION" for regions to simulate. COVERAGE BIAS and ALLELIC FRACTION must be float pecentages', metavar='.bed', required=True)
+	required.add_argument('-o','--output', help='Output folder', metavar='folder', required=True)
 
 	
-	simtype = parser_shorts.add_argument_group('Type of simulation')
+	simtype = parser_shorts.add_argument_group('Type of simulations')
 
-	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads .bam files. If simulating single-strand short-reads .bam files, for each haplotype, 2 will be created, named watson (R1 forward, R2 reverse) and crick (R1 reverse, R2 forward) [double-strand]', metavar='', default='double-strand', choices=['single-strand', 'double-strand'])
+	simtype.add_argument('-t','--type', help='Whether to simulate double-strand or single-strand (strand-seq) short-reads. [double-strand]', metavar='', default='double-strand', choices=['single-strand', 'double-strand'])
 
-	wgi = parser_shorts.add_argument_group('Wgsim parameters for simulation')
+	wgi = parser_shorts.add_argument_group('Wgsim parameters for .fastq simulations')
 
 	wgi.add_argument('-e', '--error', help='Base error rate [0.010]', metavar='', default=0.010, type=float)
-	wgi.add_argument('-c', '--coverage', help='Desired coverage for the simulated region [30.0]', metavar='', default=30.0, type=float)
+	wgi.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [30.0]', metavar='', default=30.0, type=float)
 	wgi.add_argument('-l', '--length', help='Length of reads [150]', metavar='', default=150, type=int)
 	wgi.add_argument('-i', '--indels', help='Fractions of indels [0.000000001]', metavar='', default=0.000000001, type=float)
 	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
 
 
-	optional = parser_shorts.add_argument_group('Additional single-strand parameters')
+	optional = parser_shorts.add_argument_group('Single-strand parameters')
 
-	optional.add_argument('-scebed', '--scebedfile', help='.bed file containing "CHROM, START, END, HAPLOTYPE" in which sister chromatid exchange will be performed [None]', metavar='', default=None)
+	optional.add_argument('-scebed', '--scebedfile', help='.bed file containing "CHROM, START, END, HAPLOTYPE" in which sister chromatid exchange will be performed. If given, HAPLOTYPE must be in format "hN" where N is the number of the haplotype [None]', metavar='', default=None)
 	optional.add_argument('-n', '--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
-
 	
-	optional1 = parser_shorts.add_argument_group('Additional double-strand parameter')
+	optional1 = parser_shorts.add_argument_group('Subclones simulations')
 
-	optional1.add_argument('-af', '--allelicfraction', help='Percentage of total reads that will support simulated variants [100.0]', type=float, metavar='', default=100.0)
+	optional1.add_argument('-cf', '--clonefraction', help='Ordered fractions (percentages) for each clone specified in -s/--sample [None]', metavar='', nargs='+', action='append', default=None)
 	
 	optional2 = parser_shorts.add_argument_group('Additional general parameters')
 		
-	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
+	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
 	optional2.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
-	
-	
-	
+		
 	parser_shorts.set_defaults(func=run_subtool)
 
 
@@ -81,23 +78,25 @@ def main():
 	required = parser_long.add_argument_group('Required I/O arguments')
 	
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
-	required.add_argument('-hapfa','--haplotypefasta', help='.fasta file/s with SVs generated with VISOR HACk', metavar='.fa',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing "CHROM, START, END, COVERAGE BIAS" for regions to simulate on all the haplotypes. To simulate an entire chromosome START must be 0 and END must be chromosome length.', metavar='.bed', required=True)
-	required.add_argument('-o','--output', help='Where the simulated .bam files will be saved', metavar='folder', required=True)
+	required.add_argument('-s','--sample', help='One or more folders containing .fasta haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='folder/s',  nargs='+', action='append', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, COVERAGE BIAS, ALLELIC FRACTION" for regions to simulate. COVERAGE BIAS and ALLELIC FRACTION must be float pecentages', metavar='.bed', required=True)
+	required.add_argument('-o','--output', help='Output folder', metavar='folder', required=True)
 
-	pbs= parser_long.add_argument_group('Pbsim parameters for simulation')
-
+	pbs= parser_long.add_argument_group('Pbsim parameters for .fastq simulations')
 
 	pbs.add_argument('-a', '--accuracy', help='Mean accuracy for simulated reads [0.90]', metavar='', default=0.90, type=float)
 	pbs.add_argument('-l', '--length', help='Mean length for simulated reads [8000]', metavar='', default=8000, type=int)
-	pbs.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [20]', metavar='', default=20, type=int)
+	pbs.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [20]', metavar='', default=20.0, type=float)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
 
-	optional = parser_long.add_argument_group('Additional parameters')
+	optional = parser_long.add_argument_group('Subclones simulations')
 
-	optional.add_argument('-af', '--allelicfraction', help='Percentage of total reads that will support simulated variants [100.0]', type=float, metavar='', default=100.0)
-	optional.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
-	optional.add_argument('-th', '--threads', help='Number of cores to use for alignments [6]', metavar='', type=int, default=6)
+	optional.add_argument('-cf', '--clonefraction', help='Ordered fractions (percentages) for each clone specified in -s/--sample [None]', metavar='', nargs='+', action='append', default=None)
+
+	optional1 = parser_long.add_argument_group('Additional general parameters')
+
+	optional1.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
+	optional1.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 
 
 	parser_long.set_defaults(func=run_subtool)
