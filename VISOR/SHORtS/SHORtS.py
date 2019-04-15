@@ -285,7 +285,7 @@ def run(parser,args):
 		
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 
-		if args.type == 'double-strand'
+		if args.type == 'double-strand':
 
 			logging.info('Merging double-strand data')
 
@@ -297,7 +297,7 @@ def run(parser,args):
 
 					bamstomerge.write(bam + '/n')
 
-			subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 			os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
@@ -329,7 +329,7 @@ def run(parser,args):
 
 						watsonstomerge.write(wats + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
 				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 				os.remove(os.path.abspath(args.output + '/' + dirs + '/watsonstomerge.txt'))
@@ -346,7 +346,7 @@ def run(parser,args):
 
 						crickstomerge.write(cri + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'), os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
 				subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + dirs + '/' + args.identifier + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 				os.remove(os.path.abspath(args.output + '/' + dirs + '/crickstomerge.txt'))
@@ -440,7 +440,7 @@ def run(parser,args):
 				bamstomerge.write(bam + '/n')
 
 
-		subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
