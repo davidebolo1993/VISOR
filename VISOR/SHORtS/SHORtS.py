@@ -290,8 +290,6 @@ def run(parser,args):
 
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
 
-						print(fasta)
-
 						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(folder)))
 						SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
 
