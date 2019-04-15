@@ -29,25 +29,26 @@ def main():
 
 	required = parser.add_argument_group('Required I/O arguments')
 
-	required.add_argument('-g','--genome', help='reference genome', metavar='.fa', required=True)
-	required.add_argument('-bam', '--bamfile', help='single-strand .bam file/s (crick or watson or crick + watson) to plot', metavar='.bam', nargs='+', action='append', required=True)
-	required.add_argument('-o', '--output', help='where plots will be saved', metavar='folder', required=True)
+	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
+	required.add_argument('-bam', '--bamfile', help='Single-strand .bam file/s to plot', metavar='.bam', nargs='+', action='append', required=True)
+	required.add_argument('-o', '--output', help='Output folder', metavar='folder', required=True)
 
 
 	optional = parser.add_argument_group('Bin size')
 
-	optional.add_argument('-bin', '--binsize', help= 'bin size for counting [200000]', metavar='', default=200000, type=int)
-	optional.add_argument('-l', '--label', help= 'label/s to identify sample/s [None]', metavar='', nargs='+', action='append', default=None)
+	optional.add_argument('-bin', '--binsize', help= 'Bin size for counting [200000]', metavar='', default=200000, type=int)
+	optional.add_argument('-l', '--label', help= 'Label/s to identify sample/s [None]', metavar='', nargs='+', action='append', default=None)
+	optional.add_argument('-c', '--chromosome', help= 'On ore more chromosomes to plot. If None, classic human chromosomes (chr1-22, chrX, chrY, chrM) are plotted [None]', metavar='', nargs='+', action='append', default=None)
 
 
 	args = parser.parse_args()
 
 
-	if not os.path.exists(os.path.abspath(args.output + '/comparison')):
+	if not os.path.exists(os.path.abspath(args.output)):
 
 		try:
 
-			os.makedirs(os.path.abspath(args.output + '/comparison'))
+			os.makedirs(os.path.abspath(args.output))
 
 		except:
 
@@ -56,7 +57,7 @@ def main():
 
 	else: #path already exists
 
-		if not os.access(os.path.dirname(os.path.abspath(args.output + '/comparison')),os.W_OK): #path exists but no write permissions on that folder
+		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
 
 			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
 			sys.exit(1)
@@ -120,9 +121,10 @@ def main():
 
 	print('Counting')
 
+
 	for bams in args.bamfile[0]:
 
-		watscount, crickcount = Count(os.path.abspath(args.genome), os.path.abspath(bams), args.binsize)
+		watscount, crickcount = Count(os.path.abspath(args.genome), os.path.abspath(bams), args.binsize, args.chromosome)
 		reslist.append((watscount, crickcount))
 		
 		progress.current += 1
@@ -134,7 +136,7 @@ def main():
 	print('Plotting')
 
 
-	Plotter(reslist,labels, os.path.abspath(args.output))
+	Plotter(reslist,labels, os.path.abspath(args.output), args.chromosome)
 
 	print('Done')
 
@@ -238,9 +240,15 @@ class ProgressBar(object):
 
 
 
-def Plotter(reslist, labels, output):
+def Plotter(reslist, labels, output, chromosomes):
 
-	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
+	if chromosomes is None:
+
+		classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
+
+	else:
+
+		classic_chrs = chromosomes[0]
 
 	for chroms in classic_chrs:
 
@@ -302,7 +310,7 @@ def Plotter(reslist, labels, output):
 			chromtraces.append((tracewatson,tracecrick))
 
 
-		fig = tools.make_subplots(rows=len(chromtraces), cols=1, subplot_titles=labels,vertical_spacing=0.1)
+		fig = tools.make_subplots(rows=len(chromtraces), cols=1, subplot_titles=labels,vertical_spacing=0.1,print_grid=False)
 		
 		for i in range(len(chromtraces)):
 
@@ -332,11 +340,16 @@ def Plotter(reslist, labels, output):
 
 
 
-def Count(genomein, bamfilein, binsize):
+def Count(genomein, bamfilein, binsize, chromosomes):
 
 
-	classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
+	if chromosomes is None:
 
+		classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
+
+	else:
+
+		classic_chrs = chromosomes[0]
 
 	watscount=AutoVivification()
 	crickcount=AutoVivification()
