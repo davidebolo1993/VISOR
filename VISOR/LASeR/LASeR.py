@@ -317,7 +317,7 @@ def run(parser,args):
 
 					try:		
 
-						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
 
 					except:
 
