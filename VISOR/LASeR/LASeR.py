@@ -331,7 +331,7 @@ def run(parser,args):
 
 			for bam in bams:
 
-				bamstomerge.write(bam + '/n')
+				bamstomerge.write(bam + '\n')
 
 
 		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
