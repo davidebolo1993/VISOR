@@ -92,6 +92,9 @@ def run(parser,args):
 
 
 
+
+
+
 	#validate .bed with regions to simulate
 
 
@@ -271,7 +274,23 @@ def run(parser,args):
 
 					else: #generate single-stranded data
 
+
+						if not os.path.exists(os.path.abspath(fasta + '.sa')):
+
+							try:
+
+								logging.info('Creating bwa index for ' + os.path.abspath(fasta))
+								BWA_Index(os.path.abspath(fasta))
+
+							except:
+
+								logging.error('It was not possible to generate bwa index for ' + os.path.abspath(fasta))
+								sys.exit(1)
+
+
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
+
+						print(fasta)
 
 						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(folder)))
 						SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
