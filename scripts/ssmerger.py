@@ -14,7 +14,7 @@ def main():
 	required = parser.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-f', '--folder', help='One or more folders containing single-strand .bam files generated with VISOR SHORtS', metavar='folder', nargs='+', action='append', required=True)
-	required.add_argument('-s', '--strand', help='', metavar='One ore more ordered acronyms for strands to merge. For example, assuming 2 input folders given (one for each haplotype in a diploid sample), using "-s C W" generates a "CW.srt.bam" file merging crick strand from first and watson from second. Choices are W and C', metavar='id', nargs='+', action='append', required=True)
+	required.add_argument('-s', '--strand', help='One ore more ordered acronyms for strands to merge. For example, assuming 2 input folders given (one for each haplotype in a diploid sample), using "-s C W" generates a "CW.srt.bam" file merging crick strand from first and watson from second. Choices are W and C', metavar='id', nargs='+', action='append', required=True)
 	required.add_argument('-o', '--output', help='Output folder', metavar='folder', required=True)
 
 	args = parser.parse_args()
