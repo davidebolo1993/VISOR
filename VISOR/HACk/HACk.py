@@ -27,19 +27,19 @@ def run(parser,args):
 
 		except:
 
-			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			print('It was not possible to create the output folder. Specify a path for which you have write permissions')
 			sys.exit(1)
 
 	else: #path already exists
 
 		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
 
-			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
+			print('You do not have write permissions on the output folder. Specify a folder for which you have write permissions')
 			sys.exit(1)
 
 		if os.listdir(os.path.abspath(args.output)):
 
-			print('Specified output directory is not empty. Specify another directory or clean the chosen one')
+			print('Specified output folder is not empty. Specify another directory or clean the chosen one')
 			sys.exit(1)
 
 		
@@ -61,7 +61,7 @@ def run(parser,args):
 
 	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
 	classic_chrs = immutable_ref.keys() #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
+	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
 	valid_dna = 'ACGT' #allowed nucleotides
 	haplopattern=re.compile("^h[0-9]+$") #allowed haplotypes for inter-haplotypes SVs are h1,h2,h3 ...
 
@@ -77,7 +77,7 @@ def run(parser,args):
 	d=dict() #initialize one empty dict for each haplotype
 
 
-	logging.info('Organizing variants')
+	logging.info('Organizing SVs')
 
 
 	for i,bed in enumerate(bedlist):
@@ -101,7 +101,7 @@ def run(parser,args):
 				sys.exit(1)
 
 
-			logging.info('Organizing variants for ' + os.path.abspath(bed))
+			logging.info('Organizing SVs for ' + os.path.abspath(bed))
 
 			
 			d["h{0}".format(i+1)]=dict()
@@ -220,6 +220,28 @@ def run(parser,args):
 
 
 					elif str(entries[3]) == 'tandem duplication': #information must be an integer
+
+						try:
+
+							int(entries[4])
+
+						except:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be an integer')
+							sys.exit(1)
+
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
+
+
+
+					elif str(entries[3]) == 'inverted tandem duplication': #information must be an integer
 
 						try:
 
@@ -361,18 +383,18 @@ def run(parser,args):
 
 						if len(entr_4) != 5:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. ')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2')
 							sys.exit(1)
 
 
 						if not haplopattern.match(str(entr_4[0])):
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer.')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer'.)
 							sys.exit(1)
 
 						if str(entr_4[1]) not in classic_chrs:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Chromosome must be a valid chromosome.')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Chromosome must be a valid chromosome')
 							sys.exit(1)
 
 						try:
@@ -381,14 +403,14 @@ def run(parser,args):
 
 						except:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Breakpoint must be an integer.')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Breakpoint must be an integer')
 							sys.exit(1)
 
 
 
-						if str(entr_4[3]) and str(entr_4[4]) not in ['forward', 'reverse']:
+						if str(entr_4[3]) not in ['forward', 'reverse'] or str(entr_4[4]) not in ['forward', 'reverse']:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Orientation1 and orientation2 must be forward or reverse.')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Orientation1 and orientation2 must be forward or reverse')
 							sys.exit(1)
 
 
@@ -593,19 +615,16 @@ def run(parser,args):
 							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
 
 
+	logging.info('SVs organized')						
+	logging.info('Generating .fasta haplotypes with SVs')
 
-	logging.info('Generating .fasta haplotypes with variants')
+	for dicts in enumerate(d.keys()):
 
+		logging.info('Generating SVs for ' + str(dicts))
+		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
 
-	for i,dicts in enumerate(d.keys()):
-
-
-		os.makedirs(os.path.abspath(args.output + '/h' + str(i +1)))
-		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/h' + str(i +1) + '/' + str(dicts) + '.fa'))
-
-
+	logging.info('Haplotypes with SVs generated')
 	logging.info('Done')
-
 
 
 
@@ -856,6 +875,10 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 						write_sequence_between(seq[start-1:end]*info, output_fasta)
 
 
+					elif typ == 'inverted tandem duplication':
+
+						write_sequence_between(seq[start-1:end] + (Reverse(seq, start, end).translate(trans) * (info-1)), output_fasta) #first part is not inverted, duplicated part it is
+
 					elif typ == 'SNP':
 
 						until_end=seq[start-1:end-1]
@@ -909,5 +932,5 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 	if skipped > 0 :
 
-		logging.warning('Skipped ' + str(skipped) + ' variants for the current haplotype as they overlapped others')
+		logging.warning('Skipped ' + str(skipped) + ' SVs for the current haplotype as they overlapped others')
 
