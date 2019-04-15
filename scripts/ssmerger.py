@@ -62,7 +62,7 @@ def main():
 
 				bams.extend(C)
 			
-	with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w'), as bamstomerge:
+	with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
 
 		for bam in bams:
 
