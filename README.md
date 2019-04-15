@@ -103,6 +103,7 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'insertion'__. Inserts a specific sequence immediately after end
 - __'inversion'__. Inverts from start (included) to end (included)
 - __'tandem duplication'__. Duplicates from start (included) to end (included)
+- __'inverted tandem duplication'__. Duplicates from start (included) to end (included) and invert the duplicated segment
 - __'SNP'__. Introduces a single nucleotide polimorphism in end
 - __'tandem repeat expansion'__. Expands an existent tandem repetition. Tandem repeat is meant to be one of the repetitions present in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is taken from UCSC for GRCh38 reference)
 - __'tandem repeat contraction'__. Contracts an existent tandem repetition. Works as described for 'tandem repeat expansion'
@@ -121,13 +122,14 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 - INFO for __'insertion'__ must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
 - INFO for __'inversion'__ must be __None__
 - INFO for __'tandem duplication'__ must be __number__; number is the number of time segment will be duplicated
+- INFO for __'inverted tandem duplication'__ is the same for __'tandem duplication'__
 - INFO for __'SNP'__ must be __nucleotide__; nucleotide is the nucleotide that will be used to introduce the variant
 - INFO for __'tandem repeat expansion'__ must be __motif:number__ motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'tandem repeat contraction'__ must be __motif:number__; motif is a valid DNA motif, number is number of motif to delete
 - INFO for __'perfect tandem repetition'__ must be __motif:number__; motif motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'approximate tandem repetition'__ must be __motif:number:alterations__ ; motif is a valid DNA motif, number is number of motif to insert, alterations is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only
 - INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
-- INFO for __'translocation copy-paste'__ is the __same for 'translocation cut-paste'__
+- INFO for __'translocation copy-paste'__ is the same for __'translocation cut-paste'__
 - INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok); breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
 
 
@@ -137,21 +139,21 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -o shortsout #default double-strand sequencing simulations
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -o singlesample #short reads data simulation for single input
+VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -f 50.0 50.0 #short reads data simulation for subclones
 
 VISOR LASeR -h #print help
 
-VISOR LASeR -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -o laserout #long-reads sequencing simulations
-
+VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample #long reads data simulation
+VISOR LASeR -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -f 50.0 50.0 #long reads data simulation for subclones
 ```
 
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
 - genome.fa is the reference genome in .fasta format
-- h1.fa and h2.fa (can be also more) are the haplotype .fasta files generated with VISOR HACk
-- sim.bed is the .bed file containing regions to simulate from h1.fa and h2.fa like the one in _Examples/SHORtS.LASeR.bed_. If multiple regions are given, the .bam files generated for each region will then be merged.
+- folder 1 (folder2, folder3 ...). One or more folder containing one ore more haplotypes generated with VISOR HACk. If a single folder is given, VISOR SHORtS perform simulations for the single sample otherwise each input folder is considered a subclone and -f specifies subclones fractions (percentages)
+- sim.bed is the .bed file containing regions to simulate from the haplotypes, like the one in _Examples/SHORtS.LASeR.bed_. If multiple regions are given, the .bam files generated for each region will then be merged.
 
-Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic fraction (-af), which is the fraction of reads that for the simulated region in sim.bed files will carry the structural variants.
 
 .bed file must contain 4 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__
 
@@ -159,8 +161,10 @@ Additionally, both VISOR SHORtS and VISOR LASeR allow to specify an allelic frac
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
 - __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
+- __ALLELIC FRACTION__: a float to specify wheter variants in simulated region are supported by all the reads (100.0) or a fraction of them (80.0, for example). Does not affect subclones simulations.
 
-VISOR SHORtS and VISOR LASeR outputs a .srt.bam file for each region in the haplotype-specific .bed files (shortsout/simulations_h1/sim.srt.bam and shortsout/simulations_h2/sim.srt.bam in this example for VISOR SHORtS)
+VISOR SHORtS and VISOR LASeR outpu a .srt.bam file in the output folder
+
 
 #### VISOR SHORtS and VISOR LASeR Simulations
 
@@ -175,16 +179,37 @@ VISOR SHORtS can simulate single-strand (strand-seq) .bam files
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -t single-strand -c 1 -o shortsout #single-strand simulations without noise
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -o singlestrand #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -t single-strand -c 1 -n 5 -o shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -o singlestrand #single-strand simulations with 5 % of read pairs with incorrect orientation
 
-VISOR SHORtS -g genome.fa -hapfa h1.fa h2.fa -bed sim.bed -t single-strand -c 1 -n 5 -scebed sce.bed -o shortsout #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange for regions and haplotypes specified in sce.bed
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -scebed sce.bed -o singlestrand #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange for regions and haplotypes specified in sce.bed
 
 
 ```
 
-When working in single-strand mode (-t single-strand), for each region specified in the .bed file, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify a .bed file (-scebed) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ )
+When working in single-strand mode (-t single-strand), for each haplotype in the sample folder, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify a .bed file (-scebed) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ ):
+
+#### Merge desired strands
+
+When simulating haplotype-specific variants in single-strand simulations, one can re-create the possible inherited template strands in daughter cells by combining the watson or crick strands for the wanted haplotypes. Assuming a diploid sample (1 and 2 are the haplotypes), these can be:
+
+- W1 and W2
+- W1 and C2
+- C1 and W2
+- C1 and C2
+
+VISOR/scripts/ssmerger.py offers the possibility to generate this strands. 
+
+```sh
+
+python VISOR/scripts/ssmerger.py -h #print help
+
+python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -O sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
+
+```
+
+
 
 #### Plot read pairs count
 
