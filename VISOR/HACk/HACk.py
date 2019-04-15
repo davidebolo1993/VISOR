@@ -618,7 +618,7 @@ def run(parser,args):
 	logging.info('SVs organized')						
 	logging.info('Generating .fasta haplotypes with SVs')
 
-	for dicts in enumerate(d.keys()):
+	for dicts in d.keys():
 
 		logging.info('Generating SVs for ' + str(dicts))
 		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
