@@ -84,9 +84,6 @@ def run(parser,args):
 
 
 
-	fastaslist=args.haplotypefasta[0]
-
-
 	#validate .bed
 
 	bed = pybedtools.BedTool(os.path.abspath(args.bedfile)) #this one is required
