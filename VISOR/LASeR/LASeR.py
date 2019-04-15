@@ -29,19 +29,20 @@ def run(parser,args):
 
 		except:
 
-			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
+			print('It was not possible to create the output folder. Specify a path for which you have write permissions')
 			sys.exit(1)
 
 	else: #path already exists
 
 		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
 
-			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
+			print('You do not have write permissions on the output folder. Specify a folder for which you have write permissions')
 			sys.exit(1)
+
 
 		if os.listdir(os.path.abspath(args.output)):
 
-			print('Specified output directory is not empty. Specify another directory or clean the chosen one')
+			print('Specified output folder is not empty. Specify another directory or clean the chosen one')
 			sys.exit(1)
 
 
@@ -52,7 +53,6 @@ def run(parser,args):
 
 		logging.error('It is required to have write access on reference folder to generate minimap2 .mmi indexes')
 		sys.exit(1)
-
 
 
 	#check if external tools can be executed
@@ -87,21 +87,6 @@ def run(parser,args):
 	fastaslist=args.haplotypefasta[0]
 
 
-	for fastas in fastaslist:
-
-		try:
-
-			with open(os.path.abspath(fastas),'r') as file:
-
-				assert(file.readline().startswith('>')) 
-
-		except:
-
-			logging.error(os.path.abspath(fastas) + ' file does not exist, is not readable or is not a valid .fasta file')
-			sys.exit(1)
-
-
-
 	#validate .bed
 
 	bed = pybedtools.BedTool(os.path.abspath(args.bedfile)) #this one is required
@@ -117,111 +102,263 @@ def run(parser,args):
 		sys.exit(1)
 
 
-	allelic=args.allelicfraction
+	inputs=args.sample[0]
+
+	if len(inputs) > 1:
+
+		if args.clonefraction is None:
+
+			logging.error('When specifying multiple -s/--sample, multiple -cf/--clonefraction percentages must be specified')
+			sys.exit(1)
+
+		else: #something has been specified
+
+			fractions=args.clonefraction[0]
+
+			if len(fractions) != len(inputs):
+
+				logging.error('When specifying multiple -s/--sample, the same number of -cf/--clonefraction percentages must be specified')
+				sys.exit(1)
+
+			for fraction in fractions:
+
+				try:
+
+					float(fraction)
+
+				except:
+
+					logging.error('Each fraction percentage in -cf/--clonefraction must be float')
+					sys.exit(1)
+
+
+			totalfraction = sum(map(float,fractions))
+
+			if totalfraction > 100:
+
+				logging.error('Sum of fractions percentages in -cf/--clonefraction cannot exceed 100.0')
+				sys.exit(1)
+
+
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	classic_chrs = fa.keys() #allowed chromosomes
-
 	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
 
-	logging.info('Simulations begin')
+	logging.info('Running simulations')
+
+	if len(inputs) == 1: #just one folder, use a classic simulation
+
+		logging.info('Single input for -s/--sample')
+
+		#find .fasta in folder
+
+		fastas = glob.glob(os.path.abspath(inputs[0] + '/*.fa'))
+
+		if fastas == []:
+
+			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
+			sys.exit(1)
 
 
-	for fastas in fastaslist:
+		for folder,fasta in enumerate(fastas):
 
-		haploname=os.path.basename(os.path.abspath(fastas)).split('.')[0]
-		os.makedirs(os.path.abspath(args.output + '/simulations_' + haploname))
+			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
 
-		counter = 0
+			counter=0
 
-		for entries in srtbed: #validate each entry
+			for entries in srtbed: #validate each entry
 
-			counter +=1
-			
-			if str(entries[0]) not in classic_chrs:
+				counter+=1
+				
+				if str(entries[0]) not in classic_chrs:
 
-				logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
-				sys.exit(1)
+					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file')
+					sys.exit(1)
 
-			try:
+				try:
 
-				int(entries[1])
+					int(entries[1])
 
-			except:
+				except:
 
-				logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-				sys.exit(1)
-
-
-			try:
-
-				int(entries[2])
-
-			except:
-
-				logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-				sys.exit(1)
+					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
+					sys.exit(1)
 
 
-			if (int(entries[2]) - int(entries[1]) == 0):
+				try:
 
-				logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-				sys.exit(1)
+					int(entries[2])
 
+				except:
 
-			try:
-
-				float(entries[3])
-
-			except:
-
-				logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
-				sys.exit(1)
-
-			try:
-
-				Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fastas), str(entries[0]), int(entries[1]), int(entries[2]), args.identifier + '.' + str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), allelic, args.length, args.ratio, os.path.abspath(args.output + '/simulations_' +haploname))
-
-			except:
-
-				logging.exception('Something went wrong during simulations for ' + os.path.abspath(fastas) + '. Log is below.')
-
-	
-
-		if counter == 1:
+					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
+					sys.exit(1)
 
 
-			os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.srt.bam'), os.path.abspath(args.output + '/simulations_' + haploname + '/' +  args.identifier + '.srt.bam'))
-			os.rename(os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.' + str(counter) + '.srt.bam.bai'), os.path.abspath(args.output + '/simulations_' + haploname + '/' +  args.identifier + '.srt.bam.bai'))
+				if (int(entries[2]) - int(entries[1]) == 0):
 
-		else:
-
-
-			bams = glob.glob(os.path.abspath(args.output + '/simulations_' + haploname + '/' + '*.srt.bam'))
-
-			with open(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), 'a') as bamout:
-
-				for file in bams:
-
-					bamout.write(file + '\n')
-
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'), os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.srt.bam')])
-			os.remove(os.path.abspath(args.output + '/simulations_' + haploname + '/bamtomerge.txt'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/simulations_' + haploname + '/' + args.identifier + '.srt.bam')])
+					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
+					sys.exit(1)
 
 
-			for b in bams:
+				try:
 
-				os.remove(b)
-				os.remove(b + '.bai')
+					float(entries[3])
 
+				except:
+
+					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+					sys.exit(1)
+
+
+				try:
+
+					allelic=float(entries[4])
+
+				except:
+
+					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Allelic fraction must be a float percentage')
+					sys.exit(1)
+
+				try:
+
+					Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)))
+				
+				except:
+					
+					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
+
+
+		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
+		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
+
+		with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
+
+			for bam in bams:
+
+				bamstomerge.write(bam + '/n')
+
+		subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
+
+		for bam in bams:
+
+			os.remove(bam)
+			os.remove(bam + '.bai')
+
+		for dirs in subdirs: #now they are empty and vcan be removed safely
+
+			os.rmdir(dirs)
+
+	else: # simulate subclones
+
+		logging.info('Multiple inputs for -s/--sample. Assuming each input is a subclone')
+
+		for fract,inp in enumerate(inputs): #each input is now a subclone
+
+			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
+
+			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
+			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
+			eachhaplofraction=subfastasfraction/len(subfastas)
+
+			for folder,subfasta in enumerate(subfastas):
+
+				os.makedirs(os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+
+				counter=0
+
+				for entries in srtbed: #validate each entry
+
+					counter +=1
+					
+					if str(entries[0]) not in classic_chrs:
+
+						logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file')
+						sys.exit(1)
+
+					try:
+
+						int(entries[1])
+
+					except:
+
+						logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
+						sys.exit(1)
+
+
+					try:
+
+						int(entries[2])
+
+					except:
+
+						logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
+						sys.exit(1)
+
+
+					if (int(entries[2]) - int(entries[1]) == 0):
+
+						logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
+						sys.exit(1)
+
+
+					try:
+
+						float(entries[3])
+
+					except:
+
+						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+						sys.exit(1)
+
+
+					try:		
+
+						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3])), 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+
+					except:
+
+						logging.exception('Something went wrong during simulations for ' + os.path.abspath(subfasta) + '. Log is below.')
+
+		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
+		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
+
+
+		with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
+
+			for bam in bams:
+
+				bamstomerge.write(bam + '/n')
+
+
+		subprocess.call(['samtools', 'merge', '-b' os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
+
+		for bam in bams:
+
+			os.remove(bam)
+			os.remove(bam + '.bai')
+
+
+		for subs in subdirs:
+
+			subsub=[os.path.join(os.path.abspath(subs), o) for o in os.listdir(os.path.abspath(subs)) if os.path.isdir(os.path.join(os.path.abspath(subs),o))]
+
+			for s in subsub: #more safe than other solutions
+
+				os.rmdir(s)
+
+			os.rmdir(subs)
 
 	logging.info('Done')
 
 
-
-
 def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output):
-
 
 
 	#prepare region
