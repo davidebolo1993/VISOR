@@ -340,8 +340,8 @@ def run(parser,args):
 				watsons=[]
 				cricks=[]
 
-				watsons.extend(glob.glob(os.path.abspath(dirs + '*watson.srt.bam')))
-				cricks.extend(glob.glob(os.path.abspath(dirs + '*crick.srt.bam')))
+				watsons.extend(glob.glob(os.path.abspath(dirs) + '/*watson.srt.bam'))
+				cricks.extend(glob.glob(os.path.abspath(dirs) + '/*crick.srt.bam'))
 
 				with open(os.path.abspath(dirs + '/watsonstomerge.txt'),'w') as watsonstomerge:
 
