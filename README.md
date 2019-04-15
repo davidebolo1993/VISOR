@@ -44,7 +44,7 @@ conda install -c bioconda pbsim
 conda install -c bioconda bwa
 conda install -c bioconda minimap2 
 #or in one go:
-# conda install -c bioconda samtools wgsim pbsim bwa minimap2
+#conda install -c bioconda samtools wgsim pbsim bwa minimap2
 ```
 
 ## Install VISOR
@@ -91,7 +91,7 @@ VISOR HACk outputs a fasta (.fa) file with specified variants for each .bed in t
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: where the variant starts
 - __END__: where the variant ends
-- __ALT__: type of alteration. Possible alteration types are 'deletion', 'insertion', 'inversion', 'tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste' (or 'interspersed duplication'), 'reciprocal translocation' (more details below)
+- __ALT__: type of alteration. Possible alteration types are 'deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste' (or 'interspersed duplication'), 'reciprocal translocation' (more details below)
 - __INFO__: informations for the alterations (more details below)
 
 
@@ -151,11 +151,11 @@ VISOR LASeR -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -f 50.
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
 - genome.fa is the reference genome in .fasta format
-- folder 1 (folder2, folder3 ...). One or more folder containing one ore more haplotypes generated with VISOR HACk. If a single folder is given, VISOR SHORtS perform simulations for the single sample otherwise each input folder is considered a subclone and -f specifies subclones fractions (percentages)
-- sim.bed is the .bed file containing regions to simulate from the haplotypes, like the one in _Examples/SHORtS.LASeR.bed_. If multiple regions are given, the .bam files generated for each region will then be merged.
+- folder (or folder1, folder2, folder3 ...) is one or more folders containing one ore more haplotypes generated with VISOR HACk. If multiple input folders are given, each is considered a subclone and -f specifies each subclone fraction (percentage)
+- sim.bed is the .bed file containing regions to simulate from the haplotypes, like the one in _Examples/SHORtS.LASeR.bed_.
 
 
-.bed file must contain 4 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__
+.bed file must contain 4 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__, __ALLELIC FRACTION__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
@@ -163,12 +163,7 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 - __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
 - __ALLELIC FRACTION__: a float to specify wheter variants in simulated region are supported by all the reads (100.0) or a fraction of them (80.0, for example). Does not affect subclones simulations.
 
-VISOR SHORtS and VISOR LASeR outpu a .srt.bam file in the output folder
-
-
-#### VISOR SHORtS and VISOR LASeR Simulations
-
-Simulations for short-reads data are run using wgsim, most of which parameters can be specified by the user, bwa and samtools. Simulations for long-reads data are run using pbsim, most of which parameters can be specified by the user (the model_qc_clr file required is included in VISOR), minimap2 and samtools.
+VISOR SHORtS and VISOR LASeR output a .srt.bam file in the output folder
 
 
 ## VISOR SHORtS for single-strand (strand-seq) simulations
@@ -192,33 +187,29 @@ When working in single-strand mode (-t single-strand), for each haplotype in the
 
 #### Merge desired strands
 
-When simulating haplotype-specific variants in single-strand simulations, one can re-create the possible inherited template strands in daughter cells by combining the watson or crick strands for the wanted haplotypes. Assuming a diploid sample (1 and 2 are the haplotypes), these can be:
+When simulating haplotype-specific variants in single-strand simulations, one can re-create the possible inherited template strands in daughter cells by combining the watson and crick strands for the wanted haplotypes. Assuming a diploid sample (1 and 2 are the haplotypes), these can be:
 
 - W1 and W2
 - W1 and C2
 - C1 and W2
 - C1 and C2
 
-VISOR/scripts/ssmerger.py offers the possibility to generate this strands. 
+VISOR/scripts/ssmerger.py offers the possibility to generate these strands. 
 
 ```sh
 
 python VISOR/scripts/ssmerger.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -O sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
+python VISOR/scripts/ssmerger.py -f folder1 folder2 -s W C -o mergeout #merge watson strand from folder1 (haplotype 1) and crick strand from folder2 (haplotype 2)
 
 ```
 
+Specifically:
 
+- folder1 and folder2 are the 2 folders generated by VISOR SHORtS for a diploid input contaning each a watson and a crick strand
+- W and C are the 2 acronyms that should be specified to merge watson from first folder and crick from the second
 
 #### Plot read pairs count
-
-When simulating haplotype-specific variants in single-strand simulations, one can re-create the possible inherited template strands in daughter cells by combining the watson or crick .bam file for 1 haplotype (W1 or C1) with  the watson or crick  one from the other(W2 or C2), for example by using samtools merge
-
-- W1 and W2
-- W1 and C2
-- C1 and W2
-- C1 and C2
 
 VISOR/scripts/sscounter.py offers the possibility to plot an interactive visualization of the read pairs count for given .bam file/s
 
@@ -226,6 +217,9 @@ VISOR/scripts/sscounter.py offers the possibility to plot an interactive visuali
 
 python VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -O sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
+python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -o sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
 
 ```
+
+By default, chromosome chr1-22, chrX, chrY and chrM (human classic chromosomes) are taken into account but desired chromosomes can be specified instead with the -c parameter.
+
