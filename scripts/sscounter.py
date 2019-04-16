@@ -267,7 +267,7 @@ def Plotter(reslist, labels, output, chromosomes):
 				tracewatson=go.Bar(
 					x = list(wats_chromdict.keys()),
 					y = list(wats_chromdict.values()),
-					marker = dict(color = 'rgb(55, 83, 109)'),
+					marker = dict(color = '#F3A461'),
 					text=list(wats_chromdict.values()),
 					hoverinfo = 'text+name',
 					name = 'watson',
@@ -276,7 +276,7 @@ def Plotter(reslist, labels, output, chromosomes):
 				tracecrick= go.Bar(
 					x = list(crick_chromdict.keys()),
 					y = [-x for x in list(crick_chromdict.values())],
-					marker = dict(color = '#B35F5F'),
+					marker = dict(color = '#668B8C'),
 					text=list(crick_chromdict.values()),
 					hoverinfo = 'text+name',
 					name = 'crick',
@@ -288,7 +288,7 @@ def Plotter(reslist, labels, output, chromosomes):
 				tracewatson=go.Bar(
 					x = list(wats_chromdict.keys()),
 					y = list(wats_chromdict.values()),
-					marker = dict(color = 'rgb(55, 83, 109)'),
+					marker = dict(color = '#F3A461'),
 					text=list(wats_chromdict.values()),
 					hoverinfo = 'text+name',
 					name = 'watson',					
@@ -298,7 +298,7 @@ def Plotter(reslist, labels, output, chromosomes):
 				tracecrick= go.Bar(
 					x = list(crick_chromdict.keys()),
 					y = [-x for x in list(crick_chromdict.values())],
-					marker = dict(color = '#B35F5F'),
+					marker = dict(color = '#668B8C'),
 					text=list(crick_chromdict.values()),
 					hoverinfo = 'text+name',
 					name = 'crick',					
