@@ -160,7 +160,7 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
 - __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
-- __ALLELIC FRACTION__: a float to specify wheter variants in simulated region are supported by all the reads (100.0) or a fraction of them (80.0, for example). Does not affect subclones and single-strand data simulations.
+- __ALLELIC FRACTION__: a float to specify wheter variants in simulated region are supported by all the reads (100.0) or a fraction of them (80.0, for example. In this case, 20% of the reads will be simulated from the reference for the same region). Does not affect subclones and single-strand data simulations.
 
 VISOR SHORtS and VISOR LASeR output a .srt.bam file in the output folder
 
