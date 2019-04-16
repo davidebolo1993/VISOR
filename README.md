@@ -78,10 +78,10 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 Inputs to VISOR HACk are:
 
 - genome.fa is the reference genome in .fasta format
-- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create for each haplotype (like the one in _Examples/HACk.bed_)
+- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create, one for each haplotype (like the one in _Examples/HACk.bed_)
 
 
-VISOR HACk outputs a fasta (.fa) file with specified SVs for each .bed in the output folder
+VISOR HACk outputs, in the output folder, a fasta (.fa) file with specified SVs for each .bed given.
 
 #### Construct the .bed file/s
 
@@ -150,7 +150,7 @@ VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
 - genome.fa is the reference genome in .fasta format
-- folder (or folder1, folder2, folder3 ...) is one or more folders containing one ore more haplotypes generated with VISOR HACk. If multiple input folders are given, each is considered a subclone and -f specifies each subclone fraction (percentage)
+- folder (and folder1, folder2, folder3 ...) is one or more folders containing one ore more haplotypes generated with VISOR HACk. If multiple input folders are given, each is considered a subclone and -cf specifies each subclone fraction (percentage)
 - sim.bed is the .bed file containing regions to simulate from the haplotypes, like the one in _Examples/SHORtS.LASeR.bed_.
 
 
