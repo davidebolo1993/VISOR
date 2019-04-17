@@ -77,8 +77,8 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 
 Inputs to VISOR HACk are:
 
--g requires the reference genome in .fasta format
--bed requires one or more .bed files (like the one in _Examples/HACk.bed_). For each .bed file, an haplotype will be created.
+- -g requires the reference genome in .fasta format
+- -bed requires one or more .bed files (like the one in _Examples/HACk.bed_). For each .bed file, an haplotype will be created.
 
 
 VISOR HACk outputs, in the output folder, a fasta (.fa) file with specified SVs for each .bed given.
@@ -149,9 +149,9 @@ VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.
 
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
--g requires the reference genome in .fasta format
--s requires one or more folders containing the haplotypes generated with VISOR HACk. If multiple folders are given, each is considered a subclone and -cf allows to specify sublclones percentages
--bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
+- -g requires the reference genome in .fasta format
+- -s requires one or more folders containing the haplotypes generated with VISOR HACk. If multiple folders are given, each is considered a subclone and -cf allows to specify sublclones percentages
+- -bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
 
 
 The .bed file t0 -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE BIAS__, __SAMPLE FRACTION__
