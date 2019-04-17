@@ -250,7 +250,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 					sys.exit(1)
 
 
@@ -260,7 +260,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Allelic fraction must be a float percentage')
+					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
 					sys.exit(1)
 
 
@@ -269,8 +269,7 @@ def run(parser,args):
 
 					if args.type == 'double-strand':
 
-
-						ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(folder)))
+						ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)), folder+1, 1)
 
 					else: #generate single-stranded data
 
@@ -291,9 +290,7 @@ def run(parser,args):
 
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
 
-						print(fasta)
-
-						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(folder)))
+						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)))
 						SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
 
 				except:
@@ -437,13 +434,13 @@ def run(parser,args):
 
 					except:
 
-						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 						sys.exit(1)
 
 
 					try:
 
-						ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+						ClassicSimulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
 
 					except:
 
@@ -492,7 +489,30 @@ def BWA_Index(fasta):
 
 
 
-def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, output):
+def ModifyReadTags(inbam, haplonum, clone):
+
+	bam=pysam.AlignmentFile(os.path.abspath(inbam), 'rb')
+
+	outbam=pysam.AlignmentFile(os.path.abspath(inbam + '.tmp'), "wb", template=bam)
+
+	for reads in bam.fetch():
+
+		new_tags = reads.tags
+		new_tags.append(('HP', haplonum))
+		new_tags.append(('CL', clone))
+		reads.tags = new_tags
+		outbam.write(reads)
+
+	bam.close()
+	outbam.close()
+
+	os.remove(os.path.abspath(inbam))
+	os.remove(os.path.abspath(inbam + '.bai'))
+	os.rename(os.path.abspath(inbam + '.tmp'), os.path.abspath(inbam))
+
+
+
+def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, insertsize, standarddev, output, haplonum, clone):
 
 
 	#prepare region
@@ -501,7 +521,8 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, all
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-	numreads= round((coverage*(end-start)) / length) #chosen coverage
+	numreads= round((coverage*(end-start)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+
 
 	if not allelic == 100:
 
@@ -512,8 +533,8 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, all
 		numreads1 = round((numreads/100)*allelic)
 		numreads2 = numreads - numreads1
 
-		subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
-		subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads2), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/reference.region.tmp.fa'), os.path.abspath(output + '/reference.region.1.fq'), os.path.abspath(output + '/reference.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads2), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/reference.region.tmp.fa'), os.path.abspath(output + '/reference.region.1.fq'), os.path.abspath(output + '/reference.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 		with open (os.path.abspath(output + '/region.1.fq'), 'w') as regionout:
 
@@ -538,7 +559,7 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, all
 
 	else:
 
-		subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev),'-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 	
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
@@ -564,9 +585,15 @@ def ClassicSimulate(genome, cores, haplotype, chromosome, start, end, label, all
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
+	ModifyReadTags(os.path.abspath(output + '/' + label + '.srt.bam'), haplonum, clone)
+
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 
-def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length, indels, probability, output):
+
+
+
+def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length, indels, probability, insertsize, standarddev, output):
 
 	#prepare region
 
@@ -574,7 +601,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-	numreads= round((coverage*(end-start)) / length) 
+	numreads= round((coverage*(end-start)) / length)/2 #read pairs 
 
 	#simulate reads
 
