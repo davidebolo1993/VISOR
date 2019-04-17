@@ -154,7 +154,7 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 - -bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
 
 
-The .bed file t0 -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE BIAS__, __SAMPLE FRACTION__
+The .bed file to -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE BIAS__, __SAMPLE FRACTION__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
