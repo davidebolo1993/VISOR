@@ -204,7 +204,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 					sys.exit(1)
 
 
@@ -214,12 +214,12 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Allelic fraction must be a float percentage')
+					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
 					sys.exit(1)
 
 				try:
 
-					Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)))
+					Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
 				
 				except:
 					
@@ -233,7 +233,7 @@ def run(parser,args):
 
 			for bam in bams:
 
-				bamstomerge.write(bam + '/n')
+				bamstomerge.write(bam + '\n')
 
 		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
@@ -308,13 +308,13 @@ def run(parser,args):
 
 					except:
 
-						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Coverage bias must be a float')
+						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 						sys.exit(1)
 
 
 					try:		
 
-						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
 
 					except:
 
@@ -355,7 +355,34 @@ def run(parser,args):
 	logging.info('Done')
 
 
-def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output):
+
+
+def ModifyReadTags(inbam, haplonum, clone):
+
+	bam=pysam.AlignmentFile(os.path.abspath(inbam), 'rb')
+
+	outbam=pysam.AlignmentFile(os.path.abspath(inbam + '.tmp'), "wb", template=bam)
+
+	for reads in bam.fetch():
+
+		new_tags = reads.tags
+		new_tags.append(('HP', haplonum))
+		new_tags.append(('CL', clone))
+		reads.tags = new_tags
+		outbam.write(reads)
+
+	bam.close()
+	outbam.close()
+
+	os.remove(os.path.abspath(inbam))
+	os.remove(os.path.abspath(inbam + '.bai'))
+
+	os.rename(os.path.abspath(inbam + '.tmp'), os.path.abspath(inbam))
+
+
+
+
+def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
 
 
 	#prepare region
@@ -441,5 +468,9 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
+
+	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
+
+	ModifyReadTags(os.path.abspath(output + '/' + label + '.srt.bam'), haplonum, clone)
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
