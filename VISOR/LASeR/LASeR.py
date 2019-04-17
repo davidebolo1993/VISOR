@@ -13,7 +13,7 @@ import glob
 
 import pybedtools
 import pyfaidx
-
+import pysam
 
 
 def run(parser,args):
