@@ -91,7 +91,7 @@ def main():
 
 	optional = parser_long.add_argument_group('Subclones simulations')
 
-	optional1.add_argument('-cf', '--clonefraction', help='Ordered percentages for each clone specified in -s/--sample [None]', metavar='', nargs='+', action='append', default=None)
+	optional.add_argument('-cf', '--clonefraction', help='Ordered percentages for each clone specified in -s/--sample [None]', metavar='', nargs='+', action='append', default=None)
 
 	optional1 = parser_long.add_argument_group('Additional general parameters')
 
