@@ -77,8 +77,8 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 
 Inputs to VISOR HACk are:
 
-- genome.fa is the reference genome in .fasta format
-- bed1.bed and bed2.bed (can be also more) are .bed files containing variants to create, one for each haplotype (like the one in _Examples/HACk.bed_)
+-g requires the reference genome in .fasta format
+-bed requires one or more .bed files (like the one in _Examples/HACk.bed_). For each .bed file, an haplotype will be created.
 
 
 VISOR HACk outputs, in the output folder, a fasta (.fa) file with specified SVs for each .bed given.
@@ -103,7 +103,6 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'inversion'__. Inverts from start (included) to end (included)
 - __'tandem duplication'__. Duplicates from start (included) to end (included)
 - __'inverted tandem duplication'__. Duplicates from start (included) to end (included) and invert the duplicated segment
-- __'SNP'__. Introduces a single nucleotide polimorphism in end
 - __'tandem repeat expansion'__. Expands an existent tandem repetition. Tandem repeat is meant to be one of the repetitions present in microsatellites regions with START-END pair specified as in the _Examples/GRCh38.microsatellites.bed_ file of this repository (this example is taken from UCSC for GRCh38 reference)
 - __'tandem repeat contraction'__. Contracts an existent tandem repetition. Works as described for 'tandem repeat expansion'
 - __'perfect tandem repetition'__. Inserts a perfect tandem repetition immediately after end
@@ -111,6 +110,7 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'translocation cut-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is deleted from original position
 - __'translocation copy-paste'__ or __'interspersed duplication'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
 - __'reciprocal translocation'__. Translocates from start (included) to end (included) to another region and translocates the destination region back to the first one.
+- __'SNP'__. Introduces a single nucleotide polimorphism in end
 
 
 ##### INFO FIELD
@@ -122,7 +122,6 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 - INFO for __'inversion'__ must be __None__
 - INFO for __'tandem duplication'__ must be __number__; number is the number of time segment will be duplicated
 - INFO for __'inverted tandem duplication'__ is the same for __'tandem duplication'__
-- INFO for __'SNP'__ must be __nucleotide__; nucleotide is the nucleotide that will be used to introduce the variant
 - INFO for __'tandem repeat expansion'__ must be __motif:number__ motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'tandem repeat contraction'__ must be __motif:number__; motif is a valid DNA motif, number is number of motif to delete
 - INFO for __'perfect tandem repetition'__ must be __motif:number__; motif motif is a valid DNA motif, number is number of motif to insert
@@ -130,6 +129,7 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 - INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
 - INFO for __'translocation copy-paste'__ is the same for __'translocation cut-paste'__
 - INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok); breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
+- INFO for __'SNP'__ must be __nucleotide__; nucleotide is the nucleotide that will be used to introduce the variant
 
 
 ## VISOR SHORtS and VISOR LASeR
@@ -149,20 +149,21 @@ VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.
 
 Inputs to VISOR SHORtS and VISOR LASeR are:
 
-- genome.fa is the reference genome in .fasta format
-- folder (and folder1, folder2, folder3 ...) is one or more folders containing one ore more haplotypes generated with VISOR HACk. If multiple input folders are given, each is considered a subclone and -cf specifies each subclone fraction (percentage)
-- sim.bed is the .bed file containing regions to simulate from the haplotypes, like the one in _Examples/SHORtS.LASeR.bed_.
+-g requires the reference genome in .fasta format
+-s requires one or more folders containing the haplotypes generated with VISOR HACk. If multiple folders are given, each is considered a subclone and -cf allows to specify sublclones percentages
+-bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
 
 
-.bed file must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __COVERAGE BIAS__, __ALLELIC FRACTION__
+The .bed file t0 -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE BIAS__, __SAMPLE FRACTION__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
-- __COVERAGE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covered by the 80% of the reads that were supposed to cover the region).
-- __ALLELIC FRACTION__: a float to specify whether variants in simulated region are supported by all the reads (100.0) or a fraction of them (80.0 means that, for the region, the 80% if the reads is simulated from the input haplotypes, the 20% from the reference). Does not affect subclones and single-strand data simulations.
+- __CAPTURE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the 80% of the coverage).
+- __SAMPLE FRACTION__: a float to specify which percentage of reads should be simulated from the input sample and which from the reference (80.0 means that 80% of the region is simulated from the sample haplotypes, the other 20% from the reference). IF MULTIPLE INPUTS ARE GIVEN, THIS COLUMN IS IGNORED.
 
 VISOR SHORtS and VISOR LASeR output a .srt.bam file in the output folder
+
 
 
 ## VISOR SHORtS for single-strand (strand-seq) simulations
