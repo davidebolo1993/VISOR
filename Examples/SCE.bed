@@ -1,1 +1,5 @@
-chr9	0	2000000	h1
+# This is an example illustrating the format for scebed file to VISOR SHORtS, not intended to be used
+
+
+#perform sister chromatid exchange for haplotype 1
+chr9	0	20000000	h1
