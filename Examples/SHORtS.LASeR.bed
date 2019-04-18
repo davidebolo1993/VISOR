@@ -3,7 +3,7 @@
 
 #simulate entire chromosome 9. Capture bias does not affect coverage (100.0 means that the region is covered as specified in coverage) and all the reads are simulated from clone (100.0)
 chr9	0	138394717	100.0	100.0
-#simulate entire chromosome 9. Capture bias affect coverage (80.0 means that the region is covered by the 80% of the coverage) and all the reads are simulated from clone (100.0)
+#simulate entire chromosome 9. Capture bias affects coverage (80.0 means that the region is covered by the 80% of the coverage) and all the reads are simulated from clone (100.0)
 chr9	0	138394717	80.0	100.0
-#simulate entire chromosome 9. Capture bias affect coverage (80.0 means that the region is covered by the 80% of the coverage) and not all the reads are simulated from clone (90.0 means that 10% of the reads are simulated from the reference for the same region)
+#simulate entire chromosome 9. Capture bias affects coverage (80.0 means that the region is covered by the 80% of the coverage) and not all the reads are simulated from clone (90.0 means that 10% of the reads are simulated from the reference for the same region)
 chr9	0	138394717	80.0	90.0
