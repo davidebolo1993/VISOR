@@ -35,9 +35,16 @@ echo "Generating the 2 haplotypes with SNPs"
 
 VISOR HACk -g chr22.fa -bed VISOR.h1.SNPs.bed VISOR.h2.SNPs.bed -o Templates
 
-echo "Cloning Examples folder with .bed files for tests"
+echo "Getting example folder with .bed files for tests from VISOR git"
 
-git clone https://github.com/davidebolo1993/VISOR/tree/master/Examples/test1
+mkdir test1 && cd test1
+
+wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test1/VISOR.h1.SVs.bed
+wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test1/VISOR.h2.SVs.bed
+wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test1/VISOR.sim.bed
+
+cd ..
+
 
 echo "Generating SVs in the 2 haplotypes with some random SNPs in the 2 clones"
 
@@ -52,6 +59,16 @@ rm -r cloneh2
 
 echo "Simulating data with 80% from clone, 20% from reference"
 
-VISOR SHORtS -g chr22.fa -s clone -bed test1/sim.bed -c 40 -o cloneout
+VISOR SHORtS -g chr22.fa -s clone -bed test1/VISOR.sim.bed -c 40 -o cloneout
 
-echo "Done"
+echo "Simulations done"
+
+echo "Simulating a normal control .bam"
+
+VISOR SHORtS -g chr22.fa -s Templates -bed test1/VISOR.sim.bed -c 40 -o refout
+
+echo "Simulations done"
+
+
+
+
