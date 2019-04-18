@@ -1,4 +1,4 @@
-# This is an example illustrating the format for .bed file to VISOR HACk, not intended to be used
+# This is an example illustrating the format for .bed file to VISOR SHORtS or LASeR, not intended to be used
 # To use this .bed you must remove all the commented lines and change chr size accordingly to your reference genome
 
 #simulate entire chromosome 9. Capture bias does not affect coverage (100.0 means that the region is covered as specified in coverage) and all the reads are simulated from clone (100.0)
