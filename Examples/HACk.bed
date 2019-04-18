@@ -26,5 +26,5 @@ chr9	10000000	11000000	translocation cut-paste	h2:chr8:10000000:forward
 chr9	10000000	11000000	translocation copy-paste	h2:chr8:10000000:reverse
 #generate a reciprocal translocation. The two segments are translocated in different orientations
 chr9	10000000	11000000	translocation copy-paste	h2:chr8:10000000:forward:reverse
-#insert a SNP in end
+#insert a SNP in end (actual base is C for hg38)
 chr9	10999999	11000000	SNP	G
