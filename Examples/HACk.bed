@@ -1,8 +1,30 @@
+# This is an example illustrating the forma for .bed file to VISOR HACk, not intended to be used
+# To use this .bed you must remove all the commented lines and change coordinates of SVs
+
+
+#expand an existent tandem repetition
 chr9	840724	840768	tandem repeat expansion	GT:200
+#contract an existent tandem repetition
 chr9	987412	987457	tandem repeat contraction	TG:10
-chr9	5000000	5000001	perfect tandem repetition	ATGG:300
-chr9	6000000	6000001	approximate tandem repetition	ATGG:300:20
-chr9	15000000	16000000	deletion	None
-chr9	80000000	81000000	inversion	None
-chr9	90000000	91000000	tandem duplication	2
-chr9	17000000	20000000	reciprocal translocation	h2:chr13:17000000:forward:forward
+#delete from start to end
+chr9	10000000	11000000	deletion	None
+#invert from start to end
+chr9	10000000	11000000	inversion	None
+#duplicate from start to end. Final copy number is 2
+chr9	10000000	11000000	tandem duplication	2
+#duplicate from start to end and invert duplicated segment
+chr9	10000000	11000000	inverted tandem duplication	2
+#insert 10 Ts immediately after end
+chr9	10999999	11000000	insertion	TTTTTTTTTT
+#insert a perfect tandem repetition (ATx10) immediately after end
+chr9	10999999	11000000	perfect tandem repetition	AT:10
+#insert an approximate tandem repetition (ATx10 with 3 errors) immediately after end
+chr9	10999999	11000000	perfect tandem repetition	AT:10:3
+#translocate from start to end and remove translocated region. Translocated region is copied in the same orientation
+chr9	10000000	11000000	translocation cut-paste	h2:chr8:10000000:forward
+#translocate from start to end and don't remove translocated region. Translocated region is copied in the opposite orientation
+chr9	10000000	11000000	translocation copy-paste	h2:chr8:10000000:reverse
+#generate a reciprocal translocation. The two segments are translocated in different orientations
+chr9	10000000	11000000	translocation copy-paste	h2:chr8:10000000:forward:reverse
+#insert a SNP in end
+chr9	10999999	11000000	SNP	G
