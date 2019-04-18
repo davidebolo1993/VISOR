@@ -1,5 +1,5 @@
 # This is an example illustrating the format for .bed file to VISOR HACk, not intended to be used
-# To use this .bed you must remove all the commented lines and change coordinates of SVs
+# To use this .bed you must remove all the commented and white lines and change coordinates of SVs
 
 
 #expand an existent tandem repetition
