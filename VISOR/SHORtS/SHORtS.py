@@ -260,7 +260,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
+					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Purity must be a float percentage')
 					sys.exit(1)
 
 
