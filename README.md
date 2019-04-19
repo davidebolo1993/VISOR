@@ -154,12 +154,12 @@ Inputs to VISOR SHORtS and VISOR LASeR are:
 - -bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
 
 
-The .bed file to -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE BIAS__, __PURITY__
+The .bed file to -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE__, __PURITY__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
-- __CAPTURE BIAS__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covedered by the 80% of the reads that were supposed to be there as for coverage specification).
+- __CAPTURE__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covedered by the 80% of the reads that were supposed to be there as for coverage specification).
 - __PURITY__: a float to specify which percentage of reads should be simulated from the input sample and which from the reference (80.0 means that 80% of the region is simulated from the sample haplotypes, the other 20% from the reference). IF MULTIPLE INPUTS ARE GIVEN, THIS COLUMN IS IGNORED, AS EACH SUBCLONE HAS ITS OWN FRACTION.
 
 VISOR SHORtS and VISOR LASeR output a .srt.bam file in the output folder
