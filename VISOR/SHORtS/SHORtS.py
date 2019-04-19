@@ -250,7 +250,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
+					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture must be a float percentage')
 					sys.exit(1)
 
 
@@ -434,7 +434,7 @@ def run(parser,args):
 
 					except:
 
-						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
+						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture must be a float percentage')
 						sys.exit(1)
 
 
