@@ -57,17 +57,29 @@ mv cloneh2/h2.fa clone/
 rm -r cloneh1
 rm -r cloneh2
 
-echo "Simulating data with 80% from clone, 20% from reference"
+echo "Simulating data with 80% clone with SVs, 20% clone normal"
 
-VISOR SHORtS -g chr22.fa -s clone -bed test1/VISOR.sim.bed -c 40 -o cloneout
+VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed test1/VISOR.sim.bed -c 40 -o cloneout -cf 80.0 20.0
 
 echo "Simulations done"
 
-echo "Simulating a normal control .bam"
+echo "Simulating a normal control .bam, 100% normal"
 
 VISOR SHORtS -g chr22.fa -s Templates -bed test1/VISOR.sim.bed -c 40 -o refout
 
 echo "Simulations done"
+
+echo "Running mpileups"
+
+samtools mpileup  -f GRCh38_full_analysis_set_plus_decoy_hla.fa -r chr22 cloneout/sim.srt.bam > cloneout/tumor.mpileup
+samtools mpileup  -f GRCh38_full_analysis_set_plus_decoy_hla.fa -r chr22 refout/sim.srt.bam > refout/normal.mpileup
+
+echo "Running varscan"
+
+varscan somatic refout/normal.mpileup cloneout/tumor.mpileup simout
+
+echo "Done"
+
 
 
 
