@@ -45,6 +45,8 @@ wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test
 
 cd ..
 
+wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test1/pileup2base.pl
+wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Examples/test1/plotBAFCOV.R
 
 echo "Generating SVs in the 2 haplotypes with some random SNPs in the 2 clones"
 
