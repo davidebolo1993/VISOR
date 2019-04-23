@@ -20,12 +20,12 @@ echo "Splitting het variants to .bed files"
 
 bcftools query -f '%CHROM\t%POS\t%REF\t%ALT[\t%SAMPLE=%GT]\n' HG00732.bcf | grep "1|0" > h1.bed
 bcftools query -f '%CHROM\t%POS\t%REF\t%ALT[\t%SAMPLE=%GT]\n' HG00732.bcf | grep "0|1" > h2.bed
+cat h1.bed h2.bed | awk '{print $2}' | sort > allSNPs.txt
 
 echo "Writing SNPs to VISOR .bed format"
 
 awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4}' h1.bed > VISOR.h1.SNPs.bed
 awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4}' h2.bed > VISOR.h2.SNPs.bed
-
 
 echo "Subsetting reference to chr22"
 
@@ -57,26 +57,29 @@ mv cloneh2/h2.fa clone/
 rm -r cloneh1
 rm -r cloneh2
 
-echo "Simulating data with 80% clone with SVs, 20% clone normal"
+echo "Simulating data with 80% SVs, 20% normal "
 
-VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed test1/VISOR.sim.bed -c 40 -o cloneout -cf 80.0 20.0
-
-echo "Simulations done"
-
-echo "Simulating a normal control .bam, 100% normal"
-
-VISOR SHORtS -g chr22.fa -s Templates -bed test1/VISOR.sim.bed -c 40 -o refout
+VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed test1/VISOR.sim.bed -c 100 -o cloneout -cf 80.0 20.0
 
 echo "Simulations done"
 
-echo "Running mpileups"
+echo "Running mpileup"
 
 samtools mpileup  -f GRCh38_full_analysis_set_plus_decoy_hla.fa -r chr22 cloneout/sim.srt.bam > cloneout/tumor.mpileup
-samtools mpileup  -f GRCh38_full_analysis_set_plus_decoy_hla.fa -r chr22 refout/sim.srt.bam > refout/normal.mpileup
 
-echo "Running varscan"
+grep -f allSNPs.txt cloneout/tumor.mpileup > cloneout/het.tumor.mpileup
 
-varscan somatic refout/normal.mpileup cloneout/tumor.mpileup simout
+echo "Done"
+
+echo "Extracting info"
+
+perl pileup2base.pl cloneout/het.tumor.mpileup 20 cloneout/het.tumor.pileup2base
+
+echo "Done"
+
+echo "Plotting"
+
+R --slave --args cloneout/het.tumor.pileup2base,cloneout/tumor.pdf < plotBAFCOV.R
 
 echo "Done"
 
