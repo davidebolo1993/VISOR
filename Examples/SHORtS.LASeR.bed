@@ -1,5 +1,5 @@
-# This is an example illustrating the format for .bed file to VISOR SHORtS or LASeR, not intended to be used
-# To use this .bed you must remove all the commented and white lines and change chr size accordingly to your reference genome
+# This is an example illustrating the format for .bed file to VISOR SHORtS or LASeR, not intended to be used as it is.
+# To use this .bed you must remove all the commented and blank lines and change chr size accordingly to your reference genome.
 
 #simulate entire chromosome 9. Capture bias does not affect coverage (100.0 means that the region is covered as specified in coverage) and all the reads are simulated from clone (purity is 100.0)
 chr9	0	138394717	100.0	100.0
