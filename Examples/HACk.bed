@@ -1,6 +1,6 @@
-# This is an example illustrating the format for .bed file to VISOR HACk, not intended to be used
-# To use this .bed you must remove all the commented and white lines and change coordinates of SVs
-
+# This is an example illustrating the format for .bed file to VISOR HACk, not intended to be used as it is.
+# To use this .bed you must remove all the commented and blank lines.
+# Moreover, as overlapping SVs are skipped, to generate significant results, coordinates should be changed
 
 #expand an existent tandem repetition
 chr9	840724	840768	tandem repeat expansion	GT:200
