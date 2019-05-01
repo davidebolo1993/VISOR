@@ -30,7 +30,7 @@ echo "Subsetting reference to chr22"
 
 samtools faidx GRCh38_full_analysis_set_plus_decoy_hla.fa chr22 > chr22.fa
 
-echo "Generating the 2 haplotypes with SNPs"
+echo "Generating the 2 reference haplotypes with SNPs"
 
 VISOR HACk -g chr22.fa -bed VISOR.h1.SNPs.bed VISOR.h2.SNPs.bed -o Templates
 
@@ -47,7 +47,7 @@ cd ..
 wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestPurity/pileup2base.pl
 wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestPurity/plotBAFCOV.R
 
-echo "Generating SVs in the 2 haplotypes with some random SNPs in the 2 clones"
+echo "Generating SVs in the clone"
 
 VISOR HACk -g Templates/h1.fa -bed testpurity/VISOR.h1.SVs.bed -o cloneh1
 VISOR HACk -g Templates/h2.fa -bed testpurity/VISOR.h2.SVs.bed -o cloneh2
@@ -58,7 +58,7 @@ mv cloneh2/h2.fa clone/
 rm -r cloneh1
 rm -r cloneh2
 
-echo "Simulating data with 80% SVs, 20% normal "
+echo "Simulating data. Clone: 80%; Reference contamination: 20%"
 
 VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed testpurity/VISOR.sim.bed -c 100 -o cloneout -cf 80.0 20.0
 
@@ -82,8 +82,3 @@ echo "Plotting"
 R --slave --args cloneout/het.tumor.pileup2base,cloneout/testpurity.pdf < plotBAFCOV.R
 
 echo "Done"
-
-
-
-
-
