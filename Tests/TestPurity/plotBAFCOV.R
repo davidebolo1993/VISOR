@@ -90,27 +90,29 @@ TableCountFinal<-data.frame(TableCountFinal)
 
 colnames(TableCountFinal)<-c("chr","pos","dp","altdp")
 mycount.filtered<-TableCountFinal
+write.table(mycount.filtered, file.path(paste0(fileout,'.tsv')), sep="\t", col.names=T, quote=F)
 
 ##### PLOT BAF AND NORMCOV ###
+
+mycount.filtered<-read.table(file.path(paste0(fileout,'.tsv')), sep="\t", header=T)
 
 pos<-as.numeric(mycount.filtered[,2])
 BAF<-as.numeric(mycount.filtered[,4])/as.numeric(mycount.filtered[,3])
 cov<-as.numeric(mycount.filtered[,3])
 med<-median(cov)
-cov2<-cov/median
+cov2<-cov/med
 
 
-colors<-rep('black', nrow(mycount.filtered))
-indhetdel<-which(pos >= 20000000 & pos <= 22000000)
-indhetdup<-which(pos >= 35000000 & pos <= 37000000)
+#colors<-rep('black', nrow(mycount.filtered))
+#indhetdel<-which(pos >= 20000000 & pos <= 22000000)
+#indhetdup<-which(pos >= 35000000 & pos <= 37000000)
 
-colors[indhetdel]<-'red'
-colors[indhetdup]<-'red'
+#colors[indhetdel]<-'red'
+#colors[indhetdup]<-'red'
 
 
 pdf(fileout,height=10,width=15)
 par(mfrow=c(2,1))
-plot(pos, BAF, cex=0.1, ylim=c(-1,1), xlab="coordinates",ylab="BAF", col=colors)
-plot(pos, cov2, ylim=c(-1,1),xlab="coordinates",ylab="coverage (norm)", col=colors)
+plot(pos, BAF, cex=0.1, ylim=c(-1,2), xlab="coordinates",ylab="BAF")
+plot(pos, cov2, cex=0.1, ylim=c(-1,3),xlab="coordinates",ylab="coverage (norm)")
 dev.off()
-
