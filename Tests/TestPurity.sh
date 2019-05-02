@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#run in a py36 environment with VISOR installed
+
 echo "Creating test folder"
 mkdir purityfolder && cd purityfolder
 
