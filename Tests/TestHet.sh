@@ -98,6 +98,6 @@ echo "Plot"
 
 R --slave --args cloneout/het.tumor.pileup2base,cloneout/testhet.pdf < plotBAFCOV.R
 
-echo "PDF in cloneout/testhet.pdf"
+echo "PDF saved in cloneout/testhet.pdf"
 
 echo "Done"
