@@ -183,7 +183,7 @@ VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -sce
 
 ```
 
-When working in single-strand mode (-t/--type single-strand), for each haplotype in the sample folder, VISOR outputs 2 BAM: in the 'watson' BAM, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' BAM, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n/--noise parameter. Users can also specify a BED (-scebed/--scebedfile) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ ):
+When working in single-strand mode (-t/--type single-strand), for each haplotype in the sample folder, VISOR outputs 2 BAM: in the 'watson' BAM, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' BAM, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson BAM using the -n/--noise parameter. Users can also specify a BED (-scebed/--scebedfile) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ ):
 
 #### Merge desired strands
 
