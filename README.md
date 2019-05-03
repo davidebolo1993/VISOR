@@ -61,9 +61,9 @@ python setup.py install
 
 VISOR is built on 3 modules:
 
-- __VISOR HACk__: generates .fa haplotypes with user-defined variants
-- __VISOR SHORtS__: simulate double-strand or single-strand short-reads .bam files with variants
-- __VISOR LASeR__: simulate long-reads .bam files with variants
+- __VISOR HACk__: generates FASTA haplotypes with user-defined variants
+- __VISOR SHORtS__: simulate double-strand or single-strand short sequence reads aligned in BAM
+- __VISOR LASeR__: simulate long sequence reads aligned in BAM
 
 
 ## VISOR HACk
@@ -75,17 +75,17 @@ VISOR HACk -g genome.fa -bed bed1.bed bed2.bed -o hackout
 
 ```
 
-Inputs to VISOR HACk are:
+Mandatory arguments are:
 
-- -g requires the reference genome in .fasta format
-- -bed requires one or more .bed files (like the one in _Examples/HACk.bed_). For each .bed file, an haplotype will be created.
+- -g/--genome; requires a reference FASTA genome
+- -bed/--bedfile; requires one or more BED (like the one in _Examples/HACk.bed_). For each BED, a FASTA haplotype will be created.
+- -o/--output; requires a name for the output folder
 
-
-VISOR HACk outputs, in the output folder, a fasta (.fa) file with specified SVs for each .bed given.
+VISOR HACk outputs, in the output folder, a FASTA haplotype with specified SVs for each BED given.
 
 #### Construct the .bed file/s
 
-.bed file/s must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
+BED must contain 5 columns WITHOUT header, commented or blank lines: __CHROMOSOME__, __START__, __END__, __ALT__, __INFO__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: where the variant starts
@@ -96,7 +96,7 @@ VISOR HACk outputs, in the output folder, a fasta (.fa) file with specified SVs 
 
 ##### ALT FIELD
 
-VISOR HACk allows users to generate different type of variants specified in the ALT field of the .bed files:
+VISOR HACk allows users to generate different type of variants specified in the ALT field of BED:
 
 - __'deletion'__. Deletes from start (included) to end (included)
 - __'insertion'__. Inserts a specific sequence immediately after end
@@ -109,13 +109,13 @@ VISOR HACk allows users to generate different type of variants specified in the 
 - __'approximate tandem repetition'__ Inserts a approximate tandem repetition immediately after end
 - __'translocation cut-paste'__. Translocates from start (included) to end (included) to another region. Translocated region is deleted from original position
 - __'translocation copy-paste'__ or __'interspersed duplication'__. Translocates from start (included) to end (included) to another region. Translocated region is not deleted from original position
-- __'reciprocal translocation'__. Translocates from start (included) to end (included) to another region and translocates the destination region back to the first one.
+- __'reciprocal translocation'__. Translocates from start (included) to end (included) to another region and translocates the destination region back to the first one
 - __'SNP'__. Introduces a single nucleotide polimorphism in end
 
 
 ##### INFO FIELD
 
-VISOR HACk requires some users-defined parameteres in the INFO field of the .bed files:
+VISOR HACk requires some users-defined parameteres in the INFO field of the BED:
 
 - INFO for __'deletion'__ must be __None__
 - INFO for __'insertion'__ must be a valid DNA sequence of any length. Allowed chars are A,C,T,G,N
@@ -126,9 +126,9 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the .bed
 - INFO for __'tandem repeat contraction'__ must be __motif:number__; motif is a valid DNA motif, number is number of motif to delete
 - INFO for __'perfect tandem repetition'__ must be __motif:number__; motif motif is a valid DNA motif, number is number of motif to insert
 - INFO for __'approximate tandem repetition'__ must be __motif:number:alterations__ ; motif is a valid DNA motif, number is number of motif to insert, alterations is the number of alterations; alterations are randomly chosen from 'insertion','deletion','substitution' and each involves one nucleotide only
-- INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
+- INFO for __'translocation cut-paste'__ must be __haplotype:chromosome:breakpoint:orientation__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in FASTA file is ok), breakpoint is the number of the base immediately before the one where translocated region will start and orientation is the orientation of the sequence ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted).
 - INFO for __'translocation copy-paste'__ is the same for __'translocation cut-paste'__
-- INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in .fasta file is ok); breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
+- INFO for __'reciprocal translocation'__ is the __haplotype:chromosome:breakpoint:orientation1:orientation2__; haplotype is the haplotype in which region will be translocated ('h1', 'h2', ...), chromosome is the chromosome in which region will be translocated (any chromosomes also present in FASTA file is ok); breakpoint is the number of the base immediately before the one where translocated region will start; orientation1 is the orientation of the first region ('forward', if the orientation should be the same of the original region, or 'reverse', if the orientation should be inverted) and orientation2 is the orientation of the second region.
 - INFO for __'SNP'__ must be __nucleotide__; nucleotide is the nucleotide that will be used to introduce the variant
 
 
@@ -147,28 +147,28 @@ VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample #long reads data
 VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.0 50.0 #long reads data simulation for subclones
 ```
 
-Inputs to VISOR SHORtS and VISOR LASeR are:
+Mandatory arguments are:
 
-- -g requires the reference genome in .fasta format
-- -s requires one or more folders containing the haplotypes generated with VISOR HACk. If multiple folders are given, each is considered a subclone and -cf allows to specify sublclones percentages
-- -bed requires a .bed file with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
+- -g/--genome; requires a reference FASTA genome
+- -s/--sample; requires one or more folders containing FASTA haplotypes (as the one generated with HACk). If multiple folders are given, each is considered a subclone and -cf/--clonefraction allows to specify subclones percentages as shown in the example
+- -bed/--bedfile; requires a BED with regions to simulate (like the one in _Examples/SHORtS.LASeR.bed_.)
+- -o/--output; requires a name for the output folder
 
-
-The .bed file to -bed must contain 5 columns WITHOUT header: __CHROMOSOME__, __START__, __END__, __CAPTURE__, __PURITY__
+The BED to -bed/--bedfile must contain 5 columns  WITHOUT header, commented or blank lines: __CHROMOSOME__, __START__, __END__, __CAPTURE__, __PURITY__
 
 - __CHROMOSOME__: is the chromosome, in the format 'chrN'. Accepted chromosomes are the ones also present in the reference genome
 - __START__: start position for the region that will be simulated
 - __END__: end position for the region that will be simulated
 - __CAPTURE__: a float to specify a deviation from the wanted coverage (80.0 means that the region is covedered by the 80% of the reads that were supposed to be there as for coverage specification).
-- __PURITY__: a float to specify which percentage of reads should be simulated from the input sample and which from the reference (80.0 means that 80% of the region is simulated from the sample haplotypes, the other 20% from the reference). IF MULTIPLE INPUTS ARE GIVEN, THIS COLUMN IS IGNORED, AS EACH SUBCLONE HAS ITS OWN FRACTION.
+- __PURITY__: a float to specify which percentage of reads should be simulated from the input sample and which from the reference (80.0 means that 80% of the region is simulated from the sample haplotypes, the other 20% from the reference). IF MULTIPLE INPUTS ARE GIVEN, THIS COLUMN IS IGNORED, AS EACH SUBCLONE WILL HAVE ITS OWN FRACTION.
 
-VISOR SHORtS and VISOR LASeR output a .srt.bam file in the output folder
+VISOR SHORtS and VISOR LASeR output a BAM tagged by haplotype ("HP" -tag) and by subclone number ("CL"-tag) in the output folder.
 
 
 
 ## VISOR SHORtS for single-strand (strand-seq) simulations
 
-VISOR SHORtS can simulate single-strand (strand-seq) .bam files
+VISOR SHORtS can simulate single-strand (strand-seq) BAM
 
 ```sh
 
@@ -183,7 +183,7 @@ VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -sce
 
 ```
 
-When working in single-strand mode (-t single-strand), for each haplotype in the sample folder, VISOR outputs 2 .bam files: in the 'watson' .bam file, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' .bam file, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n parameter. Users can also specify a .bed file (-scebed) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ ):
+When working in single-strand mode (-t/--type single-strand), for each haplotype in the sample folder, VISOR outputs 2 BAM: in the 'watson' BAM, read 1 and read 2 pairs have all forward and reverse orientation respectively; in the 'crick' BAM, read 1 and read 2 pairs have all reverse and forward orientation respectively. It is also possible to specify a percentage of noise (pairs with incorrect orientation) that will be included in the crick and watson .bam files using the -n/--noise parameter. Users can also specify a BED (-scebed/--scebedfile) containing informations (chromosome, start, end, haplotype) for haplotypes and regions in which sister chromatid exchange will be performed (like the one in _Examples/SCE.bed_ ):
 
 #### Merge desired strands
 
@@ -203,11 +203,12 @@ python VISOR/scripts/ssmerger.py -h #print help
 python VISOR/scripts/ssmerger.py -f folder1 folder2 -s W C -o mergeout #merge watson strand from folder1 (haplotype 1) and crick strand from folder2 (haplotype 2)
 
 ```
+Arguments are:
 
-Specifically:
+- -f/--folder; one or more folders containing a watson/crick BAM
+- -s/--strand; one or more ordered acronyms to merge the watson-crick BAM (-s W C will merge watson from first folder with crick from second)
+- -o/--output; name for the output folder
 
-- folder1 and folder2 are the 2 folders generated by VISOR SHORtS for a diploid input contaning each a watson and a crick strand
-- W and C are the 2 acronyms that should be specified to merge watson from first folder and crick from the second
 
 #### Plot read pairs count
 
@@ -221,5 +222,11 @@ python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -o sscounterout
 
 ```
 
-By default, chromosome chr1-22, chrX, chrY and chrM (human classic chromosomes) are taken into account but desired chromosomes can be specified instead with the -c parameter.
+Mandatory arguments are:
+
+- -g/--genome; requires a reference FASTA genome
+- -b/--bam; one or more BAM generated merging single-stranded BAM (with ssmerger.py, for example) 
+- -o/--output; name for the output folder
+
+By default, chromosome chr1-22, chrX, chrY and chrM (human classic chromosomes) are taken into account but desired chromosomes can be specified instead with the -c/--chromosome parameter.
 
