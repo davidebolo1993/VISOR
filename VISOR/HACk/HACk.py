@@ -146,8 +146,6 @@ def run(parser,args):
 					logging.error(str(entries[3]) + ' is not a valid variant in .bed ' + os.path.abspath(bed))
 					sys.exit(1)
 
-
-
 		
 				else: #everything fine for now
 
@@ -797,140 +795,148 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 		else:
 
-
 			alterations_list=dictionary[chrs]
 
 			if not len(alterations_list) == 1: #else is already sorted, as it has length 1
 
-				alterations_list=sorted(alterations_list, key=itemgetter(1,2))
+				alterations_list=sorted(alterations_list, key=itemgetter(0,1))
+				
+				new_alterations_list=[]
+
+				l=0
+				
+				while l < len(alterations_list):
+
+					start,end,typ,info=alterations_list[l]
+
+					if any(el[0] <=start <= el[1] or el[0] <= end <= el[1] for el in regions_seen):
+
+						skipped+=1
+
+					else:
+
+						regions_seen.append((start,end))
+						new_alterations_list.append((start,end,typ,info))
+
+					l+=1
+
+			else:
+
+				new_alterations_list=alterations_list
 
 			i=0
 
-			while i < len(alterations_list):
+			while i < len(new_alterations_list):
+
+				start,end,typ,info=new_alterations_list[i]
+
+				if i == 0: #first entry for the cromosome, write until the first variant start
+
+					seq_until_start=seq[:start-1]
+
+					write_start_sequence(chrs, seq_until_start, output_fasta)
+
+				if typ == 'inversion': #inverte sequence
+
+					alt_seq=Reverse(seq, start, end).translate(trans)
+
+					write_sequence_between(alt_seq, output_fasta)
 
 
-				start,end,typ,info=alterations_list[i]
+				elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
 
-				if any(el[0] <=start <= el[1] or el[0] <= end <= el[1] for el in regions_seen): #skip region if start or end overlap another variant
+					alt_seq=''
 
-					i+=1
-					skipped+=1
-					continue
-
-				else: #region not seen, insert variant
-
-					regions_seen.append((start,end))
-
-					if i == 0: #first entry for the cromosome, write until the first variant start
-
-						seq_until_start=seq[:start-1]
-
-						write_start_sequence(chrs, seq_until_start, output_fasta)
+					write_sequence_between(alt_seq, output_fasta)
 
 
-					if typ == 'inversion': #inverte sequence
+				elif typ == 'insertion': #write specified insertion; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
 
-						alt_seq=Reverse(seq, start, end).translate(trans)
+					alt_seq=info
 
-						write_sequence_between(alt_seq, output_fasta)
+					write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
 
+				elif typ == 'invinsertion':
 
-					elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
+					alt_seq=info[::-1].translate(trans)
 
-						alt_seq=''
-
-						write_sequence_between(alt_seq, output_fasta)
-
-
-					elif typ == 'insertion': #write specified insertion; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
-
-						alt_seq=info
-
-						write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
-
-					elif typ == 'invinsertion':
-
-						alt_seq=info[::-1].translate(trans)
-
-						write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
+					write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
 
 
-
-					elif typ == 'del-ins':
-
-
-						write_sequence_between(info, output_fasta)
+				elif typ == 'del-ins':
 
 
-					elif typ == 'del-invins':
-
-						alt_seq=info[::-1].translate(trans)
+					write_sequence_between(info, output_fasta)
 
 
-						write_sequence_between(alt_seq, output_fasta)
+				elif typ == 'del-invins':
+
+					alt_seq=info[::-1].translate(trans)
 
 
-					elif typ == 'tandem duplication':
-
-						write_sequence_between(seq[start-1:end]*info, output_fasta)
+					write_sequence_between(alt_seq, output_fasta)
 
 
-					elif typ == 'inverted tandem duplication':
+				elif typ == 'tandem duplication':
 
-						write_sequence_between(seq[start-1:end] + (Reverse(seq, start, end).translate(trans) * (info-1)), output_fasta) #first part is not inverted, duplicated part it is
-
-					elif typ == 'SNP':
-
-						until_end=seq[start-1:end-1]
-
-						write_sequence_between(until_end+info, output_fasta)
+					write_sequence_between(seq[start-1:end]*info, output_fasta)
 
 
-					elif typ == 'perfect tandem repetition': #perfect tandem repetition
+				elif typ == 'inverted tandem duplication':
 
-						alt_seq= PTR(info, seq, start, end)
+					write_sequence_between(seq[start-1:end] + (Reverse(seq, start, end).translate(trans) * (info-1)), output_fasta) #first part is not inverted, duplicated part it is
 
-						write_sequence_between(alt_seq, output_fasta)
+				elif typ == 'SNP':
 
+					until_end=seq[start-1:end-1]
 
-					elif typ == 'approximate tandem repetition': # approximate tandem repetition
-
-
-						alt_seq=ATR(info,seq,start,end)
-
-						write_sequence_between(alt_seq, output_fasta)
+					write_sequence_between(until_end+info, output_fasta)
 
 
-					elif typ == 'tandem repeat expansion': #expand a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+				elif typ == 'perfect tandem repetition': #perfect tandem repetition
+
+					alt_seq= PTR(info, seq, start, end)
+
+					write_sequence_between(alt_seq, output_fasta)
 
 
-						alt_seq=EXPTR(info,seq,start,end)
+				elif typ == 'approximate tandem repetition': # approximate tandem repetition
 
-						write_sequence_between(alt_seq, output_fasta)
 
-					elif typ == 'tandem repeat contraction': #contract a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+					alt_seq=ATR(info,seq,start,end)
 
-						alt_seq=CTRTR(info,seq,start,end)
+					write_sequence_between(alt_seq, output_fasta)
+
+
+				elif typ == 'tandem repeat expansion': #expand a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+
+
+					alt_seq=EXPTR(info,seq,start,end)
+
+					write_sequence_between(alt_seq, output_fasta)
+
+				elif typ == 'tandem repeat contraction': #contract a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
+
+					alt_seq=CTRTR(info,seq,start,end)
 				
-						write_sequence_between(alt_seq, output_fasta)
+					write_sequence_between(alt_seq, output_fasta)
 
 
-					if i == len(alterations_list) -1:
+				if i == len(new_alterations_list) -1:
 
-						write_end_sequence(seq[end:], output_fasta) #end not included, as it was included in the variant
-
-
-					elif i < len(alterations_list) -1:
+					write_end_sequence(seq[end:], output_fasta) #end not included, as it was included in the variant
 
 
-						nextstart=alterations_list[i+1][0]
-						thisend=end
+				elif i < len(new_alterations_list) -1:
 
-						write_sequence_between(seq[thisend:nextstart-1], output_fasta)
 
-					i+=1
+					nextstart=new_alterations_list[i+1][0]
+					thisend=end
+
+					write_sequence_between(seq[thisend:nextstart-1], output_fasta)
+
+				i+=1
 
 	if skipped > 0 :
 
 		logging.warning('Skipped ' + str(skipped) + ' SVs for the current haplotype as they overlapped others')
-
