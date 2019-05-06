@@ -161,8 +161,8 @@ VISOR HACk -g chr22.fa -bed files/SCE/VISOR.h1.SVs.bed files/SCE/VISOR.h2.SVs.be
 VISOR SHORtS -g chr22.fa -s SCE/Templates -bed files/SCE/VISOR.sim.bed -c 1 -t single-strand -n 5.0 -scebed files/SCE/VISOR.h1.SCE.bed -o SCE/Results
 python ssmerger.py -f SCE/Results/0 SCE/Results/1 -s W C -o SCE/Final
 python ssmerger.py -f SCE/Results/0 SCE/Results/1 -s C W -o SCE/Final
-python sscounter.py -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bam SCE/Final/WC.srt.bam -o SCE/Final -l H1_W.H2_C.H1_SCE -c chr22
-python sscounter.py -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bam SCE/Final/CW.srt.bam -o SCE/Final -l H1_C.H2_W.H1_SCE -c chr22
+python sscounter.py -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bam SCE/Final/WC.srt.bam -o SCE/Final/A -l H1_W.H2_C.H1_SCE -c chr22
+python sscounter.py -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bam SCE/Final/CW.srt.bam -o SCE/Final/B -l H1_C.H2_W.H1_SCE -c chr22
 
 echo "Done"
 
