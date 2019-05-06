@@ -60,9 +60,9 @@ mv cloneh2/h2.fa clone/
 rm -r cloneh1
 rm -r cloneh2
 
-echo "Simulate data. Clone: 80%; Reference contamination: 20%"
+echo "Simulate data. Clone: 95%; Reference contamination: 5%"
 
-VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed files/VISOR.sim.bed -c 100 -o cloneout -cf 80.0 20.0
+VISOR SHORtS -g chr22.fa -s clone/ Templates/ -bed files/VISOR.sim.bed -c 100 -o cloneout -cf 95.0 5.0
 
 echo "Simulations done"
 
