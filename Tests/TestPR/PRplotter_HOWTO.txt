@@ -1,0 +1,15 @@
+PRplotter.py is a python script (python 3.6) requiring matplotlib and scipy to work.
+Before plotting, we calculated precision-recall data for SVs calling with DELLY and SVIM.
+Following, there are the precision-recall couples we calculated.
+
+DELLY,COV=10 (1.0,0.781106)
+SVIM,COV=10 (1.0,0.7004831)
+DELLY, COV=20 ()
+SVIM,COV=20 ()
+DELLY,COV=30 ()
+SVIM,COV=30 ()
+
+
+Then we run PRplotter.py script as below:
+
+
