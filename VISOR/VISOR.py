@@ -63,7 +63,7 @@ def main():
 	
 	optional2 = parser_shorts.add_argument_group('Additional general parameters')
 		
-	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
+	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
 	optional2.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 		
 	parser_shorts.set_defaults(func=run_subtool)
@@ -95,7 +95,7 @@ def main():
 
 	optional1 = parser_long.add_argument_group('Additional general parameters')
 
-	optional1.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
+	optional1.add_argument('-th', '--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
 	optional1.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 
 	parser_long.set_defaults(func=run_subtool)
