@@ -138,13 +138,13 @@ VISOR HACk requires some users-defined parameteres in the INFO field of the BED:
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -s folder -bed sim.bed -o singlesample #short reads data simulation for single input
-VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 50.0 50.0 #short reads data simulation for subclones
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -o singlesample -th 7 #short reads data simulation for single input
+VISOR SHORtS -g genome.fa -s folder1 folder 2 -bed sim.bed -o multisamples -cf 50.0 50.0 -th 7 #short reads data simulation for subclones
 
 VISOR LASeR -h #print help
 
-VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample #long reads data simulation
-VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.0 50.0 #long reads data simulation for subclones
+VISOR LASeR -g genome.fa -s folder -bed sim.bed -o singlesample -th 7 #long reads data simulation
+VISOR LASeR -g genome.fa -s folder1 folder2 -bed sim.bed -o multisamples -cf 50.0 50.0 -th 7 #long reads data simulation for subclones
 ```
 
 Mandatory arguments are:
@@ -174,11 +174,11 @@ VISOR SHORtS can simulate single-strand (strand-seq) BAM
 
 VISOR SHORtS -h #print help
 
-VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -o singlestrand #single-strand simulations without noise
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -o singlestrand -th 7 #single-strand simulations without noise
 
-VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -o singlestrand #single-strand simulations with 5 % of read pairs with incorrect orientation
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -o singlestrand -th 7 #single-strand simulations with 5 % of read pairs with incorrect orientation
 
-VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -scebed sce.bed -o singlestrand #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange for regions and haplotypes specified in sce.bed
+VISOR SHORtS -g genome.fa -s folder -bed sim.bed -t single-strand -c 1 -n 5 -scebed sce.bed -o singlestrand -th 7 #single-strand simulations with 5 % of read pairs with incorrect orientation and sister chromatid exchange for regions and haplotypes specified in sce.bed
 
 
 ```
