@@ -236,7 +236,7 @@ def run(parser,args):
 
 				bamstomerge.write(bam + '\n')
 
-		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'merge', '-@', str(args.threads-1),'-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
@@ -332,7 +332,7 @@ def run(parser,args):
 				bamstomerge.write(bam + '\n')
 
 
-		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
@@ -466,7 +466,7 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
