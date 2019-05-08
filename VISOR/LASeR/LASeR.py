@@ -140,6 +140,7 @@ def run(parser,args):
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	classic_chrs = fa.keys() #allowed chromosomes
 	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
+	tag=args.noaddtag
 
 	logging.info('Running simulations')
 
@@ -204,7 +205,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture must be a float percentage')
+					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 					sys.exit(1)
 
 
@@ -214,12 +215,12 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Purity must be a float percentage')
+					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
 					sys.exit(1)
 
 				try:
 
-					Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
+					Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
 				
 				except:
 					
@@ -308,13 +309,13 @@ def run(parser,args):
 
 					except:
 
-						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture must be a float percentage')
+						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 						sys.exit(1)
 
 
 					try:		
 
-						Simulate(os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+						Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
 
 					except:
 
@@ -382,8 +383,10 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 
 
-def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
+def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
 
+
+	logging.info(chromosome)
 
 	#prepare region
 
@@ -435,8 +438,6 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 		os.remove(os.path.abspath(output + '/sim_0001.ref'))
 		os.remove(os.path.abspath(output + '/sim_0001.maf'))
 
-
-
 	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')):
 
 		if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')): #checks for the presence of a .fa ref for the chromosome in the reference folder. If not present, creates it. Will save time during alignments.
@@ -471,6 +472,8 @@ def Simulate(genome, cores, haplotype, chromosome, start, end, label, model_qc, 
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
-	ModifyReadTags(os.path.abspath(output + '/' + label + '.srt.bam'), haplonum, clone)
+	if tag:
+
+		ModifyReadTags(os.path.abspath(output + '/' + label + '.srt.bam'), haplonum, clone)
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
