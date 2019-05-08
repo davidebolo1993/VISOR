@@ -314,7 +314,7 @@ def run(parser,args):
 
 					bamstomerge.write(bam + '\n')
 
-			subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+			subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 			os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
@@ -346,7 +346,7 @@ def run(parser,args):
 
 						watsonstomerge.write(wats + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(dirs + '/watsonstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(dirs + '/watsonstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
 				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 				os.remove(os.path.abspath(dirs + '/watsonstomerge.txt'))
@@ -457,7 +457,7 @@ def run(parser,args):
 				bamstomerge.write(bam + '\n')
 
 
-		subprocess.call(['samtools', 'merge', '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
 		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
@@ -579,7 +579,7 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
@@ -626,7 +626,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 	with open(os.path.abspath(output + '/region.tmp.srt.bam'), 'w') as srtbamout:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
@@ -746,12 +746,12 @@ def SingleStrand(haploname, chromosome, generate, genome, cores, bamfilein, labe
 
 	with open(os.path.abspath(output + '/' + label + '.watson.srt.bam'), 'w') as watsonsort:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/watson.tmp.bam')], stdout=watsonsort, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/watson.tmp.bam')], stdout=watsonsort, stderr=open(os.devnull, 'wb'))
 
 
 	with open(os.path.abspath(output + '/' + label + '.crick.srt.bam'), 'w') as cricksort:
 
-		subprocess.call(['samtools', 'sort', os.path.abspath(output + '/crick.tmp.bam')], stdout=cricksort, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/crick.tmp.bam')], stdout=cricksort, stderr=open(os.devnull, 'wb'))
 
 
 	os.remove(os.path.abspath(output + '/watson.tmp.bam'))
