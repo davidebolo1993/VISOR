@@ -466,7 +466,7 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
 
-		subprocess.call(['samtools', 'sort', '-@', str(cores), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
