@@ -385,9 +385,6 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
 
-
-	logging.info(chromosome)
-
 	#prepare region
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
