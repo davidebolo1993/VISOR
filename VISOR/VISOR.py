@@ -33,7 +33,7 @@ def main():
 
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
 	required.add_argument('-s','--sample', help='One or more folders containing .fasta haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='folder/s',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE, PURITY" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='.bed', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='.bed', required=True)
 	required.add_argument('-o','--output', help='Output folder', metavar='folder', required=True)
 
 	
@@ -63,9 +63,9 @@ def main():
 	
 	optional2 = parser_shorts.add_argument_group('Additional general parameters')
 		
-	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
+	optional2.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
 	optional2.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
-		
+	optional2.add_argument('-notag', '--noaddtag', help='Do not tag reads in .bam by haplotype and clone number. Reads in single-stranded .bam are not tagged', action='store_false')	
 	parser_shorts.set_defaults(func=run_subtool)
 
 
@@ -79,7 +79,7 @@ def main():
 	
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
 	required.add_argument('-s','--sample', help='One or more folders containing .fasta haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='folder/s',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE, PURITY" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='.bed', required=True)
+	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='.bed', required=True)
 	required.add_argument('-o','--output', help='Output folder', metavar='folder', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for .fastq simulations')
@@ -95,8 +95,9 @@ def main():
 
 	optional1 = parser_long.add_argument_group('Additional general parameters')
 
-	optional1.add_argument('-th', '--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
+	optional1.add_argument('-th', '--threads', help='Number of cores to use for alignments [7]', metavar='', type=int, default=7)
 	optional1.add_argument('-id', '--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
+	optional1.add_argument('-notag', '--noaddtag', help='Do not tag reads in .bam by haplotype and clone number. Reads in single-stranded .bam are not tagged', action='store_false')
 
 	parser_long.set_defaults(func=run_subtool)
 
