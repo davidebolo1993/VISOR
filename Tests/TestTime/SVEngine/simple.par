@@ -1,0 +1,9 @@
+#The PAR format is explained in example.par file
+[xwgsim]
+nlibrary=1
+libnames=["lib1"]
+coverage: {"lib1":5}
+isize: {"lib1":[[1,300,5]]}
+read1: {"lib1":100}
+read2: {"lib1":100}
+par: {"-e":0.01,"-r":0,"-R":0,"-X":0}
