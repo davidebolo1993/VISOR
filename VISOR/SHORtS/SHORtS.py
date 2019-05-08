@@ -363,7 +363,7 @@ def run(parser,args):
 
 						crickstomerge.write(cri + '\n')
 
-				subprocess.call(['samtools', 'merge', '-b', os.path.abspath(dirs + '/crickstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
+				subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(dirs + '/crickstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
 				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
 
 				os.remove(os.path.abspath(dirs + '/crickstomerge.txt'))
