@@ -218,7 +218,7 @@ VISOR/scripts/sscounter.py offers the possibility to plot an interactive visuali
 
 python VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam .bam1 .bam2  -o sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
+python VISOR/scripts/sscounter.py -g genome.fa -bam mergeout/WC.srt.bam -o sscounterout #generate an .html that, for each chromosome,  compares read pairs count for watson and crick strands of the given .bam files
 
 ```
 
