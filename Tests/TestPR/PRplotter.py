@@ -46,7 +46,7 @@ def points(s):
 
     except:
 
-        raise argparse.ArgumentTypeError('points must be precision,recall')
+        raise argparse.ArgumentTypeError('Inputs to -p/--points must be precision,recall couples')
 
 
 
