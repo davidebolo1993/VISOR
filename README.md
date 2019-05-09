@@ -12,7 +12,7 @@ VISOR requires a unix machine and a working python 3.6 environment. Some python 
 - pyfaidx (v 0.5.5.2)
 - pybedtools (v 0.8.0)
 - plotly (v 3.7.0)
-- pysam (0.15.2) - for the sscounter.py script -
+- pysam (0.15.2)
 
 These modules will be automatically installed during VISOR setup and nothing from users is required.
 
