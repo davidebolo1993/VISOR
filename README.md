@@ -37,7 +37,7 @@ If the aforementioned tools are not installed in your path, they can all be inst
 
 ```sh 
 
-source activate py36
+source activate py36 #or conda activate py36
 conda install -c bioconda samtools 
 conda install -c bioconda wgsim
 conda install -c bioconda pbsim
@@ -50,7 +50,7 @@ conda install -c bioconda minimap2
 ## Install VISOR
 
 ```sh
-source activate py36 #or conda activate py36 for more recent versions
+# (py36)
 git clone https://github.com/davidebolo1993/VISOR.git
 cd VISOR
 python setup.py install
