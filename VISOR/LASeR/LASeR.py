@@ -226,7 +226,7 @@ def run(parser,args):
 					
 					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
 
-
+		logging.info('Merging data')
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
@@ -321,6 +321,7 @@ def run(parser,args):
 
 						logging.exception('Something went wrong during simulations for ' + os.path.abspath(subfasta) + '. Log is below.')
 
+		logging.info('Merging data')
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
