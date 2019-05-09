@@ -4,12 +4,12 @@ Following, there are the precision-recall couples we calculated.
 
 DELLY,COV=10 (1.0,0.781106)
 SVIM,COV=10 (1.0,0.7004831)
-DELLY, COV=20 ()
-SVIM,COV=20 ()
-DELLY,COV=30 ()
-SVIM,COV=30 ()
+DELLY, COV=20 (0.9972145,0.858132)
+SVIM,COV=20 (0.9970238,0.8052885)
+DELLY,COV=30 (0.9978310,0.8852175)
+SVIM,COV=30 (1.0,0.814009)
 
 
 Then we run PRplotter.py script as below:
 
-
+python PRplotter.py -p 1.0,0.781106 0.9972145,0.858132 0.9978310,0.8852175 1.0,0.7004831 0.9970238,0.8052885 1.0,0.814009 -c darkred darkblue darkgreen darkred darkblue darkgreen -m o o o ^ ^ ^ -l DELLY,10X DELLY,20X DELLY,30X SVIM,10X SVIM,20X SVIM,30X -t Precision-Recall-F1 -lt TOOL,COVERAGE
