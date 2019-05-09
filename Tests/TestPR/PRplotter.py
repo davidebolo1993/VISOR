@@ -98,7 +98,7 @@ def plotPrecisionRecallDiagram(points, colors, markers, labels, title, legendtit
 		label = labels[h]
 		color=colors[h]
 		marker = markers[h]
-		scp = ax.scatter(x, y, label=label, c=color,marker=marker, s=30, alpha=0.5)
+		scp = ax.scatter(x, y, label=label, c=color,marker=marker, s=30, alpha=0.4, edgecolors='black')
 		scps.append(scp)
 				
 	plt.legend(loc='lower left', scatterpoints=1, numpoints=1, fancybox=True, title=legendtitle) #loc=0 guess the best location for legend
