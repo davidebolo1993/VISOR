@@ -81,7 +81,19 @@ def run(parser,args):
 
 		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
 		sys.exit(1)
+		
+	if not os.path.exists(os.path.abspath(args.genome + '.mmi')):
+		
+		logging.info('Creating .mmi index for reference genome')
+		
+		try:
+			
+			subprocess.check_call(['minimap2', '-d', os.path.abspath(args.genome + '.mmi'), os.path.abspath(args.genome)], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome		
+		
+		except:
 
+			logging.error('Could not create .mmi index for the reference genome')
+			sys.exit(1)
 
 
 	#validate .bed
@@ -436,17 +448,7 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 		os.remove(os.path.abspath(output + '/sim_0001.ref'))
 		os.remove(os.path.abspath(output + '/sim_0001.maf'))
 
-	if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')):
-
-		if not os.path.exists(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')): #checks for the presence of a .fa ref for the chromosome in the reference folder. If not present, creates it. Will save time during alignments.
-
-			with open(os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa'),'w') as fout: 
-
-				subprocess.call(['samtools', 'faidx', genome, chromosome], stdout=fout, stderr=open(os.devnull, 'wb'))
-
-		subprocess.call(['minimap2', '-d', os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi'), os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome
-
-	new_mmi=os.path.abspath(os.path.dirname(genome) +'/' + chromosome + '.mmi')
+	new_mmi=os.path.abspath(genome + '.mmi')
 
 	#align to reference
 
