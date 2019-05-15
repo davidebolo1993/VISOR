@@ -232,6 +232,12 @@ def run(parser,args):
 					sys.exit(1)
 
 
+				if alellic > 100:
+
+					logging.error('Purity value cannot exceed 100.0 in .bed file.')
+					sys.exit(1)
+
+
 				try:
 
 					Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
@@ -372,7 +378,6 @@ def run(parser,args):
 
 
 
-
 def ModifyReadTags(inbam, haplonum, clone):
 
 	bam=pysam.AlignmentFile(os.path.abspath(inbam), 'rb')
@@ -405,7 +410,6 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
-
 
 
 	if not allelic == 100: #simulate part from modified and part from reference
