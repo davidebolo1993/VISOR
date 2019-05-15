@@ -617,7 +617,8 @@ def run(parser,args):
 	logging.info('Generating .fasta haplotypes with SVs')
 
 	for dicts in d.keys():
-
+		
+		print(d[dicts])
 		logging.info('Generating SVs for ' + str(dicts))
 		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
 
@@ -832,7 +833,13 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 				if i == 0: #first entry for the cromosome, write until the first variant start
 
-					seq_until_start=seq[:start-1]
+					if start==0:
+
+						seq_until_start=seq[:0]
+
+					else:
+
+						seq_until_start=seq[:start-1]
 
 					write_start_sequence(chrs, seq_until_start, output_fasta)
 
