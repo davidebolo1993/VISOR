@@ -830,15 +830,13 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 				start,end,typ,info=new_alterations_list[i]
 
+				if start==0:
+
+					start+=1
+
 				if i == 0: #first entry for the cromosome, write until the first variant start
 
-					if start==0:
-
-						seq_until_start=seq[:0]
-
-					else:
-
-						seq_until_start=seq[:start-1]
+					seq_until_start=seq[:start-1]
 
 					write_start_sequence(chrs, seq_until_start, output_fasta)
 
