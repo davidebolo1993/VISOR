@@ -211,10 +211,9 @@ def run(parser,args):
 				
 				if str(entries[0]) not in classic_chrs:
 
-					logging.warning(str(entries[0]) + ' is not a valid chromosome in .bed file.Skipped')
+					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
+					sys.exit(1)
 					
-					continue
-
 				try:
 
 					int(entries[1])
@@ -258,6 +257,12 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
+					sys.exit(1)
+
+
+				if alellic > 100:
+
+					logging.error('Purity value cannot exceed 100.0 in .bed file.')
 					sys.exit(1)
 
 				try:
@@ -394,9 +399,8 @@ def run(parser,args):
 					
 					if str(entries[0]) not in classic_chrs:
 
-						logging.warning(str(entries[0]) + ' is not a valid chromosome in .bed file.Skipped')
-
-						continue
+						logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
+						sys.exit(1)
 
 					try:
 
@@ -510,23 +514,38 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, insertsize, standarddev, output, haplonum, clone):
 
-
 	#prepare region
+
+	fa=pyfaidx.Fasta(os.path.abspath(haplotype))
+
+	if chromosome not in fa.keys():
+
+		return
+
+	chr_= fa[chromosome]
+	seq = chr_[:len(chr_)].seq
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-	numreads= round((coverage*(end-start)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+	if len(seq) < end-start:
 
+		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
+		numreads= round((coverage*len(seq)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
 
+	else:
+
+		numreads=round((coverage*(end-start)) / length)/2 
+
+	
 	if not allelic == 100:
 
 		with open(os.path.abspath(output + '/reference.region.tmp.fa'), 'w') as regionout:
 
 			subprocess.call(['samtools', 'faidx', genome, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-		numreads1 = round((numreads/100)*allelic)
+		numreads1 = round((numreads/100)*allelic)		
 		numreads2 = numreads - numreads1
 
 		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
@@ -548,7 +567,6 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 		os.remove(os.path.abspath(output + '/region.region.2.fq'))
 		os.remove(os.path.abspath(output + '/reference.region.2.fq'))
-
 
 		os.remove(os.path.abspath(output + '/reference.region.tmp.fa'))
 
@@ -589,17 +607,32 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 
 
-
-
 def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length, indels, probability, insertsize, standarddev, output):
 
 	#prepare region
+
+	fa=pyfaidx.Fasta(os.path.abspath(haplotype))
+
+	if chromosome not in fa.keys():
+
+		return
+
+	chr_= fa[chromosome]
+	seq = chr_[:len(chr_)].seq
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-	numreads= round((coverage*(end-start)) / length)/2 #read pairs 
+	if len(seq) < end-start:
+
+		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
+		numreads= round((coverage*len(seq)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+
+	else:
+
+		numreads= round((coverage*(end-start)) / length)/2 
+	
 
 	#simulate reads
 
