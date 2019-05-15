@@ -269,7 +269,11 @@ def run(parser,args):
 
 					if args.type == 'double-strand':
 
-						ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)), folder+1, 1)
+						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)), folder+1, 1)
+						
+						if type(m) == str:
+
+							continue
 
 					else: #generate single-stranded data
 
@@ -290,8 +294,15 @@ def run(parser,args):
 
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
 
-						SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)))
-						SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
+						m=SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)))
+						
+						if type(m) == str:
+
+							continue
+
+						else:
+
+							SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
 
 				except:
 
@@ -440,7 +451,11 @@ def run(parser,args):
 
 					try:
 
-						ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+
+						if type(m) == str:
+
+							continue
 
 					except:
 
@@ -520,7 +535,8 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 	if chromosome not in fa.keys():
 
-		return
+		message='Abort'
+		return message
 
 	chr_= fa[chromosome]
 	seq = chr_[:len(chr_)].seq
@@ -615,7 +631,8 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 	if chromosome not in fa.keys():
 
-		return
+		message='Abort'
+		return message
 
 	chr_= fa[chromosome]
 	seq = chr_[:len(chr_)].seq
