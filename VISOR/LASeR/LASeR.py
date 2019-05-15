@@ -407,6 +407,12 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 	#prepare region
 
+	fa=pyfaidx.Fasta(os.path.abspath(haplotype))
+
+	if chromosome not in fa.keys():
+
+		return
+
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
