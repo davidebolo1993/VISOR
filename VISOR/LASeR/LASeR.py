@@ -230,6 +230,12 @@ def run(parser,args):
 					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
 					sys.exit(1)
 
+				
+				if str(entries[0]) not in fa.keys():
+
+					continue
+
+
 				try:
 
 					Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
@@ -324,6 +330,10 @@ def run(parser,args):
 						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 						sys.exit(1)
 
+				
+					if str(entries[0]) not in fa.keys():
+
+						continue
 
 					try:		
 
