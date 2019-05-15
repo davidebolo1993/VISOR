@@ -91,10 +91,6 @@ def run(parser,args):
 			sys.exit(1)
 
 
-
-
-
-
 	#validate .bed with regions to simulate
 
 
@@ -215,8 +211,9 @@ def run(parser,args):
 				
 				if str(entries[0]) not in classic_chrs:
 
-					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file')
-					sys.exit(1)
+					logging.warning(str(entries[0]) + ' is not a valid chromosome in .bed file.Skipped')
+					
+					continue
 
 				try:
 
@@ -262,10 +259,6 @@ def run(parser,args):
 
 					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
 					sys.exit(1)
-
-				if str(entries[0]) not in fa.keys():
-
-					continue
 
 				try:
 
@@ -401,8 +394,9 @@ def run(parser,args):
 					
 					if str(entries[0]) not in classic_chrs:
 
-						logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file')
-						sys.exit(1)
+						logging.warning(str(entries[0]) + ' is not a valid chromosome in .bed file.Skipped')
+
+						continue
 
 					try:
 
@@ -438,11 +432,6 @@ def run(parser,args):
 
 						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
 						sys.exit(1)
-
-				
-					if str(entries[0]) not in fa.keys():
-
-						continue
 
 
 					try:
