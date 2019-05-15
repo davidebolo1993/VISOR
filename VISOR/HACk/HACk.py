@@ -618,7 +618,6 @@ def run(parser,args):
 
 	for dicts in d.keys():
 		
-		print(d[dicts])
 		logging.info('Generating SVs for ' + str(dicts))
 		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
 
