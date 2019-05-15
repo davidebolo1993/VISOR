@@ -240,8 +240,12 @@ def run(parser,args):
 
 				try:
 
-					Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
-				
+					m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
+
+					if type(m) == str:
+
+						continue
+
 				except:
 					
 					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
@@ -335,7 +339,11 @@ def run(parser,args):
 
 					try:		
 
-						Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+						m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+
+						if type(m) == str:
+
+							continue
 
 					except:
 
@@ -411,7 +419,8 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 	if chromosome not in fa.keys():
 
-		return
+		message='Abort'
+		return message
 
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
