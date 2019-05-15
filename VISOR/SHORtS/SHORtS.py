@@ -260,7 +260,7 @@ def run(parser,args):
 					sys.exit(1)
 
 
-				if alellic > 100:
+				if allelic > 100:
 
 					logging.error('Purity value cannot exceed 100.0 in .bed file.')
 					sys.exit(1)
