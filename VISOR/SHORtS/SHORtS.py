@@ -6,6 +6,7 @@ import os
 import sys
 import glob
 import logging
+import re
 from shutil import which
 import subprocess
 import random
@@ -198,6 +199,9 @@ def run(parser,args):
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
 			sys.exit(1)
 
+		if args.type=='single-strand':
+
+			fastas=sorted(fastas, key=natural_keys)
 
 		for folder,fasta in enumerate(fastas):
 
@@ -496,6 +500,14 @@ def run(parser,args):
 	logging.info('Done')
 
 
+
+def atoi(text):
+
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    
+    return [ atoi(c) for c in re.split(r'(\d+)', text)]
 
 
 def BWA_Index(fasta):
