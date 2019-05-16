@@ -192,17 +192,13 @@ def run(parser,args):
 
 		#find .fasta in folder
 
-		fastas = glob.glob(os.path.abspath(inputs[0] + '/*.fa'))
+		fastas = sorted(glob.glob(os.path.abspath(inputs[0] + '/*.fa')),key=natural_keys)
 
 		if fastas == []:
 
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
 			sys.exit(1)
-
-		if args.type=='single-strand':
-
-			fastas=sorted(fastas, key=natural_keys)
-
+		
 		for folder,fasta in enumerate(fastas):
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
@@ -398,7 +394,7 @@ def run(parser,args):
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
 
-			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
+			subfastas=sorted(glob.glob(os.path.abspath(inp) + '/*.fa'), key=natural_keys)
 			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
 			eachhaplofraction=subfastasfraction/len(subfastas)
 
