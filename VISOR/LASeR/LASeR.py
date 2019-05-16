@@ -8,6 +8,8 @@ import logging
 from shutil import which
 import subprocess
 import glob
+import re
+
 
 #additional modules
 
@@ -162,7 +164,7 @@ def run(parser,args):
 
 		#find .fasta in folder
 
-		fastas = glob.glob(os.path.abspath(inputs[0] + '/*.fa'))
+		fastas = sorted(glob.glob(os.path.abspath(inputs[0] + '/*.fa')), key=natural_keys)
 
 		if fastas == []:
 
@@ -282,7 +284,7 @@ def run(parser,args):
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
 
-			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
+			subfastas=sorted(glob.glob(os.path.abspath(inp) + '/*.fa'), key=natural_keys)
 			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
 			eachhaplofraction=subfastasfraction/len(subfastas)
 
@@ -384,6 +386,18 @@ def run(parser,args):
 
 	logging.info('Done')
 
+
+
+def atoi(text):
+
+
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(text):
+
+    
+    return [ atoi(c) for c in re.split(r'(\d+)', text)]
 
 
 def ModifyReadTags(inbam, haplonum, clone):
