@@ -55,6 +55,11 @@ git clone https://github.com/davidebolo1993/VISOR.git
 cd VISOR
 python setup.py install
 
+#if installation of pybedtools doesn't run succesfully, probably htslib is missing. pybedtools can then be installed using:
+#conda install -c bioconda pybedtools
+#Then, re-run:
+#python setup.py install
+
 ```
 
 ## VISOR modules
