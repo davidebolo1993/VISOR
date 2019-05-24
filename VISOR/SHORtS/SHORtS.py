@@ -171,7 +171,6 @@ def run(parser,args):
 				sys.exit(1)
 
 
-
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
 	classic_chrs = fa.keys() #allowed chromosomes
@@ -192,13 +191,17 @@ def run(parser,args):
 
 		#find .fasta in folder
 
-		fastas = sorted(glob.glob(os.path.abspath(inputs[0] + '/*.fa')),key=natural_keys)
+		fastas = glob.glob(os.path.abspath(inputs[0] + '/*.fa'))
 
 		if fastas == []:
 
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
 			sys.exit(1)
-		
+
+		if args.type=='single-strand':
+
+			fastas=sorted(fastas, key=natural_keys)
+
 		for folder,fasta in enumerate(fastas):
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
@@ -394,7 +397,7 @@ def run(parser,args):
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
 
-			subfastas=sorted(glob.glob(os.path.abspath(inp) + '/*.fa'), key=natural_keys)
+			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
 			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
 			eachhaplofraction=subfastasfraction/len(subfastas)
 
@@ -552,17 +555,21 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
+	
+	regionfa=pyfaidx.Fasta(os.path.abspath(output + '/region.tmp.fa'))
+	chrf=regionfa[chromosome + ':' + str(start) +  '-' +str(end)]
+	seqfa=chrf[:len(chrf)].seq
+	Ns=seqfa.count('N')
 
 	if len(seq) < end-start:
 
 		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
-		numreads= round((coverage*len(seq)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+		numreads= round((coverage*(len(seq)-Ns))/ length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
 
 	else:
 
-		numreads=round((coverage*(end-start)) / length)/2 
+		numreads=round((coverage*(end-start-Ns))/ length)/2 
 
-	
 	if not allelic == 100:
 
 		with open(os.path.abspath(output + '/reference.region.tmp.fa'), 'w') as regionout:
@@ -601,6 +608,7 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 	
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
+	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
 
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
@@ -649,14 +657,19 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
+	regionfa=pyfaidx.Fasta(os.path.abspath(output + '/region.tmp.fa'))
+	chrf=regionfa[chromosome + ':' + str(start) +  '-' +str(end)]
+	seqfa=chrf[:len(chrf)].seq
+	Ns=seqfa.count('N')
+
 	if len(seq) < end-start:
 
 		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
-		numreads= round((coverage*len(seq)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+		numreads= round((coverage*(len(seq)-Ns)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
 
 	else:
 
-		numreads= round((coverage*(end-start)) / length)/2 
+		numreads= round((coverage*(end-start-Ns)) / length)/2 
 	
 
 	#simulate reads
@@ -664,6 +677,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 	subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
+	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
 
 	#align to modified reference
 
