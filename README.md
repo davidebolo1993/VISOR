@@ -55,7 +55,7 @@ git clone https://github.com/davidebolo1993/VISOR.git
 cd VISOR
 python setup.py install
 
-#if installation of pybedtools doesn't run succesfully, probably some lib is missing. pybedtools can then be installed using:
+#if installation of pybedtools doesn't run succesfully, probably some required library is missing in  your system. pybedtools can then be installed using:
 #conda install -c bioconda pybedtools
 #Then, re-run:
 #python setup.py install
