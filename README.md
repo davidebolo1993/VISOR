@@ -197,7 +197,7 @@ When simulating haplotype-specific variants in single-strand simulations, one ca
 - C1 and W2
 - C1 and C2
 
-VISOR/scripts/ssmerger.py offers the possibility to generate these strands. 
+VISOR/scripts/ssmerger.py offers the possibility to generate these merged BAM. 
 
 ```sh
 
