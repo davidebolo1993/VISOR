@@ -136,7 +136,7 @@ python ssmerger.py -f transloc/Results/0 transloc/Results/1 -s W C -o transloc/F
 python sscounter.py -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bam transloc/Final/WC.srt.bam -o transloc/Final -l H1_W.H2_C.22_11_TRANSLOC -c chr22 chr11
 
 
-echo "Simulating strand-seq data with 5% and SCE in haplotype 1"
+echo "Simulating strand-seq data with 5% noise and SCE in haplotype 1"
 
 mkdir SCE
 
