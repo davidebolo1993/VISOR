@@ -811,7 +811,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 					else:
 
-						if (new_alterations_list[-1][0]<= start <= new_alterations_list[-1][1]) or (new_alterations_list[-1][0] <= end <= new_alterations_list[-1][0]):
+						if (new_alterations_list[-1][0]<= start <= new_alterations_list[-1][1]) or (new_alterations_list[-1][0] <= end <= new_alterations_list[-1][1]):
 
 							skipped+=1
 
