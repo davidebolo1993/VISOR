@@ -784,10 +784,6 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 		chrom=fasta[chrs]
 		seq=chrom[:len(chrom)].seq
 
-		#skip regions for which a variant has already been inserted
-
-		regions_seen=[]
-
 
 		if chrs not in dictionary.keys(): #chromosome not there, write unchanged
 						
@@ -809,14 +805,19 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 					start,end,typ,info=alterations_list[l]
 
-					if any(el[0] <=start <= el[1] or el[0] <= end <= el[1] for el in regions_seen):
+					if new_alterations_list==[]:
 
-						skipped+=1
+						new_alterations_list.append((start,end,typ,info))
 
 					else:
 
-						regions_seen.append((start,end))
-						new_alterations_list.append((start,end,typ,info))
+						if (new_alterations_list[-1][0]<= start <= new_alterations_list[-1][1]) or (new_alterations_list[-1][0] <= end <= new_alterations_list[-1][0]):
+
+							skipped+=1
+
+						else:
+
+							new_alterations_list.append((start,end,typ,info))
 
 					l+=1
 
