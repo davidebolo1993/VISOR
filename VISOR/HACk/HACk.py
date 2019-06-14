@@ -926,7 +926,6 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 				
 					write_sequence_between(alt_seq, output_fasta)
 
-
 				if i == len(new_alterations_list) -1:
 
 					write_end_sequence(seq[end:], output_fasta) #end not included, as it was included in the variant
