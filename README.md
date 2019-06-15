@@ -201,9 +201,9 @@ VISOR/scripts/ssmerger.py offers the possibility to generate these merged BAM.
 
 ```sh
 
-python VISOR/scripts/ssmerger.py -h #print help
+python /path/to/VISOR/scripts/ssmerger.py -h #print help
 
-python VISOR/scripts/ssmerger.py -f folder1 folder2 -s W C -o mergeout #merge watson strand from folder1 (haplotype 1) and crick strand from folder2 (haplotype 2)
+python /path/to/VISOR/scripts/ssmerger.py -f folder1 folder2 -s W C -o mergeout #merge watson strand from folder1 (haplotype 1) and crick strand from folder2 (haplotype 2)
 
 ```
 Arguments are:
@@ -219,9 +219,9 @@ VISOR/scripts/sscounter.py offers the possibility to plot an interactive visuali
 
 ```sh
 
-python VISOR/scripts/sscounter.py -h #print help
+python /path/to/VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam mergeout/WC.srt.bam -o plotout #plot Watson-Crick read pairs count per chromosome
+python /path/to/VISOR/scripts/sscounter.py -g genome.fa -bam mergeout/WC.srt.bam -o plotout #plot Watson-Crick read pairs count per chromosome
 
 ```
 
