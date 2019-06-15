@@ -221,7 +221,7 @@ VISOR/scripts/sscounter.py offers the possibility to plot an interactive visuali
 
 python VISOR/scripts/sscounter.py -h #print help
 
-python VISOR/scripts/sscounter.py -g genome.fa -bam mergeout/WC.srt.bam -o sscounterout #plot Watson-Crick read pairs count per chromosome
+python VISOR/scripts/sscounter.py -g genome.fa -bam mergeout/WC.srt.bam -o plotout #plot Watson-Crick read pairs count per chromosome
 
 ```
 
