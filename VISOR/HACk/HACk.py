@@ -776,7 +776,7 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 
 def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
-	trans = str.maketrans('ATGC', 'TACG')
+	trans = str.maketrans('AaTtGgCcN', 'TtAaCcGgN')
 	skipped=0
 
 	for chrs in chromosomes:
