@@ -1,5 +1,0 @@
-# This is an example illustrating the format for scebed file to VISOR SHORtS, not intended to be used a it is.
-# To use this .bed you must remove all the commented and blank lines
-
-#perform sister chromatid exchange for haplotype 1
-chr9	0	20000000	h1
