@@ -1,0 +1,13 @@
+chr1	503138	503172	tandem repeat expansion	TA:200
+chr1	1773676	1773730	tandem repeat contraction	TG:20
+chr1	10000000	11000000	deletion	None
+chr1	20000000	21000000	inversion	None
+chr1	30000000	31000000	tandem duplication	2
+chr1	40000000	41000000	inverted tandem duplication	2
+chr1	50999999	51000000	insertion	TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+chr1	60999999	61000000	perfect tandem repetition	AT:30
+chr1	70999999	71000000	approximate tandem repetition	AT:30:3
+chr1	80000000	81000000	translocation cut-paste	h1:chr1:180000000:forward
+chr1	90000000	91000000	translocation copy-paste	h1:chr1:190000000:reverse
+chr1	100000000	101000000	reciprocal translocation	h2:chr2:200000000:forward:forward
+chr1	110000000	110000001	SNP	T
