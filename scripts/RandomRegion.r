@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager",repos = "http://cran.us.r-project.org")
+  install.packages("BiocManager")
 if (!requireNamespace("optparse", quietly = TRUE))
-  install.packages("optparse", repos = "http://cran.us.r-project.org")
+  install.packages("optparse")
 if (!requireNamespace("regioneR", quietly = TRUE))
   BiocManager::install("regioneR")
 
@@ -18,7 +18,7 @@ option_list = list(
   make_option(c("-x", "--exclude"), action="store", default=NULL, type='character', help="exclude regions in .bed [optional]"),
   make_option(c("-v", "--variants"), action="store", type='character', help="variants types (-v 'deletion,tandem duplication,inversion') [required]"),
   make_option(c("-r", "--ratio"), action="store", type='character', help="variants proportions (-r '30:30:40')) [required]"),
-  make_option(c("-i", "--idhaplo"), action="store", type='character', default='h1', help="haplotype name [h1]")
+  make_option(c("-i", "--idhaplo"), action="store", type='numeric', default=1, help="haplotype number [1]")
 )
 
 
@@ -107,7 +107,7 @@ for(i in (1:nrow(df))) {
     end<-as.numeric(end(newregion))
     orientation<-sample(c('forward', 'reverse'),1)
     newexclude<-rbind(newexclude,c(chromosome, start, end))
-    info[i]<-paste(opt$idhaplo,chromosome,start,orientation,sep=':')
+    info[i]<-paste(paste0('h',opt$idhaplo),chromosome,start,orientation,sep=':')
   } else {
     newregion<-createRandomRegions(1, length.mean=opt$length, length.sd=opt$standarddev, genome=genome, mask=newexclude, non.overlapping=TRUE)
     chromosome<-as.character(seqnames(newregion))
@@ -116,10 +116,12 @@ for(i in (1:nrow(df))) {
     orientation1<-sample(c('forward', 'reverse'),1)
     orientation2<-sample(c('forward', 'reverse'),1)
     newexclude<-rbind(newexclude,c(chromosome, start, end))
-    info[i]<-paste(opt$idhaplo,chromosome,start,orientation1, orientation2, sep=':')
+    info[i]<-paste(paste0('h',opt$idhaplo+1),chromosome,start,orientation1, orientation2, sep=':')
   }
 } 
 
 final<-data.frame(df,info, stringsAsFactors = FALSE)
 
 write.table(final,file = '',quote = FALSE, col.names = FALSE, row.names = FALSE, sep='\t')
+
+
