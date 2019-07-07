@@ -51,6 +51,7 @@ def run(parser,args):
 
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_SHORtS.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
+	print('Initialized .log file ' + os.path.abspath(args.output + '/VISOR_SHORtS.log'))
 
 	#check if external tools can be executed
 
@@ -61,7 +62,7 @@ def run(parser,args):
 		if which(tools) is None:
 
 			logging.error(tools + ' was not found as an executable command. Install ' + tools + ' and re-run VISOR SHORtS')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 
 	#validate genome
@@ -76,7 +77,7 @@ def run(parser,args):
 	except:
 
 		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
-		sys.exit(1)
+		exitonerror(os.path.abspath(args.output))
 
 
 	if not os.path.exists(os.path.abspath(args.genome + '.sa')):
@@ -89,7 +90,7 @@ def run(parser,args):
 		except:
 
 			logging.error('It was not possible to generate bwa index for reference genome')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 
 	#validate .bed with regions to simulate
@@ -105,12 +106,10 @@ def run(parser,args):
 	except:
 
 		logging.error('Incorrect .bed format for -bed/--bedfile')
-		sys.exit(1)
-
+		exitonerror(os.path.abspath(args.output))
 
 
 	#validate SCEBED if single-strand
-
 
 	if args.type=='single-strand':
 
@@ -125,8 +124,7 @@ def run(parser,args):
 			except:
 
 				logging.error('Incorrect .bed format for -scebed/--scebedfile')
-				sys.exit(1)
-
+				exitonerror(os.path.abspath(args.output))
 
 		else:
 
@@ -140,7 +138,7 @@ def run(parser,args):
 		if args.clonefraction is None:
 
 			logging.error('When specifying multiple -s/--sample, multiple -cf/--clonefraction percentages must be specified')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 		else: #something has been specified
 
@@ -149,7 +147,7 @@ def run(parser,args):
 			if len(fractions) != len(inputs):
 
 				logging.error('When specifying multiple -s/--sample, the same number of -cf/--clonefraction percentages must be specified')
-				sys.exit(1)
+				exitonerror(os.path.abspath(args.output))
 
 			for fraction in fractions:
 
@@ -160,7 +158,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Each fraction percentage in -cf/--clonefraction must be a float')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 			totalfraction = sum(map(float,fractions))
@@ -168,7 +166,7 @@ def run(parser,args):
 			if totalfraction > 100:
 
 				logging.error('Sum of fractions percentages in -cf/--clonefraction cannot exceed 100.0')
-				sys.exit(1)
+				exitonerror(os.path.abspath(args.output))
 
 
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
@@ -196,13 +194,15 @@ def run(parser,args):
 		if fastas == []:
 
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 		if args.type=='single-strand':
 
 			fastas=sorted(fastas, key=natural_keys)
 
 		for folder,fasta in enumerate(fastas):
+
+			logging.info('Simulating from haplotype ' + os.path.abspath(fasta))
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
 
@@ -215,7 +215,7 @@ def run(parser,args):
 				if str(entries[0]) not in classic_chrs:
 
 					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 					
 				try:
 
@@ -224,7 +224,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -234,13 +234,13 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				if (int(entries[2]) - int(entries[1]) == 0):
 
 					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -250,7 +250,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -260,13 +260,13 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				if allelic > 100:
 
 					logging.error('Purity value cannot exceed 100.0 in .bed file.')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 				try:
 
@@ -291,9 +291,7 @@ def run(parser,args):
 							except:
 
 								logging.error('It was not possible to generate bwa index for ' + os.path.abspath(fasta))
-								sys.exit(1)
-
-
+								exitonerror(os.path.abspath(args.output))
 
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
 
@@ -311,8 +309,6 @@ def run(parser,args):
 
 					
 					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
-
-
 		
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 
@@ -395,6 +391,8 @@ def run(parser,args):
 
 		for fract,inp in enumerate(inputs): #each input is now a subclone
 
+			logging.info('Simulating from clone ' + os.path.abspath(inp))
+
 			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
 
 			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
@@ -402,6 +400,8 @@ def run(parser,args):
 			eachhaplofraction=subfastasfraction/len(subfastas)
 
 			for folder,subfasta in enumerate(subfastas):
+
+				logging.info('Simulating from haplotype ' + os.path.abspath(subfasta))
 
 				os.makedirs(os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
 
@@ -414,7 +414,7 @@ def run(parser,args):
 					if str(entries[0]) not in classic_chrs:
 
 						logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 					try:
 
@@ -423,7 +423,7 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					try:
@@ -433,13 +433,13 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					if (int(entries[2]) - int(entries[1]) == 0):
 
 						logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					try:
@@ -449,7 +449,7 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					try:
@@ -467,6 +467,7 @@ def run(parser,args):
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
+		logging.info('Merging double-strand data')
 
 		with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
 
@@ -496,8 +497,14 @@ def run(parser,args):
 
 			os.rmdir(subs)
 
-	logging.info('Done')
 
+	logging.info('Done')
+	print('Done')
+
+def exitonerror(output):
+
+	print('An error occured. Check .log file at ' + os.path.abspath(output + '/VISOR_SHORtS.log') + ' for more details.')
+	sys.exit(1)
 
 
 def atoi(text):
@@ -512,7 +519,6 @@ def natural_keys(text):
 def BWA_Index(fasta):
 
 	subprocess.call(['bwa', 'index', os.path.abspath(fasta)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-
 
 
 def ModifyReadTags(inbam, haplonum, clone):
