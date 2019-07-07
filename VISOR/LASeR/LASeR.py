@@ -50,11 +50,12 @@ def run(parser,args):
 
 	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_LASeR.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
+	print('Initialized .log file ' + os.path.abspath(args.output + '/VISOR_LASeR.log'))
 
 	if not os.access(os.path.dirname(os.path.abspath(args.genome)),os.W_OK):
 
 		logging.error('It is required to have write access on reference folder to generate minimap2 .mmi indexes')
-		sys.exit(1)
+		exitonerror(os.path.abspath(args.output))
 
 
 	#check if external tools can be executed
@@ -66,7 +67,7 @@ def run(parser,args):
 		if which(tools) is None:
 
 			logging.error(tools + ' was not found as an executable command. Install ' + tools + ' and re-run VISOR LASeR')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 
 
@@ -82,7 +83,7 @@ def run(parser,args):
 	except:
 
 		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
-		sys.exit(1)
+		exitonerror(os.path.abspath(args.output))
 		
 	if not os.path.exists(os.path.abspath(args.genome + '.mmi')):
 		
@@ -95,7 +96,7 @@ def run(parser,args):
 		except:
 
 			logging.error('Could not create .mmi index for the reference genome')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 
 	#validate .bed
@@ -110,7 +111,7 @@ def run(parser,args):
 	except:
 
 		logging.error('Incorrect .bed format for -bed/--bedfile')
-		sys.exit(1)
+		exitonerror(os.path.abspath(args.output))
 
 
 	inputs=args.sample[0]
@@ -120,7 +121,7 @@ def run(parser,args):
 		if args.clonefraction is None:
 
 			logging.error('When specifying multiple -s/--sample, multiple -cf/--clonefraction percentages must be specified')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 		else: #something has been specified
 
@@ -129,7 +130,7 @@ def run(parser,args):
 			if len(fractions) != len(inputs):
 
 				logging.error('When specifying multiple -s/--sample, the same number of -cf/--clonefraction percentages must be specified')
-				sys.exit(1)
+				exitonerror(os.path.abspath(args.output))
 
 			for fraction in fractions:
 
@@ -140,7 +141,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Each fraction percentage in -cf/--clonefraction must be float')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 			totalfraction = sum(map(float,fractions))
@@ -148,7 +149,7 @@ def run(parser,args):
 			if totalfraction > 100:
 
 				logging.error('Sum of fractions percentages in -cf/--clonefraction cannot exceed 100.0')
-				sys.exit(1)
+				exitonerror(os.path.abspath(args.output))
 
 
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
@@ -169,10 +170,12 @@ def run(parser,args):
 		if fastas == []:
 
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
-			sys.exit(1)
+			exitonerror(os.path.abspath(args.output))
 
 
 		for folder,fasta in enumerate(fastas):
+
+			logging.info('Simulating from haplotype ' + os.path.abspath(fasta))
 
 			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
 
@@ -195,7 +198,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -205,13 +208,13 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				if (int(entries[2]) - int(entries[1]) == 0):
 
 					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -221,7 +224,7 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -231,13 +234,13 @@ def run(parser,args):
 				except:
 
 					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				if allelic > 100:
 
 					logging.error('Purity value cannot exceed 100.0 in .bed file.')
-					sys.exit(1)
+					exitonerror(os.path.abspath(args.output))
 
 
 				try:
@@ -253,6 +256,7 @@ def run(parser,args):
 					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
 
 		logging.info('Merging data')
+		
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
@@ -282,6 +286,8 @@ def run(parser,args):
 
 		for fract,inp in enumerate(inputs): #each input is now a subclone
 
+			logging.info('Simulating from clone ' + os.path.abspath(inp))
+
 			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
 
 			subfastas=sorted(glob.glob(os.path.abspath(inp) + '/*.fa'), key=natural_keys)
@@ -289,6 +295,8 @@ def run(parser,args):
 			eachhaplofraction=subfastasfraction/len(subfastas)
 
 			for folder,subfasta in enumerate(subfastas):
+
+				logging.info('Simulating from haplotype ' + os.path.abspath(subfasta))
 
 				os.makedirs(os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
 
@@ -311,7 +319,7 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					try:
@@ -321,13 +329,13 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					if (int(entries[2]) - int(entries[1]) == 0):
 
 						logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 
 					try:
@@ -337,7 +345,7 @@ def run(parser,args):
 					except:
 
 						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-						sys.exit(1)
+						exitonerror(os.path.abspath(args.output))
 
 					try:		
 
@@ -352,6 +360,7 @@ def run(parser,args):
 						logging.exception('Something went wrong during simulations for ' + os.path.abspath(subfasta) + '. Log is below.')
 
 		logging.info('Merging data')
+		
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
@@ -385,7 +394,13 @@ def run(parser,args):
 			os.rmdir(subs)
 
 	logging.info('Done')
+	print('Done')
 
+
+def exitonerror(output):
+
+	print('An error occured. Check .log file at ' + os.path.abspath(output + '/VISOR_LASeR.log') + ' for more details.')
+	sys.exit(1)
 
 
 def atoi(text):
