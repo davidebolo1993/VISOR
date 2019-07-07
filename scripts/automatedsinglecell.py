@@ -6,7 +6,7 @@ import subprocess, shlex
 import os
 import sys
 import random
-from shutil import which,copy2
+from shutil import which
 
 
 def main():
