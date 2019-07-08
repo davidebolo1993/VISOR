@@ -141,12 +141,21 @@ def run(parser,args):
 
 
 
-				if str(entries[3]) not in possible_variants: #exclude errors in the third field
+				if str(entries[3]) not in possible_variants: #exclude errors in the fourth field
 
 					logging.error(str(entries[3]) + ' is not a valid variant in .bed ' + os.path.abspath(bed))
 					exitonerror(os.path.abspath(args.output))
 
-		
+				#exclude errors in the sixth field 
+
+				try:
+
+					int(entries[5])
+
+				except:
+
+					logging.error('Cannot convert ' + str(entries[5]) + ' to integer number in .bed file ' + os.path.abspath(bed) + '. Length of random sequence at breakpoint must be an integer')
+
 				else: #everything fine for now
 
 
@@ -157,14 +166,19 @@ def run(parser,args):
 							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G')
 							exitonerror(os.path.abspath(args.output))
 
+						
+						if (int(entries[5])) != 0:
+
+							logging.warning('Incorrect length of random sequence at breakpoint ' + str(entries[5]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Coherced to 0')
+
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),'')]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''))
 
 		
 					elif str(entries[3]) == 'inversion': #information must be None
@@ -174,13 +188,14 @@ def run(parser,args):
 							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
 							exitonerror(os.path.abspath(args.output))
 
+
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					elif str(entries[3]) == 'deletion': #information must be None
@@ -192,12 +207,11 @@ def run(parser,args):
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
-
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					elif str(entries[3]) == 'insertion': #information must be a valid DNA sequence
@@ -209,12 +223,11 @@ def run(parser,args):
 								
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper())]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper(), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper()))
-
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper(), ''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					elif str(entries[3]) == 'tandem duplication': #information must be an integer
@@ -231,11 +244,11 @@ def run(parser,args):
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 
@@ -253,11 +266,11 @@ def run(parser,args):
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					elif str(entries[3]) == 'perfect tandem repetition': #perfect tandem repetition
@@ -287,11 +300,11 @@ def run(parser,args):
 						
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 
@@ -331,11 +344,11 @@ def run(parser,args):
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					
@@ -363,16 +376,20 @@ def run(parser,args):
 							exitonerror(os.path.abspath(args.output))
 
 
+						if (int(entries[5])) != 0:
+
+							logging.warning('Incorrect length of random sequence at breakpoint ' + str(entries[5]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Coherced to 0')
+
+
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]))]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), '')]
 
 						else:
 
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4])))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''))
 					
-
 
 					elif str(entries[3]) == 'reciprocal translocation':
 								
@@ -416,26 +433,25 @@ def run(parser,args):
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
 
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq)]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
 
 							
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq)]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
 
 							
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
 
 							
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq))
-
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 						
 						if str(entr_4[0]) not in d.keys():
@@ -446,25 +462,24 @@ def run(parser,args):
 						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
-
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 					elif str(entries[3]) == 'translocation cut-paste':
@@ -504,16 +519,14 @@ def run(parser,args):
 							exitonerror(os.path.abspath(args.output))
 
 
-
-
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
 
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None')]
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None',''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 						else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None'))
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None',''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 					
 
@@ -525,26 +538,24 @@ def run(parser,args):
 						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
-
-
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 			
 					else: #is a translocation copy paste or interspersed duplication, they are the same
@@ -593,24 +604,24 @@ def run(parser,args):
 						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
 
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq)]
+							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
 
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
 
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq))
+							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
 
 
 	logging.info('SVs organized')						
@@ -619,6 +630,7 @@ def run(parser,args):
 	for dicts in d.keys():
 		
 		logging.info('Generating SVs for ' + str(dicts))
+
 		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
 
 	logging.info('Haplotypes with SVs generated')
@@ -789,7 +801,6 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 		chrom=fasta[chrs]
 		seq=chrom[:len(chrom)].seq
 
-
 		if chrs not in dictionary.keys(): #chromosome not there, write unchanged
 						
 			write_unmodified_chromosome(chrs, seq, output_fasta)
@@ -808,11 +819,11 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 				
 				while l < len(alterations_list):
 
-					start,end,typ,info=alterations_list[l]
+					start,end,typ,info,seqatbreak=alterations_list[l]
 
 					if new_alterations_list==[]:
 
-						new_alterations_list.append((start,end,typ,info))
+						new_alterations_list.append((start,end,typ,info,seqatbreak))
 
 					else:
 
@@ -823,7 +834,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 						else:
 
-							new_alterations_list.append((start,end,typ,info))
+							new_alterations_list.append((start,end,typ,info,seqatbreak))
 
 					l+=1
 
@@ -835,7 +846,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 			while i < len(new_alterations_list):
 
-				start,end,typ,info=new_alterations_list[i]
+				start,end,typ,info,seqatbreak=new_alterations_list[i]
 
 				if start==0:
 
@@ -845,7 +856,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 					seq_until_start=seq[:start-1]
 
-					write_start_sequence(chrs, seq_until_start, output_fasta)
+					write_start_sequence(chrs, seq_until_start+seqatbreak, output_fasta)
 
 				if typ == 'inversion': #inverte sequence
 
@@ -854,7 +865,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 					write_sequence_between(alt_seq, output_fasta)
 
 
-				elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
+				elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, as they are translated before intro insertions and deletions
 
 					alt_seq=''
 
@@ -943,7 +954,7 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 					nextstart=new_alterations_list[i+1][0]
 					thisend=end
 
-					write_sequence_between(seq[thisend:nextstart-1], output_fasta)
+					write_sequence_between(seq[thisend:nextstart-1]+seqatbreak, output_fasta)
 
 				i+=1
 
