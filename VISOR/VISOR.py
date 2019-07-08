@@ -7,19 +7,19 @@ from argparse import HelpFormatter
 
 def main():
 
-	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This program was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI)''', formatter_class=CustomFormat) 
+	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This program was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI). Documentation is available at: https://davidebolo1993.github.io/visordoc/''', formatter_class=CustomFormat) 
 
 	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR') #two submodules
 
 	## HACk ##
 
-	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates one or more haplotypes in .fasta format containing SVs specified in .bed file/s')
+	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates one or more haplotypes in .fasta format containing SVs specified in .bed file/s.')
 
 
 	required = parser_hack.add_argument_group('Required I/O arguments')
 
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='.fa', required=True)
-	required.add_argument('-bed', '--bedfile', help='One or more .bed files (one for each haplotype) containing "CHROM, START, END, ALT, INFO" entries for each SV', metavar='.bed', nargs='+', action='append', required=True)
+	required.add_argument('-bed', '--bedfile', help='One or more .bed files (one for each haplotype) containing "CHROM, START, END, ALT, INFO, BREAKSEQLEN" entries for each SV', metavar='.bed', nargs='+', action='append', required=True)
 	required.add_argument('-o', '--output', help='Output folder', metavar='folder', required=True)
 
 	parser_hack.set_defaults(func=run_subtool)
@@ -50,7 +50,6 @@ def main():
 	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
 	wgi.add_argument('-is', '--insertsize', help='0uter distance between the two ends [500]',metavar='', default=500, type=int)
 	wgi.add_argument('-sd', '--standardev', help='Standard deviation for insert size [50]',metavar='', default=50, type=int)
-
 
 	optional = parser_shorts.add_argument_group('Single-strand parameters')
 
