@@ -69,14 +69,18 @@ newexclude<-rbind(exclude[,1:3], cbind(as.character(seqnames(regions)), as.numer
 df <- data.frame(chromosome=seqnames(regions),start=start(regions)-1,end=end(regions), type=varwithproportions, stringsAsFactors = FALSE)
 
 info<-rep('INFO',nrow(df))
+breakseqlen<-rep(0, nrow(df))
 
 for(i in (1:nrow(df))) {
   if (df$type[i] == 'deletion') {
     info[i]<-'None'
+    breakseqlen[i]<-sample(0:10,1)
   } else if (df$type[i] == 'tandem duplication') {
     info[i] <- '2'
+    breakseqlen[i]<-sample(0:10,1)
   } else if (df$type[i] == 'inversion'){
     info[i] <- 'None'
+    breakseqlen[i]<-sample(0:10,1)
   } else if (df$type[i] == 'inverted tandem duplication') {
     info[i] <- '2'
   } else if (df$type[i] == 'insertion') {
@@ -85,6 +89,7 @@ for(i in (1:nrow(df))) {
     alphabet<-c('A', 'T', 'C', 'G')
     motif<-paste(sample(alphabet, num, replace = T), collapse='')
     info[i]<-motif
+    breakseqlen[i]<-sample(0:10,1)    
   } else if (df$type[i] == 'perfect tandem repetition') {
     df$start[i]<-df$end[i]-1
     num<-sample(10:100,1)
@@ -92,6 +97,7 @@ for(i in (1:nrow(df))) {
     alphabet<-c('A', 'T', 'C', 'G')
     motif<-paste(sample(alphabet, motiflen, replace = T), collapse='')
     info[i]<-paste(motif,num, sep=':')
+    breakseqlen[i]<-sample(0:10,1) 
   } else if (df$type[i] == 'approximate tandem repetition') {
     df$start[i]<-df$end[i]-1
     num<-sample(10:100,1)
@@ -100,6 +106,7 @@ for(i in (1:nrow(df))) {
     motif<-paste(sample(alphabet, motiflen, replace = T), collapse='')
     slen<-motiflen*num
     info[i]<-paste(motif,num,round(slen/100*10),sep=':')
+    breakseqlen[i]<-sample(0:10,1) 
   } else if (df$type[i] == 'translocation cut-paste' | df$type[i] == 'translocation copy-paste') {
     newregion<-createRandomRegions(1, length.mean=opt$length, length.sd=opt$standarddev, genome=genome, mask=newexclude, non.overlapping=TRUE)
     chromosome<-as.character(seqnames(newregion))
@@ -108,6 +115,7 @@ for(i in (1:nrow(df))) {
     orientation<-sample(c('forward', 'reverse'),1)
     newexclude<-rbind(newexclude,c(chromosome, start, end))
     info[i]<-paste(paste0('h',opt$idhaplo),chromosome,start,orientation,sep=':')
+    breakseqlen[i]<-sample(0:10,1) 
   } else {
     newregion<-createRandomRegions(1, length.mean=opt$length, length.sd=opt$standarddev, genome=genome, mask=newexclude, non.overlapping=TRUE)
     chromosome<-as.character(seqnames(newregion))
@@ -117,10 +125,11 @@ for(i in (1:nrow(df))) {
     orientation2<-sample(c('forward', 'reverse'),1)
     newexclude<-rbind(newexclude,c(chromosome, start, end))
     info[i]<-paste(paste0('h',opt$idhaplo+1),chromosome,start,orientation1, orientation2, sep=':')
+    breakseqlen[i]<-sample(0:10,1) 
   }
 } 
 
-final<-data.frame(df,info, stringsAsFactors = FALSE)
+final<-data.frame(df,info,breakseqlen, stringsAsFactors = FALSE)
 
 write.table(final,file = '',quote = FALSE, col.names = FALSE, row.names = FALSE, sep='\t')
 
