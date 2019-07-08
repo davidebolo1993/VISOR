@@ -25,8 +25,8 @@ cat h1.bed h2.bed | awk '{print $2}' | sort > allSNPs.txt
 
 echo "Writing SNPs to BED for HACk"
 
-awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4}' h1.bed > VISOR.h1.SNPs.bed
-awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4}' h2.bed > VISOR.h2.SNPs.bed
+awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4, "0"}' h1.bed > VISOR.h1.SNPs.bed
+awk 'OFS=FS="\t"''{print $1, ($2 -1), $2, "SNP", $4, "0"}' h2.bed > VISOR.h2.SNPs.bed
 
 echo "Subsetting reference to chr22"
 
@@ -36,18 +36,13 @@ echo "Generating the 2 FASTA haplotypes with SNPs"
 
 VISOR HACk -g chr22.fa -bed VISOR.h1.SNPs.bed VISOR.h2.SNPs.bed -o Templates
 
-echo "Getting the example folder with BED files for tests from VISOR git"
+echo "Generating HACk.bed with variants"
 
 mkdir files && cd files
 
-wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/VISOR.clone1.h1.SVs.bed
-wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/VISOR.clone1.h2.SVs.bed
-
-wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/VISOR.clone2.h1.SVs.bed
-wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/VISOR.clone2.h2.SVs.bed
-
-
-wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/VISOR.sim.bed
+echo -e "chr22\t20000000\t22000000\tdeletion\tNone\t0\nchr22\t35000000\t37000000\ttandem duplication\t2\t0" > VISOR.clone1.h1.SVs.bed
+echo -e "chr22\t20000000\t22000000\tdeletion\tNone\t0\nchr22\t42000000\t45000000\tdeletion\tNone\t0" > VISOR.clone2.h1.SVs.bed
+echo -e "chr22\t0\t50818468\t100.0\t100.0" > VISOR.sim.bed
 
 cd ..
 
@@ -56,24 +51,11 @@ wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet
 
 echo "Generating SVs in the 2 clones with some random SNPs"
 
-VISOR HACk -g Templates/h1.fa -bed files/VISOR.clone1.h1.SVs.bed -o clone1h1
-VISOR HACk -g Templates/h2.fa -bed files/VISOR.clone1.h2.SVs.bed -o clone1h2
-mkdir clone1
-cd clone1h2 && mv h1.fa h2.fa && cd ..
-mv clone1h1/h1.fa clone1/
-mv clone1h2/h2.fa clone1/
-rm -r clone1h1
-rm -r clone1h2
+VISOR HACk -g Templates/h1.fa -bed files/VISOR.clone1.h1.SVs.bed -o clone1
+cp chr22.fa clone1/ && mv clone1/chr22.fa clone1/h2.fa
 
-
-VISOR HACk -g Templates/h1.fa -bed files/VISOR.clone2.h1.SVs.bed -o clone2h1
-VISOR HACk -g Templates/h2.fa -bed files/VISOR.clone2.h2.SVs.bed -o clone2h2
-mkdir clone2
-cd clone2h2 && mv h1.fa h2.fa && cd ..
-mv clone2h1/h1.fa clone2/
-mv clone2h2/h2.fa clone2/
-rm -r clone2h1
-rm -r clone2h2
+VISOR HACk -g Templates/h1.fa -bed files/VISOR.clone2.h1.SVs.bed -o clone2
+cp chr22.fa clone2/ && mv clone2/chr22.fa clone2/h2.fa
 
 echo "Simulating data. Clone 1: 65%; Clone 2: 30 %; Reference: 5%"
 
