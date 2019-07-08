@@ -26,15 +26,15 @@ bcftools index HG00732.bcf
 
 echo "Getting DELETIONS, INSERTIONS and INVERSIONS and write .bed for VISOR"
 
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DEL"  | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "deletion", "None"}' | sed 's/^/chr/' > VISOR.SV.h1.HG00732.bed
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DEL"  | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "deletion", "None"}' | sed 's/^/chr/' > VISOR.SV.h2.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DEL"  | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "deletion", "None", "0"}' | sed 's/^/chr/' > VISOR.SV.h1.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DEL"  | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "deletion", "None", "0"}' | sed 's/^/chr/' > VISOR.SV.h2.HG00732.bed
 
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DUP" | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "tandem duplication", "2"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DUP" | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "tandem duplication", "2"}' | sed 's/^/chr/' >> VISOR.SV.h2.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DUP" | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "tandem duplication", "2", "0"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "DUP" | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "tandem duplication", "2", "0"}' | sed 's/^/chr/' >> VISOR.SV.h2.HG00732.bed
 
 
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "INV" | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "inversion", "None"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
-bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "INV" | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "inversion", "None"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "INV" | grep "1|0" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "inversion", "None", "0"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
+bcftools query -f '%CHROM\t%POS\t%INFO/END\t%INFO/SVTYPE[\t%SAMPLE=%GT]\n' HG00732.bcf  | grep -w "INV" | grep "0|1" | awk 'OFS=FS="\t"''{if ($3 -$2 >1000) print $1, $2, $3, "inversion", "None", "0"}' | sed 's/^/chr/' >> VISOR.SV.h1.HG00732.bed
 
 
 echo "Generating haplotypes with SVs"
