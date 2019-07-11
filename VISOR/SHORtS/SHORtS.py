@@ -111,7 +111,7 @@ def run(parser,args):
 
 	#validate SCEBED if single-strand
 
-	if args.type=='single-strand':
+	if args.type=='strand-seq':
 
 		if args.scebedfile is not None:
 
@@ -123,7 +123,7 @@ def run(parser,args):
 
 			except:
 
-				logging.error('Incorrect .bed format for -scebed/--scebedfile')
+				logging.error('Incorrect .bed format for --scebedfile')
 				exitonerror(os.path.abspath(args.output))
 
 		else:
@@ -137,7 +137,7 @@ def run(parser,args):
 
 		if args.clonefraction is None:
 
-			logging.error('When specifying multiple -s/--sample, multiple -cf/--clonefraction percentages must be specified')
+			logging.error('When specifying multiple -s/--sample, multiple --clonefraction percentages must be specified')
 			exitonerror(os.path.abspath(args.output))
 
 		else: #something has been specified
@@ -146,7 +146,7 @@ def run(parser,args):
 
 			if len(fractions) != len(inputs):
 
-				logging.error('When specifying multiple -s/--sample, the same number of -cf/--clonefraction percentages must be specified')
+				logging.error('When specifying multiple -s/--sample, the same number of --clonefraction percentages must be specified')
 				exitonerror(os.path.abspath(args.output))
 
 			for fraction in fractions:
@@ -157,7 +157,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Each fraction percentage in -cf/--clonefraction must be a float')
+					logging.error('Each fraction percentage in --clonefraction must be a float')
 					exitonerror(os.path.abspath(args.output))
 
 
@@ -165,7 +165,7 @@ def run(parser,args):
 
 			if totalfraction > 100:
 
-				logging.error('Sum of fractions percentages in -cf/--clonefraction cannot exceed 100.0')
+				logging.error('Sum of fractions percentages in --clonefraction cannot exceed 100.0')
 				exitonerror(os.path.abspath(args.output))
 
 
@@ -179,13 +179,13 @@ def run(parser,args):
 
 		logging.info('Single input for -s/--sample')
 
-		if args.type == 'double-strand':
+		if args.type == 'bulk':
 
-			logging.info('Double-strand data')
+			logging.info('Bulk data')
 
 		else:
 
-			logging.info('Single-strand data')
+			logging.info('Strand-seq data')
 
 		#find .fasta in folder
 
@@ -196,15 +196,11 @@ def run(parser,args):
 			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
 			exitonerror(os.path.abspath(args.output))
 
-		if args.type=='single-strand':
-
-			fastas=sorted(fastas, key=natural_keys)
-
 		for folder,fasta in enumerate(fastas):
 
 			logging.info('Simulating from haplotype ' + os.path.abspath(fasta))
 
-			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
+			os.makedirs(os.path.abspath(args.output + '/h' + str(folder+1))) #create directory for this haplotype
 
 			counter=0
 
@@ -270,9 +266,9 @@ def run(parser,args):
 
 				try:
 
-					if args.type == 'double-strand':
+					if args.type == 'bulk':
 
-						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)), folder+1, 1)
+						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)), folder+1, 1)
 						
 						if type(m) == str:
 
@@ -295,7 +291,7 @@ def run(parser,args):
 
 						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
 
-						m=SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(folder)))
+						m=SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)))
 						
 						if type(m) == str:
 
@@ -303,7 +299,7 @@ def run(parser,args):
 
 						else:
 
-							SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/' + str(folder) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/' + str(folder)), srtscebed)
+							SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/h' + str(folder+1) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/h' + str(folder+1)), srtscebed)
 
 				except:
 
@@ -312,9 +308,9 @@ def run(parser,args):
 		
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 
-		if args.type == 'double-strand':
+		if args.type == 'bulk':
 
-			logging.info('Merging double-strand data')
+			logging.info('Merging bulk data')
 
 			bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
@@ -384,16 +380,16 @@ def run(parser,args):
 					os.remove(cri + '.bai') #there will be an additional script to generate WC .bam files
 
 
-	else: # simulate subclones with double-stranded data
+	else: # simulate subclones with bulk data
 
 		logging.info('Multiple inputs for -s/--sample. Assuming each input is a subclone')
-		logging.info('Double-strand data')
+		logging.info('Bulk data')
 
 		for fract,inp in enumerate(inputs): #each input is now a subclone
 
 			logging.info('Simulating from clone ' + os.path.abspath(inp))
 
-			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
+			os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1)))
 
 			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
 			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
@@ -403,7 +399,7 @@ def run(parser,args):
 
 				logging.info('Simulating from haplotype ' + os.path.abspath(subfasta))
 
-				os.makedirs(os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+				os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)))
 
 				counter=0
 
@@ -454,7 +450,7 @@ def run(parser,args):
 
 					try:
 
-						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
 
 						if type(m) == str:
 
@@ -467,7 +463,7 @@ def run(parser,args):
 		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
 		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
 
-		logging.info('Merging double-strand data')
+		logging.info('Merging bulk data')
 
 		with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
 
