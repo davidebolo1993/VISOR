@@ -18,11 +18,8 @@ wget http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/integrated_sv_map/supporti
 
 echo "Subsetting to HG00732"
 
-
 bcftools view -O b -o HG00732.bcf -s HG00732 -m2 -M2 -c 1 -C 1 ALL.wgs.integrated_sv_map_v2_GRCh38.20130502.svs.genotypes.vcf.gz
 bcftools index HG00732.bcf
-
-
 
 echo "Getting DELETIONS, INSERTIONS and INVERSIONS and write .bed for VISOR"
 
@@ -41,7 +38,6 @@ echo "Generating haplotypes with SVs"
 
 VISOR HACk -g GRCh38_full_analysis_set_plus_decoy_hla.fa -bed VISOR.SV.h1.HG00732.bed VISOR.SV.h2.HG00732.bed -o Templates
 
-
 echo "Getting .bed for simulations with correct chormosomes sizes from VISOR git"
 
 mkdir files && cd files
@@ -53,9 +49,9 @@ cd ..
 
 echo "Simulating short reads with different coverages"
 
-VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 10 -o cov10s -th 7 --noaddtag
-VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 20 -o cov20s -th 7 --noaddtag
-VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 30 -o cov30s -th 7 --noaddtag
+VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 10 -o cov10s --threads 7 --noaddtag
+VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 20 -o cov20s --threads 7 --noaddtag
+VISOR SHORtS -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 30 -o cov30s --threads 7 --noaddtag
 
 
 
@@ -70,10 +66,9 @@ delly call -g GRCh38_full_analysis_set_plus_decoy_hla.fa cov30s/sim.srt.bam -o c
 
 echo "Simulating long reads with different coverages"
 
-VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 10 -o cov10l -th 7 --noaddtag
-VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 20 -o cov20l -th 7 --noaddtag
-VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 30 -o cov30l -th 7 --noaddtag
-
+VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 10 -o cov10l --threads 7 --noaddtag
+VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 20 -o cov20l --threads 7 --noaddtag
+VISOR LASeR -g GRCh38_full_analysis_set_plus_decoy_hla.fa -s Templates/ -bed files/VISOR.sim.bed -c 30 -o cov30l --threads 7 --noaddtag
 
 
 echo "Running SVIM: will fail if SVIM is not installed"
@@ -83,12 +78,10 @@ svim alignment cov20l cov20l/sim.srt.bam
 svim alignment cov30l cov30l/sim.srt.bam
 
 
-
 cat VISOR.SV.h1.HG00732.bed VISOR.SV.h2.HG00732.bed  | sortBed  | mergeBed > ALL.SVs.bed #merge overlapping SVs
 
 
 echo "Generating true positives (TP), false positives (FP) and false negatives (FN) .bed files to make you easier to compute precision and recall :) "
-
 
 cd cov10s
 
@@ -102,11 +95,10 @@ bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HI
 
 cd ..
 
-
 cd cov10l
 
-
 awk '{ if($1 ~ /^#/) { print $0 } else { if($6>=3) { print $0 } } }' final_results.vcf  > svim.fltrd.vcf #filtered using the script here: https://github.com/eldariont/svim/wiki, changing threshold for low coverage data (COV < 30)
+
 bcftools view -h svim.fltrd.vcf > header.vcf
 bcftools view -H svim.fltrd.vcf | grep -v "INS" >> header.vcf
 mv header.vcf svim.fltrd.vcf && bcftools view -O b svim.fltrd.vcf > svim.fltrd.bcf
@@ -117,9 +109,7 @@ bedtools intersect -a variants.bed -b ../ALL.SVs.bed -wa > TP.bed #VARIANTS CALL
 bedtools intersect -a variants.bed -b ../ALL.SVs.bed -v > FP.bed #VARIANTS CALLED BY SVIM AND NOT MATCHING THE HIGH-CONFIDENCE SET
 bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HIGH-CONFIDENCE SET NOT CALLED BY SVIM
 
-
 cd ..
-
 
 cd cov20s
 
@@ -133,9 +123,7 @@ bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HI
 
 cd ..
 
-
 cd cov20l
-
 
 awk '{ if($1 ~ /^#/) { print $0 } else { if($6>=6) { print $0 } } }' final_results.vcf  > svim.fltrd.vcf #filtered using the script here: https://github.com/eldariont/svim/wiki, changing threshold for low coverage data (COV < 30)
 bcftools view -h svim.fltrd.vcf > header.vcf
@@ -148,9 +136,7 @@ bedtools intersect -a variants.bed -b ../ALL.SVs.bed -wa > TP.bed #VARIANTS CALL
 bedtools intersect -a variants.bed -b ../ALL.SVs.bed -v > FP.bed #VARIANTS CALLED BY SVIM AND NOT MATCHING THE HIGH-CONFIDENCE SET
 bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HIGH-CONFIDENCE SET NOT CALLED BY SVIM
 
-
 cd ..
-
 
 cd cov30s
 
@@ -164,9 +150,7 @@ bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HI
 
 cd ..
 
-
 cd cov30l
-
 
 awk '{ if($1 ~ /^#/) { print $0 } else { if($6>=9) { print $0 } } }' final_results.vcf  > svim.fltrd.vcf #filtered using the script here: https://github.com/eldariont/svim/wiki, changing threshold for low coverage data (COV < 30)
 bcftools view -h svim.fltrd.vcf > header.vcf
@@ -179,11 +163,8 @@ bedtools intersect -a variants.bed -b ../ALL.SVs.bed -wa > TP.bed #VARIANTS CALL
 bedtools intersect -a variants.bed -b ../ALL.SVs.bed -v > FP.bed #VARIANTS CALLED BY SVIM AND NOT MATCHING THE HIGH-CONFIDENCE SET
 bedtools intersect -a ../ALL.SVs.bed -b variants.bed -v > FN.bed #VARIANTS IN HIGH-CONFIDENCE SET NOT CALLED BY SVIM
 
-
 cd ..
 
-
 echo "Calculating precision and recall is now easy !"
-
 
 echo "Done"
