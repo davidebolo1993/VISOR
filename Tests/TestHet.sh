@@ -59,7 +59,7 @@ cp chr22.fa clone2/ && mv clone2/chr22.fa clone2/h2.fa
 
 echo "Simulating data. Clone 1: 65%; Clone 2: 30 %; Reference: 5%"
 
-VISOR SHORtS -g chr22.fa -s clone1/ clone2/ Templates/ -bed files/VISOR.sim.bed -c 150 -o cloneout -cf 65.0 30.0 5.0 -th 7
+VISOR SHORtS -g chr22.fa -s clone1/ clone2/ Templates/ -bed files/VISOR.sim.bed -c 150 -o cloneout --clonefraction 65.0 30.0 5.0 -- threads 7
 
 echo "Running mpileup"
 
