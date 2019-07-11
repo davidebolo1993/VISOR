@@ -57,7 +57,7 @@ def main():
 	strandseq = parser_shorts.add_argument_group('Strand-seq parameters')
 
 	strandseq.add_argument('--scebedfile', help='BED file containing "CHROM, START, END, HAPLOTYPE" in which sister chromatid exchange will be performed. If a BED is given, HAPLOTYPE must be in format "hN" where N is the number of the haplotype [None]', metavar='', default=None)
-	strandseq.add_argument('--noise', help='Percentage of noise to add to single-strand .bam files [0.00]', type=float, metavar='', default=0.00)
+	strandseq.add_argument('--noise', help='Percentage of noise to add to strand-seq BAM files [0.00]', type=float, metavar='', default=0.00)
 	
 	optional = parser_shorts.add_argument_group('Additional general parameters')
 		
