@@ -138,7 +138,6 @@ def main():
 			haplos=' '.join(x for x in eachhaplostrand)
 
 			command='python ' + os.path.abspath(args.mergerpath) + ' -f ' + folders + ' -s ' + haplos + ' -o ' + os.path.abspath(args.output + '/cell' + str(i) + '.affected/BAM')
-			print(shlex.split(command))
 			subprocess.call(shlex.split(command), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			i+=1
@@ -174,7 +173,6 @@ def main():
 			haplos=' '.join(x for x in eachhaplostrand)
 
 			command='python ' + os.path.abspath(args.mergerpath) + ' -f ' + folders + ' -s ' + haplos + ' -o ' + os.path.abspath(args.output + '/cell' + str(i) + '.normal/BAM')
-			print(shlex.split(command))
 			subprocess.call(shlex.split(command), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			i+=1
