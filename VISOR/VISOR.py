@@ -100,7 +100,7 @@ def main():
 
 
 
-	## 10X ##
+	## LIKER ## [Beta version]
 
 
 
