@@ -1,2 +1,3 @@
 include VISOR/LASeR/model_qc_clr
 include VISOR/SHORtS/generate.sh
+include VISOR/LIKER/
