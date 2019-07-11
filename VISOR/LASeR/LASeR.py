@@ -120,7 +120,7 @@ def run(parser,args):
 
 		if args.clonefraction is None:
 
-			logging.error('When specifying multiple -s/--sample, multiple -cf/--clonefraction percentages must be specified')
+			logging.error('When specifying multiple -s/--sample, multiple --clonefraction percentages must be specified')
 			exitonerror(os.path.abspath(args.output))
 
 		else: #something has been specified
@@ -129,7 +129,7 @@ def run(parser,args):
 
 			if len(fractions) != len(inputs):
 
-				logging.error('When specifying multiple -s/--sample, the same number of -cf/--clonefraction percentages must be specified')
+				logging.error('When specifying multiple -s/--sample, the same number of --clonefraction percentages must be specified')
 				exitonerror(os.path.abspath(args.output))
 
 			for fraction in fractions:
@@ -140,7 +140,7 @@ def run(parser,args):
 
 				except:
 
-					logging.error('Each fraction percentage in -cf/--clonefraction must be float')
+					logging.error('Each fraction percentage in --clonefraction must be float')
 					exitonerror(os.path.abspath(args.output))
 
 
@@ -148,7 +148,7 @@ def run(parser,args):
 
 			if totalfraction > 100:
 
-				logging.error('Sum of fractions percentages in -cf/--clonefraction cannot exceed 100.0')
+				logging.error('Sum of fractions percentages in --clonefraction cannot exceed 100.0')
 				exitonerror(os.path.abspath(args.output))
 
 
@@ -177,7 +177,7 @@ def run(parser,args):
 
 			logging.info('Simulating from haplotype ' + os.path.abspath(fasta))
 
-			os.makedirs(os.path.abspath(args.output + '/' + str(folder))) #create directory for this haplotype
+			os.makedirs(os.path.abspath(args.output + '/h' + str(folder+1))) #create directory for this haplotype
 
 			counter=0
 
@@ -245,7 +245,7 @@ def run(parser,args):
 
 				try:
 
-					m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/' + str(folder)),folder +1, 1)
+					m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/h' + str(folder+1)),folder +1, 1)
 
 					if type(m) == str:
 
@@ -288,7 +288,7 @@ def run(parser,args):
 
 			logging.info('Simulating from clone ' + os.path.abspath(inp))
 
-			os.makedirs(os.path.abspath(args.output + '/' + str(fract)))
+			os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1)))
 
 			subfastas=sorted(glob.glob(os.path.abspath(inp) + '/*.fa'), key=natural_keys)
 			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
@@ -298,7 +298,7 @@ def run(parser,args):
 
 				logging.info('Simulating from haplotype ' + os.path.abspath(subfasta))
 
-				os.makedirs(os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)))
+				os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)))
 
 				counter=0
 
@@ -349,7 +349,7 @@ def run(parser,args):
 
 					try:		
 
-						m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/' + str(fract) + '/' + str(folder)), folder+1, fract+1)
+						m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
 
 						if type(m) == str:
 
