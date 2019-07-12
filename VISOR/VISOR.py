@@ -9,7 +9,7 @@ def main():
 
 	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This program was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI). Extensive documentation is available at: https://davidebolo1993.github.io/visordoc/''', formatter_class=CustomFormat) 
 
-	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR') #two submodules
+	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR,LIKER') #two submodules
 
 	## HACk ##
 
@@ -88,7 +88,7 @@ def main():
 	pbs.add_argument('-l', '--length', help='Mean length for simulated reads [8000]', metavar='', default=8000, type=int)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
 
-	bulk = parser_long.add_argument_group('Subclones simulations')
+	bulk = parser_long.add_argument_group('Subclones parameters')
 
 	bulk.add_argument('--clonefraction', help='Ordered percentages for each clone specified in -s/--sample [None]', metavar='', nargs='+', action='append', default=None)
 
@@ -98,13 +98,41 @@ def main():
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 	optional.add_argument('--noaddtag', help='Do not tag reads in BAM by haplotype and clone number', action='store_false')	
 
+	parser_long.set_defaults(func=run_subtool)
 
 
 	## LIKER ## [Beta version]
 
+	parser_tenx = subparsers.add_parser('LIKER', help='LInKed rEads simulatoR. Simulate 10X linked reads FASTQ files from FASTA files using regions specified in BED file. Please note that this module is released in BETA version.')
 
 
-	parser_long.set_defaults(func=run_subtool)
+	required = parser_tenx.add_argument_group('Required I/O arguments')
+
+	required.add_argument('-s','--sample', help='A folder containing FASTA haplotypes with SVs generated with VISOR HACk', metavar='FOLDER', required=True)
+	required.add_argument('-bed','--bedfile', help='BED file containing one or more "CHROM, START, END" for regions to simulate. BED for VISOR SHORtS and LASeR are accepted, but CAPTURE BIAS and SAMPLE FRACTION are ignored', metavar='BED', required=True)
+	required.add_argument('-o','--output', help='Output folder', metavar='FOLDER', required=True)
+
+	wgi = parser_tenx.add_argument_group('Wgsim parameters for FASTQ simulations')
+
+	wgi.add_argument('-c', '--coverage', help='Mean coverage for the simulated region [30.0]', metavar='', default=30.0, type=float)
+	wgi.add_argument('-e', '--error', help='Base error rate [0.010]', metavar='', default=0.010, type=float)
+	wgi.add_argument('-l', '--length', help='Length of reads [150]', metavar='', default=150, type=int)
+	wgi.add_argument('-i', '--indels', help='Fractions of indels [0.000000001]', metavar='', default=0.000000001, type=float)
+	wgi.add_argument('-p', '--probability', help='Probability an indel is extended [0.000000001]', metavar='', default=0.000000001, type=float)
+	wgi.add_argument('-is', '--insertsize', help='0uter distance between the two ends [500]',metavar='', default=500, type=int)
+	wgi.add_argument('-sd', '--standardev', help='Standard deviation for insert size [50]',metavar='', default=50, type=int)
+
+	molecules=parser_tenx.add_argument_group('10X molecules parameters')
+
+	molecules.add_argument('--molecules_length', help='Mean molecules length [80000]', default=80000, type=int, metavar='')
+	molecules.add_argument('--molecules_number', help='Mean number of molecules per GEM [10]', default=10, type=int, metavar='')
+
+	optional = parser_tenx.add_argument_group('Additional general parameters')
+
+	optional.add_argument('--threads', help='Number of cores to use for FASTQ parallel simulations [1]', metavar='', type=int, default=1)
+	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
+
+	parser_tenx.set_defaults(func=run_subtool)
 
 	args = parser.parse_args()
 	args.func(parser, args)
@@ -162,6 +190,10 @@ def run_subtool(parser, args):
 	elif args.command == 'LASeR':
 
 		from .LASeR import LASeR as submodule
+
+	elif args.command == 'LIKER':
+
+		from .LIKER import LIKER as submodule
 
 	else:
 
