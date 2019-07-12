@@ -126,6 +126,7 @@ def main():
 
 	molecules.add_argument('--molecules_length', help='Mean molecules length [80000]', default=80000, type=int, metavar='')
 	molecules.add_argument('--molecules_number', help='Mean number of molecules per GEM [10]', default=10, type=int, metavar='')
+	molecules.add_argument('--molecules_coverage', help='Mean numbercoverage per molecule [0.2]', default=0.2, type=float, metavar='')
 
 	optional = parser_tenx.add_argument_group('Additional general parameters')
 
