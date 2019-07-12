@@ -7,7 +7,7 @@ FROM ubuntu:18.04
 MAINTAINER Davide Bolognini <davidebolognini7@gmail.com>
 
 # Install dependencies
-RUN apt-get update && apt-get install -y curl git
+RUN apt-get update && apt-get install -y curl git gzip
 RUN curl -LO http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
 RUN bash Miniconda-latest-Linux-x86_64.sh -p /miniconda -b
 RUN rm Miniconda-latest-Linux-x86_64.sh
