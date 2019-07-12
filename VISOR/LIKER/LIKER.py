@@ -184,8 +184,8 @@ def run(parser,args):
 		R1.extend(glob.glob(os.path.abspath(dirs) + '/*_R1_*'))
 		R2.extend(glob.glob(os.path.abspath(dirs) + '/*_R2_*'))
 
-		command1 = 'cat ' + ' '.join(x for x in R1)
-		command2 = 'cat ' + ' '.join(x for x in R2)
+		command1 = 'cat ' + ' '.join(x for x in sorted(R1))
+		command2 = 'cat ' + ' '.join(x for x in sorted(R2))
 
 		with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R1_001.fastq'), 'w') as fout:
 
@@ -450,6 +450,13 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 
 	barcodes=[e for e in barcodes if e not in assigned_barcodes]
 
+
+	with open(os.path.abspath(os.path.dirname(output) + '/assigned_barcodes.txt'), 'a') as barcodesout:
+
+		for barcode in assigned_barcodes:
+
+			barcodesout.write(barcode + '\n')
+
 	chunk_size=len(MolSet)/Par.PROCS
 	slices=Chunks(MolSet,math.ceil(chunk_size))
 
@@ -471,8 +478,8 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 		
 		p.join()
 
-	R1=glob.glob(os.path.abspath(output +'/p*R1.fq'))
-	R2=glob.glob(os.path.abspath(output +'/p*R2.fq'))
+	R1=sorted(glob.glob(os.path.abspath(output +'/p*R1.fq')))
+	R2=sorted(glob.glob(os.path.abspath(output +'/p*R2.fq')))
 	R3=glob.glob(os.path.abspath(output +'/*.fa*'))
 
 	command1 = 'cat ' + ' '.join(x for x in R1)
