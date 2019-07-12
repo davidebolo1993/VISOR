@@ -208,7 +208,7 @@ def run(parser,args):
 
 		os.rmdir(dirs)
 
-	subprocess.call(['bash', cleaner, os.path.abspath(args.output)])
+	subprocess.call(['bash', cleanerpath, os.path.abspath(args.output)])
 
 	print('Done')
 
