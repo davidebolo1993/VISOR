@@ -383,8 +383,7 @@ def Runner(processor,molecule,refseq,reftitle, refstart, Par, output):
 
 			fout.write(header + '\n' + seq + '\n')
 
-		NUM_READS=int(((mol.length-seq.count('N')))/(Par.SRL*2))
-
+		NUM_READS=int(((mol.length-seq.count('N'))*Par.CMOL)/(Par.SRL*2))
 
 		if NUM_READS == 0: #got a region with only Ns
 
@@ -433,21 +432,19 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 	assigned_barcodes=set()
 	droplet_container=[]
 
-	print(str(len(barcodes)) + ' barcodes available')
+	print('# Barcodes: ' + str(len(barcodes)))
 
 	MRPM=(Par.CMOL*Par.LMOL)/(Par.SRL*2)
 	TOTALR=(len(refseq)-refseq.count('N'))*Par.COV/(Par.SRL*2)
 	EXPM=round(TOTALR/MRPM)
 
-	print('Total number of reads to simulate is ' + str(TOTALR))
-	print('Mean number of reads per molecules is ' + str(MRPM))
-	print('Number of molecule is ' + str(EXPM))
+	print('# Reads: ' + str(round(TOTALR)))
+	print('Average # reads / molecule: ' + str(round(MRPM)))
+	print('# Molecules: ' + str(round(EXPM)))
 
 	randomlong(Par,refseq,EXPM)
 		
 	print('Generated ' + str(len(MolSet)) + ' molecules')
-
-	sys.exit(0)
 
 	deternumdroplet(MolSet,Par.NMOL)
 
@@ -457,10 +454,9 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 		
 	print('Assigned a barcode to each molecule')
 
-	print(str(len(assigned_barcodes)) + ' barcodes assigned')
+	print('# Barcodes assigned: ' + str(len(assigned_barcodes)))
 
 	barcodes=[e for e in barcodes if e not in assigned_barcodes]
-
 
 	with open(os.path.abspath(os.path.dirname(output) + '/assigned_barcodes.txt'), 'a') as barcodesout:
 
