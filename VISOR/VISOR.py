@@ -38,7 +38,7 @@ def main():
 	
 	simtype = parser_shorts.add_argument_group('Type of simulations')
 
-	simtype.add_argument('-t','--type', help='Whether to simulate bulk [bulk] or strand-seq [strand-seq] data.', metavar='', default='bulk', choices=['bulk', 'strand-seq'])
+	simtype.add_argument('-t','--type', help='Whether to simulate bulk [bulk] or strand-seq [strand-seq] data [bulk].', metavar='', default='bulk', choices=['bulk', 'strand-seq'])
 
 	wgi = parser_shorts.add_argument_group('Wgsim parameters for FASTQ simulations')
 
