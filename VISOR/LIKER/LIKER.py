@@ -85,6 +85,8 @@ def run(parser,args):
 		barcodes = fin.read().splitlines()
 
 
+	cleanerpath=os.path.abspath(os.path.dirname(__file__) + '/clean.sh')
+
 	Par=Container()
 
 	Par.NMOL=args.molecules_number
@@ -191,13 +193,9 @@ def run(parser,args):
 
 			subprocess.call(shlex.split(command1), stdout=fout)
 
-		subprocess.call(['gzip', os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R1_001.fastq')])
-
 		with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R2_001.fastq'), 'w') as fout:
 
 			subprocess.call(shlex.split(command2), stdout=fout)
-
-		subprocess.call(['gzip', os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R2_001.fastq')])
 
 		for x in R1:
 
@@ -209,6 +207,8 @@ def run(parser,args):
 			os.remove(y)
 
 		os.rmdir(dirs)
+
+	subprocess.call(['bash', cleaner, os.path.abspath(args.output)])
 
 	print('Done')
 
