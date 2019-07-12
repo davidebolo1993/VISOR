@@ -33,7 +33,7 @@ def main():
 
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='FASTA', required=True)
 	required.add_argument('-s','--sample', help='One or more folders containing FASTA haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='FOLDER',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='BED', required=True)
+	required.add_argument('-bed','--bedfile', help='BED file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='BED', required=True)
 	required.add_argument('-o','--output', help='Output folder', metavar='FOLDER', required=True)
 	
 	simtype = parser_shorts.add_argument_group('Type of simulations')
@@ -78,7 +78,7 @@ def main():
 	
 	required.add_argument('-g','--genome', help='Template reference genome', metavar='FASTA', required=True)
 	required.add_argument('-s','--sample', help='One or more folders containing FASTA haplotypes with SVs generated with VISOR HACk. If multiple folders are given, each sample is considered a subclone', metavar='FOLDER',  nargs='+', action='append', required=True)
-	required.add_argument('-bed','--bedfile', help='.bed file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='BED', required=True)
+	required.add_argument('-bed','--bedfile', help='BED file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='BED', required=True)
 	required.add_argument('-o','--output', help='Output folder', metavar='FOLDER', required=True)
 
 	pbs= parser_long.add_argument_group('Pbsim parameters for FASTQ simulations')
