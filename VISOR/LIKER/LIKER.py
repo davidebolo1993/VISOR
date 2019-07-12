@@ -91,6 +91,7 @@ def run(parser,args):
 
 	Par.NMOL=args.molecules_number
 	Par.LMOL=args.molecules_length
+	Par.CMOL=args.molecules_coverage
 	Par.SRL=args.length
 	Par.SRE=args.error
 	Par.INS=args.insertsize
@@ -240,6 +241,7 @@ class Container(object):
 		self.COV=0
 		self.NMOL=0
 		self.LMOL=0
+		self.CMOL=0
 		self.SRL=0
 		self.SRE=0
 		self.INS=0
@@ -274,12 +276,11 @@ def natural_keys(text):
 
 
 
-def randomlong(Par,refseq):
+def randomlong(Par,refseq,N_frag):
 
 	index=0
 			
 	lensingle=len(refseq)
-	N_frag=round(lensingle*Par.COV/(Par.LMOL)) #how many fragment we generate for a certain region 
 				
 	for i in range(N_frag):
 						
@@ -433,10 +434,20 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 	droplet_container=[]
 
 	print(str(len(barcodes)) + ' barcodes available')
-	
-	randomlong(Par,refseq)
+
+	MRPM=(Par.CMOL*Par.LMOL)/(Par.SRL*2)
+	TOTALR=(len(refseq)-refseq.count('N'))*Par.COV/(Par.SRL*2)
+	EXPM=round(TOTALR/MRPM)
+
+	print('Total number of reads to simulate is ' + str(TOTALR))
+	print('Mean number of reads per molecules is ' + str(MRPM))
+	print('Number of molecule is ' + str(EXPM))
+
+	randomlong(Par,refseq,EXPM)
 		
 	print('Generated ' + str(len(MolSet)) + ' molecules')
+
+	sys.exit(0)
 
 	deternumdroplet(MolSet,Par.NMOL)
 
