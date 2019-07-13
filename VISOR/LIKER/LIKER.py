@@ -19,6 +19,7 @@ import pyfaidx
 import numpy as np
 
 global barcodes
+global organizerpath
 
 def run(parser,args):
 
@@ -87,6 +88,10 @@ def run(parser,args):
 
 	cleanerpath=os.path.abspath(os.path.dirname(__file__) + '/clean.sh')
 
+	global organizerpath
+
+	organizerpath=os.path.abspath(os.path.dirname(__file__) + '/organize.sh')
+	
 	Par=Container()
 
 	Par.NMOL=args.molecules_number
@@ -209,7 +214,7 @@ def run(parser,args):
 
 		os.rmdir(dirs)
 
-	subprocess.call(['bash', cleanerpath, os.path.abspath(args.output)])
+	subprocess.call(['bash', cleanerpath, os.path.abspath(args.output)]) #refine FASTQ so that they are readily usable with longranger
 
 	print('Done')
 
@@ -383,12 +388,18 @@ def Runner(processor,molecule,refseq,reftitle, refstart, Par, output):
 
 			fout.write(header + '\n' + seq + '\n')
 
-		NUM_READS=int(((mol.length-seq.count('N'))*Par.CMOL)/(Par.SRL*2))
+		truedim=mol.length-seq.count('N')
+
+		NUM_READS=int(truedim*Par.CMOL)/(Par.SRL*2)
 
 		if NUM_READS == 0: #got a region with only Ns
 
 			#remained+=mol.length
 			continue
+
+		with open(os.path.abspath(os.path.dirname(output) + '/' + processor +'.processed_molecules'), 'a') as statout:
+
+			statout.write(reftitle + '\t' + chromstart + '\t' + chromend + '\t' + moleculenumber + '\t' + moleculedroplet + '\t' + barcodestring + '\t' + str(mol.length) + '\t' + str(truedim) + '\t' + str(NUM_READS) + '\n')
 
 		#remained=0
 
@@ -426,21 +437,22 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 	global assigned_barcodes
 	global droplet_container
 	global barcodes
-	
+	global organizerpath
+
 	MolSet=[]
 	assign_drop=[]
 	assigned_barcodes=set()
 	droplet_container=[]
 
-	print('# Barcodes: ' + str(len(barcodes)))
+	print('# Available barcodes: ' + str(len(barcodes)))
 
 	MRPM=(Par.CMOL*Par.LMOL)/(Par.SRL*2)
 	TOTALR=(len(refseq)-refseq.count('N'))*Par.COV/(Par.SRL*2)
 	EXPM=round(TOTALR/MRPM)
 
-	print('# Reads: ' + str(round(TOTALR)))
+	print('# Reads needed to get expected depth: ' + str(round(TOTALR)))
 	print('Average # reads / molecule: ' + str(round(MRPM)))
-	print('# Molecules: ' + str(round(EXPM)))
+	print('Expected # molecules: ' + str(EXPM))
 
 	randomlong(Par,refseq,EXPM)
 		
@@ -485,26 +497,4 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 		
 		p.join()
 
-	R1=sorted(glob.glob(os.path.abspath(output +'/p*R1.fq')))
-	R2=sorted(glob.glob(os.path.abspath(output +'/p*R2.fq')))
-	R3=glob.glob(os.path.abspath(output +'/*.fa*'))
-
-	command1 = 'cat ' + ' '.join(x for x in R1)
-	command2 = 'cat ' + ' '.join(x for x in R2)
-
-	with open(os.path.abspath(output + '/' + str(Par.COUNT) + '.' + Par.NAME + '_S1_L' + str(Par.HAPLONUM).zfill(3) + '_R1_001.fastq'), 'w') as fout:
-
-		subprocess.call(shlex.split(command1), stdout=fout)
-
-	with open(os.path.abspath(output + '/' + str(Par.COUNT) + '.' + Par.NAME + '_S1_L' + str(Par.HAPLONUM).zfill(3) + '_R2_001.fastq'), 'w') as fout:
-
-		subprocess.call(shlex.split(command2), stdout=fout)
-
-	for f1,f2 in zip(R1,R2):
-
-		os.remove(f1)
-		os.remove(f2)
-
-	for f3 in R3:
-
-		os.remove(f3)
+	subprocess.call(['bash', organizerpath, os.path.abspath(output), str(Par.COUNT), Par.NAME, str(Par.HAPLONUM).zfill(3)])
