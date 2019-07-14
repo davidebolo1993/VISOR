@@ -117,15 +117,15 @@ def main():
 
 		while not done:
 
-			print('Simulating normal cell ' + str(i))
+			print('Simulating affected cell ' + str(i))
 
 			if args.scebed is None:
 
-				subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.readslength), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'single-strand', '-s', os.path.abspath(args.normalsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.affected'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+				subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.readslength), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'strand-seq', '-s', os.path.abspath(args.affectedsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.affected'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			else:
 
-				subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.length), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'single-strand', '-s', os.path.abspath(args.normalsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.affected'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage), '--scebedfile', os.path.abspath(args.scebed)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+				subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.readslength), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'strand-seq', '-s', os.path.abspath(args.affectedsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.affected'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage), '--scebedfile', os.path.abspath(args.scebed)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			subdirs=[f.path for f in os.scandir(os.path.abspath(args.output + '/cell' + str(i) + '.affected')) if f.is_dir()]
 			eachhaplostrand=[]
@@ -160,7 +160,7 @@ def main():
 
 			print('Simulating normal cell ' + str(i))
 			
-			subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.readslength), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'single-strand', '-s', os.path.abspath(args.normalsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.normal'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+			subprocess.call(['VISOR', 'SHORtS', '-g', os.path.abspath(args.genome), '-l', str(args.readslength), '-e', str(args.error), '-bed', os.path.abspath(args.shortsbed), '-t', 'strand-seq', '-s', os.path.abspath(args.normalsample), '-o', os.path.abspath(args.output + '/cell' + str(i) + '.normal'),'--threads', str(args.threads), '--noise', str(args.noise), '-c', str(args.coverage)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			subdirs=[f.path for f in os.scandir(os.path.abspath(args.output + '/cell' + str(i) + '.normal')) if f.is_dir()]
 			eachhaplostrand=[]
