@@ -36,7 +36,7 @@ def main():
 	required.add_argument('-bed','--bedfile', help='BED file containing one or more "CHROM, START, END, CAPTURE BIAS, SAMPLE FRACTION" for regions to simulate. CAPTURE BIAS and SAMPLE FRACTION must be float pecentages', metavar='BED', required=True)
 	required.add_argument('-o','--output', help='Output folder', metavar='FOLDER', required=True)
 	
-	simtype = parser_shorts.add_argument_group('Type of simulations')
+	simtype = parser_shorts.add_argument_group('Type of simulation')
 
 	simtype.add_argument('-t','--type', help='Whether to simulate bulk [bulk] or strand-seq [strand-seq] data [bulk].', metavar='', default='bulk', choices=['bulk', 'strand-seq'])
 
@@ -122,18 +122,17 @@ def main():
 	wgi.add_argument('-is', '--insertsize', help='0uter distance between the two ends [500]',metavar='', default=500, type=int)
 	wgi.add_argument('-sd', '--standardev', help='Standard deviation for insert size [50]',metavar='', default=50, type=int)
 
-
-	simtype = parser_tenx.add_argument_group('Type of simulations')
+	simtype = parser_tenx.add_argument_group('Type of simulation')
 
 	simtype.add_argument('-t','--type', help='Whether to simulate bulk [bulk] or single-cell [single-cell] data [bulk].', metavar='', default='bulk', choices=['bulk', 'single-cell'])
 
-	molecules=parser_tenx.add_argument_group('10X linked reads molecules parameters')
+	molecules=parser_tenx.add_argument_group('10X linked reads')
 
 	molecules.add_argument('--molecules_length', help='Mean molecules length [80000]', default=80000, type=int, metavar='')
 	molecules.add_argument('--molecules_number', help='Mean number of molecules per GEM [10]', default=10, type=int, metavar='')
 	molecules.add_argument('--molecules_coverage', help='Mean numbercoverage per molecule [0.2]', default=0.2, type=float, metavar='')
 
-	singlecell=parser_tenx.add_argument_group('10X single cells parameters')
+	singlecell=parser_tenx.add_argument_group('10X barcoded reads for single cell CNV detection applications')
 
 	singlecell.add_argument('--cells_number', help='Number of cells to simulate', default=100, type=int, metavar='')
 
@@ -215,4 +214,3 @@ def run_subtool(parser, args):
 if __name__ =='__main__':
 
 	main()
-
