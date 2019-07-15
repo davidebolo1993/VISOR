@@ -7,6 +7,7 @@ import sys
 import glob
 import re
 import math
+import random
 from shutil import which
 import multiprocessing
 import subprocess, shlex
@@ -107,116 +108,221 @@ def run(parser,args):
 	Par.PROCS=args.threads
 	Par.COV=args.coverage/len(fastas)
 
+	if args.type=='bulk':
 
-	for folder,fasta in enumerate(fastas):
+		print('Simulating bulk data. Output can be aligned with Long Ranger')
 
-		print('Simulating from haplotype ' + os.path.abspath(fasta))
+		for folder,fasta in enumerate(fastas):
 
-		Fa=pyfaidx.Fasta(fasta)
-		allchrs=Fa.keys()
+			print('Simulating from haplotype ' + os.path.abspath(fasta))
 
-		os.makedirs(os.path.abspath(args.output + '/h' + str(folder+1))) #create directory for this haplotype
+			Fa=pyfaidx.Fasta(fasta)
+			allchrs=Fa.keys()
 
-		Par.HAPLONUM=folder+1
+			os.makedirs(os.path.abspath(args.output + '/h' + str(folder+1))) #create directory for this haplotype
+
+			Par.HAPLONUM=folder+1
+
+			counter=0
+
+			for entries in srtbed: #validate each entry
+
+				counter+=1
+
+				if str(entries[0]) not in allchrs:
+
+					print(str(entries[0]) + ' is not a valid chromosome in .bed file. Skipped')
+					continue					
+
+				try:
+
+					int(entries[1])
+
+				except:
+
+					print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
+					sys.exit(1)
+
+
+				try:
+
+					int(entries[2])
+
+				except:
+
+					print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
+					sys.exit(1)
+
+
+				if (int(entries[2]) - int(entries[1]) == 0):
+
+					print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
+					sys.exit(1)
+
+
+
+				with open(os.path.abspath(args.output + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'), 'w') as regionout:
+
+					subprocess.call(['samtools', 'faidx', os.path.abspath(fasta), str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])], stdout=regionout, stderr=open(os.devnull, 'wb'))
+
+
+				Par.COUNT=counter
+
+				FAREGION=pyfaidx.Fasta(os.path.abspath(args.output + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'))
+				CHROMREGION=FAREGION[str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])]
+				SEQREGION=CHROMREGION[:len(CHROMREGION)].seq
+				REGIONSTART=int(entries[1])
+
+				print(Par)
+
+				LinkedSim(Par, str(entries[0]), SEQREGION, REGIONSTART, os.path.abspath(args.output + '/h' + str(folder+1)))
+
+	else:
+
+		print('Simulating single-cell data. Output can be aligned with Cell Ranger')
+
+		i=0
+
+		while i < args.cells_number:
+
+			print('Simulating from cell ' + str(i+1))
+
+			os.makedirs(os.path.abspath(args.output + '/cell' + str(i+1)))
+
+			print('# Available barcodes: ' + str(len(barcodes)))
+
+			assigned_barcode=random.choice(barcodes)
+
+			print('Chosen barcode ' +  assigned_barcode + ' for cell ' + str(i+1))
+
+			barcodes=[e for e in barcodes if e != assigned_barcode]
+
+			with open(os.path.abspath(args.output + '/assigned_barcodes.txt'), 'a') as barcodesout:
+
+				barcodesout.write(assigned_barcode + '\n')
+
+
+			for folder,fasta in enumerate(fastas):
+
+				print('Simulating from haplotype ' + os.path.abspath(fasta))
+
+				Fa=pyfaidx.Fasta(fasta)
+				allchrs=Fa.keys()
+
+				os.makedirs(os.path.abspath(args.output + '/cell' + str(i+1) + '/h' + str(folder+1))) #create directory for this cell and this haplotype
+
+				Par.HAPLONUM=folder+1
+
+				counter=0
+
+				for entries in srtbed: #validate each entry
+
+					counter+=1
+
+					if str(entries[0]) not in allchrs:
+
+						print(str(entries[0]) + ' is not a valid chromosome in .bed file. Skipped')
+						continue					
+
+					try:
+
+						int(entries[1])
+
+					except:
+
+						print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
+						sys.exit(1)
+
+
+					try:
+
+						int(entries[2])
+
+					except:
+
+						print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
+						sys.exit(1)
+
+
+					if (int(entries[2]) - int(entries[1]) == 0):
+
+						print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
+						sys.exit(1)
+
+
+
+					with open(os.path.abspath(args.output + '/cell' + str(i+1) + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'), 'w') as regionout:
+
+						subprocess.call(['samtools', 'faidx', os.path.abspath(fasta), str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])], stdout=regionout, stderr=open(os.devnull, 'wb'))
+
+
+					Par.COUNT=counter
+
+					FAREGION=pyfaidx.Fasta(os.path.abspath(args.output + '/cell' + str(i+1) + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'))
+					CHROMREGION=FAREGION[str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])]
+					SEQREGION=CHROMREGION[:len(CHROMREGION)].seq
+					REGIONSTART=int(entries[1])
+
+					print(Par)
+
+					SingleCellSim(Par, str(entries[0]), SEQREGION, REGIONSTART, os.path.abspath(args.output + '/cell' + str(i+1)+'/h' + str(folder+1)), str(i+1), assigned_barcode)
+
+			i+=1
+
+	if args.type=='bulk':
+
+
+		#organize output in output folder
+
+		print('Storing in proper format for Long Ranger')
+
+		subdirs=sorted([os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))], key=natural_keys)
 
 		counter=0
 
-		for entries in srtbed: #validate each entry
+		for dirs in subdirs:
 
-			counter+=1
+			counter +=1
 
-			if str(entries[0]) not in allchrs:
+			R1=[]
+			R2=[]
 
-				print(str(entries[0]) + ' is not a valid chromosome in .bed file. Skipped')
-				continue					
+			R1.extend(glob.glob(os.path.abspath(dirs) + '/*_R1_*'))
+			R2.extend(glob.glob(os.path.abspath(dirs) + '/*_R2_*'))
 
-			try:
+			command1 = 'cat ' + ' '.join(x for x in sorted(R1))
+			command2 = 'cat ' + ' '.join(x for x in sorted(R2))
 
-				int(entries[1])
+			with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R1_001.fastq'), 'w') as fout:
 
-			except:
+				subprocess.call(shlex.split(command1), stdout=fout)
 
-				print('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-				sys.exit(1)
+			with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R2_001.fastq'), 'w') as fout:
 
+				subprocess.call(shlex.split(command2), stdout=fout)
 
-			try:
+			for x in R1:
 
-				int(entries[2])
-
-			except:
-
-				print('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-				sys.exit(1)
+				os.remove(x)
 
 
-			if (int(entries[2]) - int(entries[1]) == 0):
+			for y in R2:
 
-				print('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-				sys.exit(1)
+					os.remove(y)
 
+			os.rmdir(dirs)
 
+		
+		subprocess.call(['bash', cleanerpath, os.path.abspath(args.output)]) #refine FASTQ so that they are readily usable with longranger
 
-			with open(os.path.abspath(args.output + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'), 'w') as regionout:
+		print('Done')
 
-				subprocess.call(['samtools', 'faidx', os.path.abspath(fasta), str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])], stdout=regionout, stderr=open(os.devnull, 'wb'))
+	else:
 
-
-			Par.COUNT=counter
-
-			FAREGION=pyfaidx.Fasta(os.path.abspath(args.output + '/h' + str(folder+1) + '/' + str(counter) +'.region.tmp.fa'))
-			CHROMREGION=FAREGION[str(entries[0]) + ':' + str(entries[1]) +  '-' +str(entries[2])]
-			SEQREGION=CHROMREGION[:len(CHROMREGION)].seq
-			REGIONSTART=int(entries[1])
-
-			print(Par)
-
-			LinkedSim(Par, str(entries[0]), SEQREGION, REGIONSTART, os.path.abspath(args.output + '/h' + str(folder+1)))
+		print('Storing in proper format for Cell Ranger')
 
 
-	#organize output in output folder
 
-	print('Storing in proper format for longranger')
-
-	subdirs=sorted([os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))], key=natural_keys)
-
-	counter=0
-
-	for dirs in subdirs:
-
-		counter +=1
-
-		R1=[]
-		R2=[]
-
-		R1.extend(glob.glob(os.path.abspath(dirs) + '/*_R1_*'))
-		R2.extend(glob.glob(os.path.abspath(dirs) + '/*_R2_*'))
-
-		command1 = 'cat ' + ' '.join(x for x in sorted(R1))
-		command2 = 'cat ' + ' '.join(x for x in sorted(R2))
-
-		with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R1_001.fastq'), 'w') as fout:
-
-			subprocess.call(shlex.split(command1), stdout=fout)
-
-		with open(os.path.abspath(args.output + '/' + Par.NAME + '_S1_L' + str(counter).zfill(3) + '_R2_001.fastq'), 'w') as fout:
-
-			subprocess.call(shlex.split(command2), stdout=fout)
-
-		for x in R1:
-
-			os.remove(x)
-
-
-		for y in R2:
-
-			os.remove(y)
-
-		os.rmdir(dirs)
-
-	subprocess.call(['bash', cleanerpath, os.path.abspath(args.output)]) #refine FASTQ so that they are readily usable with longranger
-
-	print('Done')
 
 
 #CLASSES
@@ -498,3 +604,38 @@ def LinkedSim(Par,reftitle,refseq,refstart, output):
 		p.join()
 
 	subprocess.call(['bash', organizerpath, os.path.abspath(output), str(Par.COUNT), Par.NAME, str(Par.HAPLONUM).zfill(3)])
+
+
+
+def SingleCellSim(Par,reftitle,refseq,refstart, output, cell, barcode):
+
+
+	truedim=len(refseq)-refseq.count('N')
+	NUM_READS=int(truedim*Par.COV)/(Par.SRL*2)
+
+	print('Simulating ' + str(NUM_READS) + ' reads')
+
+	subprocess.call(['wgsim', '-e', str(Par.SRE), '-d', str(Par.INS), '-s', str(Par.STDEV), '-N', str(NUM_READS), '-1', str(Par.SRL-(16+6)), '-2', str(Par.SRL), '-R', str(Par.INDELP), '-X', str(Par.INDELEXT), os.path.abspath(output + '/'+ str(Par.COUNT) + '.region.tmp.fa'), os.path.abspath(output + '/'+ str(Par.COUNT) + '.R1.fq.tmp'),os.path.abspath(output + '/'+ str(Par.COUNT) + '.R2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+
+	RANDOM6MER=''.join(np.random.choice(['A','T','G','C','N'],6, replace=True))
+
+	with open(os.path.abspath(output + '/'+ str(Par.COUNT) + '.R1.fq.tmp'), 'r') as fin, open(os.path.abspath(output + '/'+ str(Par.COUNT) + '.R1.fq'), 'w') as fout:
+
+		for line in fin:
+
+			if line.startswith(str(5)):
+
+				fout.write(str(5)*(16+6) + line)
+
+			elif line.startswith('@') or line.startswith('+'):
+
+				fout.write(line)
+
+			else:
+
+				fout.write(barcode + RANDOM6MER + line)
+
+	os.remove(os.path.abspath(output + '/'+ str(Par.COUNT) + '.R1.fq.tmp'))
+
+	print('Done')
+
