@@ -101,9 +101,9 @@ def main():
 	parser_long.set_defaults(func=run_subtool)
 
 
-	## LIKER ## [Beta version]
+	## XENIA ## [Beta version]
 
-	parser_tenx = subparsers.add_parser('LIKER', help='LInKed rEads simulatoR. Simulate 10X linked reads FASTQ files from FASTA files using regions specified in BED file. Please note that this module is released in BETA version.')
+	parser_tenx = subparsers.add_parser('XENIA', help='10X gENomics sImulAtor. Simulate 10X Genomics FASTQ files (linked-reads FASTQ or FASTQ from single-cells for CNV detection)  from FASTA files using regions specified in BED file. Please note that this module is released in BETA version.')
 
 
 	required = parser_tenx.add_argument_group('Required I/O arguments')
@@ -122,15 +122,24 @@ def main():
 	wgi.add_argument('-is', '--insertsize', help='0uter distance between the two ends [500]',metavar='', default=500, type=int)
 	wgi.add_argument('-sd', '--standardev', help='Standard deviation for insert size [50]',metavar='', default=50, type=int)
 
-	molecules=parser_tenx.add_argument_group('10X molecules parameters')
+
+	simtype = parser_tenx.add_argument_group('Type of simulations')
+
+	simtype.add_argument('-t','--type', help='Whether to simulate bulk [bulk] or single-cell [single-cell] data [bulk].', metavar='', default='bulk', choices=['bulk', 'single-cell'])
+
+	molecules=parser_tenx.add_argument_group('10X linked reads molecules parameters')
 
 	molecules.add_argument('--molecules_length', help='Mean molecules length [80000]', default=80000, type=int, metavar='')
 	molecules.add_argument('--molecules_number', help='Mean number of molecules per GEM [10]', default=10, type=int, metavar='')
 	molecules.add_argument('--molecules_coverage', help='Mean numbercoverage per molecule [0.2]', default=0.2, type=float, metavar='')
 
+	singlecell=parser_tenx.add_argument_group('10X single cells parameters')
+
+	singlecell.add_argument('--cells_number', help='Number of cells to simulate', default=100, type=int, metavar='')
+
 	optional = parser_tenx.add_argument_group('Additional general parameters')
 
-	optional.add_argument('--threads', help='Number of cores to use for FASTQ parallel simulations [1]', metavar='', type=int, default=1)
+	optional.add_argument('--threads', help='Number of cores to use for bulk FASTQ parallel simulations [1]', metavar='', type=int, default=1)
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 
 	parser_tenx.set_defaults(func=run_subtool)
@@ -192,9 +201,9 @@ def run_subtool(parser, args):
 
 		from .LASeR import LASeR as submodule
 
-	elif args.command == 'LIKER':
+	elif args.command == 'XENIA':
 
-		from .LIKER import LIKER as submodule
+		from .XENIA import XENIA as submodule
 
 	else:
 
@@ -206,3 +215,4 @@ def run_subtool(parser, args):
 if __name__ =='__main__':
 
 	main()
+
