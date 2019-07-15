@@ -1,5 +1,5 @@
 include VISOR/LASeR/model_qc_clr
 include VISOR/SHORtS/generate.sh
-include VISOR/LIKER/4M-with-alts-february-2016.txt.gz
-include VISOR/LIKER/clean.sh
-include VISOR/LIKER/organize.sh
+include VISOR/XENIA/4M-with-alts-february-2016.txt.gz
+include VISOR/XENIA/clean.sh
+include VISOR/XENIA/organize.sh
