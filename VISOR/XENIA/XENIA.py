@@ -205,7 +205,7 @@ def run(parser,args):
 
 		i=0
 
-		CellsIDX=random.choices(range(0,96),k=args.cells_number)
+		CellsIDX=random.choices(range(1,97),k=args.cells_number)
 		
 		while i < args.cells_number:
 
