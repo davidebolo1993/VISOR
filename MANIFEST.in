@@ -3,3 +3,5 @@ include VISOR/SHORtS/generate.sh
 include VISOR/XENIA/4M-with-alts-february-2016.txt.gz
 include VISOR/XENIA/clean.sh
 include VISOR/XENIA/organize.sh
+include VISOR/XENIA/chromium-shared-sample-indexes-plate.csv
+include VISOR/XENIA/737K-crdna-v1.txt.gz
