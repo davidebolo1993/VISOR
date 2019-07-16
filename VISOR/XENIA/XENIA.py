@@ -84,12 +84,6 @@ def run(parser,args):
 	barcodepath=os.path.abspath(os.path.dirname(__file__) + '/4M-with-alts-february-2016.txt.gz')
 	
 
-	else:
-
-		print('single-cell mode is not available yet')
-		sys.exit(1)
-
-
 	with gzip.open(barcodepath, 'rt') as fin:
 
 		barcodes = fin.read().splitlines()
