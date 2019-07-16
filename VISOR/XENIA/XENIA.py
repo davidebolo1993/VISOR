@@ -81,9 +81,7 @@ def run(parser,args):
 		sys.exit(1)
 
 
-	if args.type=='bulk':
-
-		barcodepath=os.path.abspath(os.path.dirname(__file__) + '/4M-with-alts-february-2016.txt.gz')
+	barcodepath=os.path.abspath(os.path.dirname(__file__) + '/4M-with-alts-february-2016.txt.gz')
 	
 
 	else:
