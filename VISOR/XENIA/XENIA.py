@@ -7,7 +7,6 @@ import sys
 import glob
 import re
 import math
-import random
 from shutil import which
 import multiprocessing
 import subprocess, shlex
