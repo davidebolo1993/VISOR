@@ -103,7 +103,7 @@ def main():
 
 	## XENIA ## [Beta version]
 
-	parser_tenx = subparsers.add_parser('XENIA', help='10X gENomics sImulAtor. Simulate 10X Genomics FASTQ files (linked-reads FASTQ or FASTQ from single-cells for CNV detection)  from FASTA files using regions specified in BED file. Please note that this module is released in BETA version.')
+	parser_tenx = subparsers.add_parser('XENIA', help='10X gENomics sImulAtor. Simulate 10X Genomics linked reads FASTQ files from FASTA files using regions specified in BED file. Please note that this module is released in BETA version.')
 
 
 	required = parser_tenx.add_argument_group('Required I/O arguments')
