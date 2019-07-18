@@ -1,6 +1,6 @@
 # VISOR
 
-<div style="width: 180px; margin: 10 auto;"><a href="http://popmodels.cancercontrol.cancer.gov/gsr/"><img src="http://popmodels.cancercontrol.cancer.gov/gsr/static/img/gsr_tile.jpg" alt="Catalogued on GSR" width="180" height="60" /></a></div>
+<div style="width: 180px; margin: 10;"><a href="http://popmodels.cancercontrol.cancer.gov/gsr/"><img src="http://popmodels.cancercontrol.cancer.gov/gsr/static/img/gsr_tile.jpg" alt="Catalogued on GSR" width="180" height="60" /></a></div>
 
 ![alt text](VISOR.png)
 
