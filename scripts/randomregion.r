@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
+  install.packages("BiocManager",repos='http://cran.us.r-project.org')
 if (!requireNamespace("optparse", quietly = TRUE))
-  install.packages("optparse")
+  install.packages("optparse",repos='http://cran.us.r-project.org')
 if (!requireNamespace("regioneR", quietly = TRUE))
   BiocManager::install("regioneR")
 
