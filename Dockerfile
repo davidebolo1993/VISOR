@@ -7,7 +7,7 @@ FROM ubuntu:18.04
 MAINTAINER Davide Bolognini <davidebolognini7@gmail.com>
 
 # Install dependencies
-RUN apt-get update && apt-get install -y curl git gzip libz-dev libpng-dev libbz2-dev liblzma-dev
+RUN apt-get update && apt-get install -y nano curl git && apt-get clean
 RUN curl -LO http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
 RUN bash Miniconda-latest-Linux-x86_64.sh -p /miniconda -b
 RUN rm Miniconda-latest-Linux-x86_64.sh
@@ -18,6 +18,7 @@ RUN echo "source activate visorenv" > ~/.bashrc
 ENV PATH /miniconda/envs/visorenv/bin:$PATH
 RUN conda install -n visorenv -c bioconda samtools wgsim pbsim bwa minimap2 pybedtools pysam pyfaidx
 RUN conda install -n visorenv -c r r
+RUN conda install -n visorenv -c bioconda bioconductor-rhtslib
 RUN git clone https://github.com/davidebolo1993/VISOR.git && cd VISOR && python setup.py install
 
 #Pull with:
