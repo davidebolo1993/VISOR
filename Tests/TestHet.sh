@@ -49,7 +49,7 @@ cd ..
 wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/pileup2base.pl
 wget https://raw.githubusercontent.com/davidebolo1993/VISOR/master/Tests/TestHet/plotBAFCOV.R
 
-echo "Generating SVs in the 2 clones with some random SNPs"
+echo "Inserting SVs in the 2 clones"
 
 VISOR HACk -g Templates/h1.fa -bed files/VISOR.clone1.h1.SVs.bed -o clone1
 cp chr22.fa clone1/ && mv clone1/chr22.fa clone1/h2.fa
