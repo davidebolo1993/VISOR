@@ -667,7 +667,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 	if len(seq) < end-start:
 
 		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
-		numreads= round((coverage*(len(seq)-Ns)) / length)/2 #calculate chosen coverage and divide by 2 beacuse they are pairs
+		numreads= round((coverage*(len(seq)-Ns)) / length)/2 #calculate chosen coverage and divide by 2 'cause they are pairs
 
 	else:
 
