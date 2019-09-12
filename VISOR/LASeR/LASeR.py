@@ -84,19 +84,39 @@ def run(parser,args):
 
 		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
 		exitonerror(os.path.abspath(args.output))
-		
-	if not os.path.exists(os.path.abspath(args.genome + '.mmi')):
-		
-		logging.info('Creating .mmi index for reference genome')
-		
-		try:
-			
-			subprocess.check_call(['minimap2', '-d', os.path.abspath(args.genome + '.mmi'), os.path.abspath(args.genome)], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome		
-		
-		except:
 
-			logging.error('Could not create .mmi index for the reference genome')
-			exitonerror(os.path.abspath(args.output))
+
+	if args.readstype == 'ONT':
+		
+		if not os.path.exists(os.path.abspath(args.genome + '.ont.mmi')):
+			
+			logging.info('Creating .mmi index for reference genome')
+			
+			try:
+				
+				subprocess.check_call(['minimap2', '-d', os.path.abspath(args.genome + '.ont.mmi'), os.path.abspath(args.genome)], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome		
+			
+			except:
+
+				logging.error('Could not create .mmi index for the reference genome')
+				exitonerror(os.path.abspath(args.output))
+
+	else:
+
+		if not os.path.exists(os.path.abspath(args.genome + '.pb.mmi')):
+			
+			logging.info('Creating .mmi index for reference genome')
+			
+			try:
+				
+				subprocess.check_call(['minimap2', '-H', '-d', os.path.abspath(args.genome + '.pb.mmi'), os.path.abspath(args.genome)], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb')) #create .mmi: faster when it comes to simulate multiple times from same chromosome		
+			
+			except:
+
+				logging.error('Could not create .mmi index for the reference genome')
+				exitonerror(os.path.abspath(args.output))
+
+
 
 
 	#validate .bed
@@ -245,7 +265,7 @@ def run(parser,args):
 
 				try:
 
-					m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/h' + str(folder+1)),folder +1, 1)
+					m=Simulate(tag,os.path.abspath(args.genome), args.readstype, args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/h' + str(folder+1)),folder +1, 1)
 
 					if type(m) == str:
 
@@ -349,7 +369,7 @@ def run(parser,args):
 
 					try:		
 
-						m=Simulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
+						m=Simulate(tag,os.path.abspath(args.genome),args.readstype, args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
 
 						if type(m) == str:
 
@@ -485,7 +505,6 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 			subprocess.call(['cat', os.path.abspath(output + '/simref_0001.fastq'), os.path.abspath(output + '/simvar_0001.fastq')], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
-
 		os.remove(os.path.abspath(output + '/simref_0001.fastq'))
 		os.remove(os.path.abspath(output + '/simvar_0001.fastq'))
 
@@ -498,13 +517,24 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 		os.remove(os.path.abspath(output + '/sim_0001.ref'))
 		os.remove(os.path.abspath(output + '/sim_0001.maf'))
 
-	new_mmi=os.path.abspath(genome + '.mmi')
-
 	#align to reference
+	
+	if args.readstype == 'ONT':
 
-	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
+		new_mmi=os.path.abspath(genome + '.ont.mmi')
 
-		subprocess.call(['minimap2', '-ax', 'map-ont', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+		with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
+
+			subprocess.call(['minimap2', '-ax', 'map-ont', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+
+	else:
+
+		new_mmi=os.path.abspath(genome + '.pb.mmi')
+
+		with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
+
+			subprocess.call(['minimap2', '-ax', 'map-pb', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+
 
 	os.remove(os.path.abspath(output + '/sim_0001.fastq'))
 
