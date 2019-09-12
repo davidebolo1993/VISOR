@@ -460,7 +460,7 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 
 
-def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
+def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
 
 	#prepare region
 
@@ -519,7 +519,7 @@ def Simulate(tag, genome, cores, haplotype, chromosome, start, end, label, model
 
 	#align to reference
 	
-	if args.readstype == 'ONT':
+	if readstype == 'ONT':
 
 		new_mmi=os.path.abspath(genome + '.ont.mmi')
 
