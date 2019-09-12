@@ -94,6 +94,7 @@ def main():
 
 	optional = parser_long.add_argument_group('Additional general parameters')
 
+	optional.add_argument('--readstype', help='Type of long reads (ONT,PB) for genome indexing [ONT]', metavar='', default='ONT', choices=['ONT', 'PB'])
 	optional.add_argument('--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 	optional.add_argument('--noaddtag', help='Do not tag reads in BAM by haplotype and clone number', action='store_false')	
