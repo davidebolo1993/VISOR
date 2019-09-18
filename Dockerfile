@@ -16,9 +16,9 @@ RUN conda update -y conda
 RUN conda create -y -n visorenv python=3.6
 RUN echo "source activate visorenv" > ~/.bashrc
 ENV PATH /miniconda/envs/visorenv/bin:$PATH
-RUN conda install -n visorenv -c bioconda samtools wgsim pbsim bwa minimap2 pybedtools pysam pyfaidx
-RUN conda install -n visorenv -c r r
-RUN conda install -n visorenv -c bioconda bioconductor-rhtslib
+RUN conda install -y -n visorenv -c bioconda samtools wgsim pbsim bwa minimap2 pybedtools pysam pyfaidx
+RUN conda install -y -n visorenv -c r r
+RUN conda install -y -n visorenv -c bioconda bioconductor-rhtslib
 RUN git clone https://github.com/davidebolo1993/VISOR.git && cd VISOR && python setup.py install
 
 #Pull with:
