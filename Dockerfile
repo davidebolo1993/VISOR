@@ -1,4 +1,4 @@
-#Built with:
+#Build with:
 #sudo docker build -t davidebolo1993/visor .
 
 FROM ubuntu:18.04
