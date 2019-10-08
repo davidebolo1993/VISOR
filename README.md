@@ -12,3 +12,11 @@ Please have a look at [VISOR documentation](https://davidebolo1993.github.io/vis
 [Source Code](https://github.com/davidebolo1993/VISOR/tree/master/VISOR)
 
 [Documentation](https://davidebolo1993.github.io/visordoc/)
+
+## Citation
+
+Are you using VISOR in your works? Please cite:
+
+Davide Bolognini, Ashley Sanders, Jan O Korbel, Alberto Magi, Vladimir Benes, Tobias Rausch.
+[VISOR: a versatile haplotype-aware structural variant simulator for short and long read sequencing] (https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btz719/5582674/)
+Bioinformatics. 2019 Oct 7.
