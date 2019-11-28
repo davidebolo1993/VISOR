@@ -4,7 +4,7 @@
 
 ![alt text](VISOR.png)
 
-## VISOR: haplotype-aware structural variants simulator
+## VISOR: haplotype-aware structural variants simulator for short, long and linked reads
 
 VISOR is available to be installed from source or as a [Docker container](https://hub.docker.com/r/davidebolo1993/visor).
 Please have a look at [VISOR documentation](https://davidebolo1993.github.io/visordoc/) for any installation or usage questions.
