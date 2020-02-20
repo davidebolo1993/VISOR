@@ -70,7 +70,6 @@ def run(parser,args):
 			exitonerror(os.path.abspath(args.output))
 
 
-
 	#validate genome
 
 
@@ -175,8 +174,13 @@ def run(parser,args):
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	classic_chrs = fa.keys() #allowed chromosomes
 	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
-	tag=args.noaddtag
+	renamer=False
 
+	if args.addprefix:
+
+		renamer=os.path.abspath(os.path.dirname(__file__) + '/rename.sh')
+	
+	tag=args.noaddtag
 	logging.info('Running simulations')
 
 	if len(inputs) == 1: #just one folder, use a classic simulation
@@ -265,7 +269,7 @@ def run(parser,args):
 
 				try:
 
-					m=Simulate(tag,os.path.abspath(args.genome), args.readstype, args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/h' + str(folder+1)),folder +1, 1)
+					m=Simulate(tag,os.path.abspath(args.genome), args.readstype, args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, (args.coverage / 100 * float(entries[3]))/len(fastas), allelic, args.length, args.ratio, os.path.abspath(args.output + '/h' + str(folder+1)),folder +1, 1,renamer)
 
 					if type(m) == str:
 
@@ -369,7 +373,7 @@ def run(parser,args):
 
 					try:		
 
-						m=Simulate(tag,os.path.abspath(args.genome),args.readstype, args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
+						m=Simulate(tag,os.path.abspath(args.genome),args.readstype, args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), model_qc, args.accuracy, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, 100.0, args.length, args.ratio, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1,renamer)
 
 						if type(m) == str:
 
@@ -460,7 +464,7 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 
 
-def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone):
+def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, label, model_qc, accuracy, coverage, allelic, length, ratio, output, haplonum, clone,renamer):
 
 	#prepare region
 
@@ -516,6 +520,13 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 		os.remove(os.path.abspath(output + '/region.tmp.fa'))
 		os.remove(os.path.abspath(output + '/sim_0001.ref'))
 		os.remove(os.path.abspath(output + '/sim_0001.maf'))
+
+
+	#re-parse fastq?
+
+	if renamer:
+
+		subprocess.call(['bash', renamer, os.path.abspath(output), 'C' + str(clone) + '_H' + str(haplonum)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 	#align to reference
 	
