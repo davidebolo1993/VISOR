@@ -178,7 +178,7 @@ def run(parser,args):
 
 	if args.addprefix:
 
-		renamer=os.path.abspath(os.path.dirname(__file__) + '/rename.sh')
+		renamer=os.path.abspath(os.path.dirname(__file__) + '/renamer.sh')
 	
 	tag=args.noaddtag
 	logging.info('Running simulations')
