@@ -171,6 +171,13 @@ def run(parser,args):
 
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
+
+	renamer=False
+
+	if args.addprefix:
+
+		renamer=os.path.abspath(os.path.dirname(__file__) + '/renamer.sh')
+
 	classic_chrs = fa.keys() #allowed chromosomes
 	tag=args.noaddtag
 	logging.info('Running simulations')
@@ -268,7 +275,7 @@ def run(parser,args):
 
 					if args.type == 'bulk':
 
-						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)), folder+1, 1)
+						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)), folder+1, 1, renamer)
 						
 						if type(m) == str:
 
@@ -450,7 +457,7 @@ def run(parser,args):
 
 					try:
 
-						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1)
+						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1, renamer)
 
 						if type(m) == str:
 
@@ -540,7 +547,7 @@ def ModifyReadTags(inbam, haplonum, clone):
 
 
 
-def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, insertsize, standarddev, output, haplonum, clone):
+def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, insertsize, standarddev, output, haplonum, clone, renamer):
 
 	#prepare region
 
@@ -612,6 +619,12 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
 	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
 
+	#re-parse fastq?
+
+	if renamer:
+
+		subprocess.call(['bash', renamer, os.path.abspath(output), 'C' + str(clone) + '_H' + str(haplonum)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
 		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
@@ -673,7 +686,6 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 
 		numreads= round((coverage*(end-start-Ns)) / length)/2 
 	
-
 	#simulate reads
 
 	subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
@@ -686,7 +698,6 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
 		subprocess.call(['bwa', 'mem', '-t', str(cores), haplotype, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
-
 
 	with open(os.path.abspath(output + '/region.tmp.bam'), 'w') as bamout:
 
@@ -701,8 +712,6 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 	os.remove(os.path.abspath(output + '/region.tmp.bam'))
 
 	subprocess.call(['samtools', 'index', os.path.abspath(output + '/region.tmp.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-
 
 
 def SingleStrand(haploname, chromosome, generate, genome, cores, bamfilein, label, noisefraction, output, scebed):
@@ -742,7 +751,6 @@ def SingleStrand(haploname, chromosome, generate, genome, cores, bamfilein, labe
 				
 			crickreads.write(read1.query_name + '\n')
 			crickreads.write(read2.query_name + '\n')	
-
 
 
 	if noisefraction > 0:

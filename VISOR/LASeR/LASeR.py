@@ -115,9 +115,6 @@ def run(parser,args):
 				logging.error('Could not create .mmi index for the reference genome')
 				exitonerror(os.path.abspath(args.output))
 
-
-
-
 	#validate .bed
 
 	bed = pybedtools.BedTool(os.path.abspath(args.bedfile)) #this one is required

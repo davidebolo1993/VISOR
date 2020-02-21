@@ -64,6 +64,7 @@ def main():
 	optional.add_argument('--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 	optional.add_argument('--noaddtag', help='Do not tag reads in BAM by haplotype and clone number. Reads in strand-seq data are not tagged by default', action='store_false')	
+	optional.add_argument('--addprefix', help='Add clone and haplotype numbers as a prefix to read names', action='store_true')	
 
 	parser_shorts.set_defaults(func=run_subtool)
 
