@@ -588,8 +588,8 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 		numreads1 = round((numreads/100)*allelic)		
 		numreads2 = numreads - numreads1
 
-		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
-		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads2), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/reference.region.tmp.fa'), os.path.abspath(output + '/reference.region.1.fq'), os.path.abspath(output + '/reference.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads2), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/reference.region.tmp.fa'), os.path.abspath(output + '/reference.region.1.fq'), os.path.abspath(output + '/reference.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 		with open (os.path.abspath(output + '/region.1.fq'), 'w') as regionout:
 
@@ -613,7 +613,7 @@ def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label,
 
 	else:
 
-		subprocess.call(['wgsim', '-e', str(error), '-d', str(insertsize), '-s', str(standarddev),'-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev),'-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 	
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
@@ -688,7 +688,7 @@ def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length
 	
 	#simulate reads
 
-	subprocess.call(['wgsim', '-e', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+	subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 	os.remove(os.path.abspath(output + '/region.tmp.fa'))
 	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
