@@ -379,7 +379,7 @@ def Count(genomein, bamfilein, binsize, chromosomes):
 
 			if chrom_end - start < binsize:
 
-				end == chrom_end
+				end = chrom_end
 
 
 	bam.close()
