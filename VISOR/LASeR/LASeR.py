@@ -533,7 +533,7 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 
 		with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-			subprocess.call(['minimap2', '-ax', 'map-ont', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+			subprocess.call(['minimap2', '-ax', 'map-ont', '-t', str(cores), '--MD', '--cs', new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 	else:
 
@@ -541,7 +541,7 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 
 		with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
 
-			subprocess.call(['minimap2', '-ax', 'map-pb', '-t', str(cores), new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+			subprocess.call(['minimap2', '-ax', 'map-pb', '-t', str(cores), '--MD', '--cs', new_mmi, os.path.abspath(output + '/sim_0001.fastq')], stdout=samout, stderr=open(os.devnull, 'wb'))
 
 
 	os.remove(os.path.abspath(output + '/sim_0001.fastq'))
