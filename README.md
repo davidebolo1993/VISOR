@@ -23,7 +23,7 @@ Bioinformatics. 2019 Oct 7.
 
 ## Related works
 
-VISOR has been applied to simulate strand-seq data in:
+VISOR has been applied to simulate Strand-seq data in:
 
 Ashley D Sanders, Sascha Meiers, Maryam Ghareghani, David Porubsky, Hyobin Jeong, M Alexandra CC van Vliet, Tobias Rausch, Paulina Richter-Pechańska, Joachim B Kunz, Silvia Jenni, Davide Bolognini, Gabriel MC Longo, Benjamin Raeder, Venla Kinanen, Jürgen Zimmermann, Vladimir Benes, Martin Schrappe, Balca R Mardin, Andreas E Kulozik, Beat Bornhauser, Jean-Pierre Bourquin, Tobias Marschall, Jan O Korbel. [Single-cell analysis of structural variations and complex rearrangements with tri-channel processing](https://www.nature.com/articles/s41587-019-0366-x).
 Nature Biotechnology. 2019 Dec 23.
