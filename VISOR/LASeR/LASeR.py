@@ -86,6 +86,8 @@ def run(parser,args):
 
 
 	if args.readstype == 'ONT':
+
+		model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
 		
 		if not os.path.exists(os.path.abspath(args.genome + '.ont.mmi')):
 			
@@ -101,6 +103,14 @@ def run(parser,args):
 				exitonerror(os.path.abspath(args.output))
 
 	else:
+
+		if args.ccs:
+
+			model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_ccs')
+
+		else:
+
+			model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
 
 		if not os.path.exists(os.path.abspath(args.genome + '.pb.mmi')):
 			
@@ -170,7 +180,7 @@ def run(parser,args):
 
 	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
 	classic_chrs = fa.keys() #allowed chromosomes
-	model_qc=os.path.abspath(os.path.dirname(__file__) + '/model_qc_clr')
+
 	renamer=False
 
 	if args.addprefix:
