@@ -486,6 +486,13 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 
 		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
 
+	if model_qc.endswith('clr'):
+
+		datatype='CLR'
+
+	else:
+
+		datatype='CCS'
 
 	if not allelic == 100: #simulate part from modified and part from reference
 
@@ -497,15 +504,14 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 		coveragevar = (coverage/100)*allelic
 		coverageref = coverage - coveragevar
 
-
-		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/simref','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverageref), os.path.abspath(output + '/reference.region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--data-type', datatype, '--prefix', output + '/simref','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverageref), os.path.abspath(output + '/reference.region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(output + '/reference.region.tmp.fa'))
 		os.remove(os.path.abspath(output + '/simref_0001.ref'))
 		os.remove(os.path.abspath(output + '/simref_0001.maf'))
 
 
-		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/simvar','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coveragevar), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--data-type', datatype, '--prefix', output + '/simvar','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coveragevar), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(output + '/region.tmp.fa'))
 		os.remove(os.path.abspath(output + '/simvar_0001.ref'))
@@ -522,7 +528,7 @@ def Simulate(tag, genome, readstype, cores, haplotype, chromosome, start, end, l
 
 	else:
 
-		subprocess.call(['pbsim', '--model_qc', model_qc, '--prefix', output + '/sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		subprocess.call(['pbsim', '--model_qc', model_qc, '--data-type', datatype, '--prefix', output + '/sim','--length-mean', str(length), '--accuracy-mean', str(accuracy), '--difference-ratio', ratio, '--depth', str(coverage), os.path.abspath(output + '/region.tmp.fa')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
 		os.remove(os.path.abspath(output + '/region.tmp.fa'))
 		os.remove(os.path.abspath(output + '/sim_0001.ref'))
