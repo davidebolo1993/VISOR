@@ -1,4 +1,5 @@
 include VISOR/LASeR/model_qc_clr
+include VISOR/LASeR/model_qc_ccs
 include VISOR/LASeR/renamer.sh
 include VISOR/SHORtS/generate.sh
 include VISOR/SHORtS/renamer.sh
