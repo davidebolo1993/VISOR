@@ -61,7 +61,7 @@ def run(parser,args):
 
 	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
 	classic_chrs = immutable_ref.keys() #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'SNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
+	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'SNP', 'MNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
 	valid_dna = 'ACGT' #allowed nucleotides
 	haplopattern=re.compile("^h[0-9]+$") #allowed haplotypes for inter-haplotypes SVs are h1,h2,h3 ...
 
@@ -180,7 +180,26 @@ def run(parser,args):
 
 							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''))
 
-		
+					elif str(entries[3]) == 'MNP': #
+
+						if not all(x in valid_dna for x in str(entries[4])): #information is a valid nucleotide string:
+
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA string of A,C,T,G')
+							exitonerror(os.path.abspath(args.output))
+
+						if len(str(entries[4])) != int(entries[2])-int(entries[1])+1:
+
+							logging.error('Incorrect length of sequence ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be the same length of the sequence between start and end')
+							exitonerror(os.path.abspath(args.output))
+
+						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+
+							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+
+						else:
+
+							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+
 					elif str(entries[3]) == 'inversion': #information must be None
 
 						if str(entries[4]) != 'None':
@@ -789,8 +808,6 @@ def CTRTR(infofield, sequence, start, end): #contract tr
 	return new_seq
 
 
-
-
 def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 	trans = str.maketrans('ATGC', 'TACG')
@@ -865,12 +882,23 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 					write_sequence_between(alt_seq, output_fasta)
 
 
+				elif typ == 'MNP': #change sequence
+
+					alt_seq=info
+
+					write_sequence_between(alt_seq, output_fasta)
+
 				elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, as they are translated before intro insertions and deletions
 
 					alt_seq=''
 
-					write_sequence_between(alt_seq, output_fasta)
+					if end-start != 1: #probably not the best solution if someone really wants to delete 2 bps. But also out of the scope of a SV simulator. Added to solve https://github.com/davidebolo1993/VISOR/issues/9
 
+						write_sequence_between(alt_seq, output_fasta)
+
+					else:
+
+						write_sequence_between(alt_seq+seq[end-1], output_fasta)						
 
 				elif typ == 'insertion': #write specified insertion; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
 

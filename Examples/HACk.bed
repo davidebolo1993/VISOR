@@ -11,3 +11,4 @@ chr1	80000000	81000000	translocation cut-paste	h1:chr1:180000000:forward	5
 chr1	90000000	91000000	translocation copy-paste	h1:chr1:190000000:reverse	0
 chr1	100000000	101000000	reciprocal translocation	h2:chr2:200000000:forward:forward	3
 chr1	110000000	110000001	SNP	T	0
+chr1	160000000	160000010	MNP	TATATATAAAA	0
