@@ -202,7 +202,7 @@ def run(parser,args):
 
 					elif str(entries[3]) == 'inversion': #information must be None
 
-						if str(entries[4]) != 'None':
+						if str(entries[4]) != 'None' and str(entries[4]) != '1bp':
 
 							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
 							exitonerror(os.path.abspath(args.output))
@@ -219,9 +219,9 @@ def run(parser,args):
 
 					elif str(entries[3]) == 'deletion': #information must be None
 
-						if str(entries[4]) != 'None':
+						if str(entries[4]) not in ('None', '1bp'):
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
+							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None or 1bp, for single-base deletions')
 							exitonerror(os.path.abspath(args.output))
 
 						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
@@ -892,13 +892,19 @@ def ParseDict(chromosomes, fasta, dictionary, output_fasta):
 
 					alt_seq=''
 
-					if end-start != 1: #probably not the best solution if someone really wants to delete 2 bps. But also out of the scope of a SV simulator. Added to solve https://github.com/davidebolo1993/VISOR/issues/9
+					if end-start == 1: 
 
-						write_sequence_between(alt_seq, output_fasta)
+						if info == 'None':
+
+							write_sequence_between(alt_seq, output_fasta)
+
+						else:
+
+							write_sequence_between(alt_seq+seq[end-1], output_fasta)
 
 					else:
 
-						write_sequence_between(alt_seq+seq[end-1], output_fasta)						
+						write_sequence_between(alt_seq, output_fasta)
 
 				elif typ == 'insertion': #write specified insertion; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
 

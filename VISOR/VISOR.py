@@ -24,7 +24,6 @@ def main():
 
 	parser_hack.set_defaults(func=run_subtool)
 
-
 	## SHORtS ##
 
 	parser_shorts = subparsers.add_parser('SHORtS', help='SHOrt Reads Simulator. Simulate short reads BAM files from FASTA haplotypes using regions specified in BED file.')
