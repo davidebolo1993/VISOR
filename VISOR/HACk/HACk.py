@@ -202,7 +202,7 @@ def run(parser,args):
 
 					elif str(entries[3]) == 'inversion': #information must be None
 
-						if str(entries[4]) != 'None' and str(entries[4]) != '1bp':
+						if str(entries[4]) != 'None':
 
 							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
 							exitonerror(os.path.abspath(args.output))
