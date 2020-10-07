@@ -24,3 +24,7 @@ Are you using VISOR in your works? Please cite:
 VISOR has been applied to simulate Strand-seq data in:
 
 > Ashley D Sanders, Sascha Meiers, Maryam Ghareghani, David Porubsky, Hyobin Jeong, M Alexandra CC van Vliet, Tobias Rausch, Paulina Richter-Pechańska, Joachim B Kunz, Silvia Jenni, Davide Bolognini, Gabriel MC Longo, Benjamin Raeder, Venla Kinanen, Jürgen Zimmermann, Vladimir Benes, Martin Schrappe, Balca R Mardin, Andreas E Kulozik, Beat Bornhauser, Jean-Pierre Bourquin, Tobias Marschall, Jan O Korbel. [Single-cell analysis of structural variations and complex rearrangements with tri-channel processing](https://www.nature.com/articles/s41587-019-0366-x). Nature Biotechnology. 2019 Dec 23.
+
+VISOR has been applied to simulate repeat contractions/expansions in long-read data, as described in:
+
+> Davide Bolognini, Ashley D Sanders, Jan O Korbel, Alberto Magi, Vladimir Benes, Tobias Rausch. [TRiCoLOR: tandem repeat profiling using whole-genome long-read sequencing data](https://academic.oup.com/gigascience/article/9/10/giaa101/5918863?searchresult=1). GigaScience. 2020 Oct 7.
