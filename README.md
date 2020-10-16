@@ -1,6 +1,7 @@
 # VISOR
 
 <div style="width: 180px; margin: 0 auto;"><a href="https://surveillance.cancer.gov/genetic-simulation-resources/"><img src="https://surveillance.cancer.gov/genetic-simulation-resources/gsr/static/img/gsr_tile.jpg" alt="Catalogued on GSR" width="180" height="60" /></a></div>
+
 ![alt text](VISOR.png)
 
 ## VISOR: haplotype-aware structural variants simulator for short, long and linked reads
