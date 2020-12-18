@@ -18,7 +18,7 @@ before_install:
   - wget https://github.com/arq5x/bedtools2/releases/download/v2.29.1/bedtools-2.29.1.tar.gz && tar -zxvf bedtools-2.29.1.tar.gz && cd bedtools2 && make && sudo make install && cd ..
   - wget https://github.com/samtools/htslib/releases/download/1.11/htslib-1.11.tar.bz2 && tar -vxjf htslib-1.11.tar.bz2 && cd htslib-1.11 && make && sudo make install && cd ..
   - wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2 && tar -vxjf samtools-1.11.tar.bz2 && cd samtools-1.11 && make && sudo make install && cd .. 
-  - git clone https://github.com/lh3/minimap2.git && cd minimap2 && make && export PATH=${PWD}:$PATH && cd ..
+  - wget https://github.com/lh3/minimap2/releases/download/v2.17/minimap2-2.17_x64-linux.tar.bz2 | tar -jxvf - && export PATH="${PWD}/minimap2-2.17_x64-linux:$PATH"
 
 install:
   
