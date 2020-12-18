@@ -23,6 +23,7 @@ before_install:
 install:
   
   - pip install -r requirements.txt #install BadRead
+  - pip install --upgrade cython
   - python setup.py install
 
 script:
