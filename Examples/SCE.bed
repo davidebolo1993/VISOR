@@ -1,1 +1,2 @@
-chr9	0	20000000	h1
+chr9	1	20000000	sample_cell1	haplotype1
+chr9	1	20000000	reference_cell1	haplotype2

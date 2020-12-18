@@ -1,997 +1,840 @@
-#!/usr/bin/python env
+#!/usr/bin/python3 env
 
 #python 3 standard library
 
 import os
 import sys
 import random
-import logging
-from operator import itemgetter
-import string
-import shutil
 import re
+import bisect
+from datetime import datetime
+from operator import itemgetter
+from shutil import which
 
 #additional modules
 
-import pybedtools #useful to sort inside python
-import pyfaidx # fastest way to deal with .fasta in python
+import pybedtools
+import pyfaidx
+
+class c():
+
+	'''
+	Container. This stores argparser parameters. Used to pass multiple parameters at once.
+	'''
+
+	OUT = ''
+	REF = ''
+	BED = list()
+
+
+class Overlap():
+
+	'''
+	Exclude overlapping variants
+	'''
+
+	def __init__(self):
+		
+		self._intervals = []
+
+	def intervals(self):
+		
+		return self._intervals
+
+	def put(self, interval):
+		
+		istart, iend, itype= interval
+		# Ignoring intervals that start after the window.                                       
+		i = bisect.bisect_right(self._intervals, (iend, sys.maxsize))
+
+		# Look at remaining intervals to find overlap.                                          
+		for start, end, typ in self._intervals[:i]:
+			
+			if end >= istart:
+				
+				return False
+		
+		bisect.insort(self._intervals, interval)
+		
+		return True
+
+def RandomI(nucs):
+
+	'''
+	Insert random nucleotide in nucleotide sequence
+	'''
+
+	index = random.randint(0, len(nucs)-1)
+	nucs = nucs[:index] + random.choice(['A','T','C','G']) + nucs[index:]
+
+	return nucs
+
+
+def RandomD(nucs):
+
+	'''
+	Delete random nucleotide in nucleotide sequence
+	'''
+
+	index = random.randint(0, len(nucs)-1)
+	nucs = nucs[:index] + nucs[index+1:]
+
+	return nucs
+
+
+def RandomX(nucs):
+
+	'''
+	Substitute random nucleotide in nucleotide sequence
+	'''
+
+	allnucs=['A','T','C','G']
+	index = random.randint(0, len(nucs)-1)
+	subchar=nucs[index]
+	allnucs.remove(subchar)
+	nucs=nucs[:index]+random.choice(allnucs)+nucs[index+1:] 
+
+	return nucs
+
+
+def write_chrom(chrs,pyseq_seq,hapfout):
+
+	'''
+	Write FASTA chromosome to file
+	'''
+
+	with open (hapfout, 'a') as faout:
+
+		faout.write('>' + chrs + '\n' + '\n'.join(re.findall('.{1,60}', pyseq_seq)) + '\n') #write 60-chars FASTA
+
+
+def HapMaker(pyref,pychroms,hapdict,hapfout):
+
+	'''
+	Create variant strings and insert them into FASTA haplotype
+	'''
+
+	for chrs in pychroms:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Processing chromosome ' + chrs)
+
+		chrom=pyref[chrs]
+		pyseq=chrom[:len(chrom)] #do not use .seq yet
+		final_seq=''
+
+		if chrs not in hapdict.keys(): #this means that it has not to be modified
+
+			final_seq+=pyseq.seq
+
+		else:
+
+			#remove duplicates and overlapping features, if any
+
+			alts=sorted(hapdict[chrs], key=itemgetter(0,1))
+			ranges=[(x[0],x[1],x[2]) for x in alts]
+			ov=Overlap()
+
+			for el in ranges:
+
+				ov.put(el)
+
+			if len(ov.intervals()) < len(ranges):
+
+				diff=len(ranges)-len(ov.intervals())
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Warning] ' + str(diff) + ' variants will be skipped for current chromosome as they overlap others (only the first occuring among overlapping variants will be kept)')
+
+			altsfltrd=[x for x in alts if (x[0],x[1],x[2]) in ov.intervals()] #exclude also different types
+
+			i=0
+
+			while i < len(altsfltrd):
+
+				s,e,ty,inf,sb=altsfltrd[i]
+				
+				if s==0: #but this is unlikely to happen, no variants at the start/end of a chromosome 
+
+					s+=1
+
+				if i == 0: #write until first variant
+
+					final_seq+=pyseq[:s-1].seq
+
+				#now arrange variants
+
+				if ty == 'inversion': #create reverse complement, as it has not been created previously
+
+					final_seq+=pyseq[s-1:e].reverse.complement.seq+sb
+
+				elif ty == 'deletion': #add nothing
+
+					if e-s == 1 and inf == '1bp':
+
+						final_seq+=pyseq[e-1].seq #ignore sb for 1 bp DEL
+
+					else:
+
+						final_seq+=sb
+
+				elif ty == 'insertion': #for translocations, insertions are already in the correct f/r orientation
+
+					final_seq+=pyseq[s-1:e].seq+inf+sb
+
+				elif ty == 'deletion-insertion':
+
+					final_seq+=inf+sb
+
+				elif ty == 'tandem duplication':
+
+					final_seq+=pyseq[s-1:e].seq*inf+sb
+
+				elif ty == 'inverted tandem duplication':
+
+					final_seq+=pyseq[s-1:e].seq+pyseq[s-1:e].reverse.complement.seq*(inf-1)+sb
+
+				elif ty == 'SNP':
+
+					final_seq+=pyseq[s-1:e-1].seq+inf #ignore sb for SNP
+
+				elif ty == 'MNP': #ignore sb for MNP
+
+					final_seq+=inf
+
+				elif ty == 'perfect tandem repetition': #ignore sb for PTR
+
+					motif,number=inf.split(':')
+					final_seq+=pyseq[s-1:e].seq+motif*int(number)
+
+				elif ty == 'approximate tandem repetition': #ignore sb for ATR
+
+					motif,number,error=inf.split(':')
+					app_rep=motif*int(number)
+					allalts=['I','D','X']
+
+					for a in range(int(error)):
+
+						#pick random alt
+						atype=random.choice(allalts)
+
+						if atype == 'I':
+
+							app_rep=RandomI(app_rep)
+
+						elif atype == 'D':
+
+							app_rep=RandomD(app_rep)
+
+						else:
+
+							app_rep=RandomX(app_rep)
+
+					final_seq+=pyseq[s-1:e].seq+app_rep
+
+				elif ty == 'tandem repeat expansion': #ignore sb for TRE
+
+					motif,number=inf.split(':')
+					final_seq+=pyseq[s-1:e].seq+motif*int(number)
+
+				elif ty == 'tandem repeat contraction': #ignore sb for TRC
+
+					motif,number=inf.split(':')
+					rep=pyseq[s:e].seq
+					index=len(motif)*int(number)
+					final_seq+=pyseq[s-1].seq+rep[index:]
+
+				if i < len(altsfltrd)-1: #till next start
+
+					final_seq+=pyseq[e:altsfltrd[i+1][0]-1].seq
+
+				elif i == len(altsfltrd)-1: #till chromosome end
+
+					final_seq+=pyseq[e:].seq
+
+				i+=1
+
+		write_chrom(chrs,final_seq,hapfout)
 
 
 def run(parser,args):
 
-	if not os.path.exists(os.path.abspath(args.output)):
+	'''
+	Check arguments, run functions
+	'''
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] VISOR HACk v1.1')
+
+	#fill container
+
+	c.OUT=os.path.abspath(args.output)
+	c.REF=os.path.abspath(args.genome)
+	c.BED=[os.path.abspath(x) for x in args.bedfile[0]]
+
+	#main
+
+	if not os.path.exists(c.OUT):
 
 		try:
 
-			os.makedirs(os.path.abspath(args.output))
+			os.makedirs(c.OUT)
 
 		except:
 
-			print('It was not possible to create the output folder. Specify a path for which you have write permissions')
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Cannot create the output folder')
 			sys.exit(1)
 
-	else: #path already exists
+	else:
 
-		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
+		if not os.access(os.path.abspath(c.OUT),os.W_OK):
 
-			print('You do not have write permissions on the output folder. Specify a folder for which you have write permissions')
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Missing write permissions on the output folder')
+			sys.exit(1)
+			
+		elif os.listdir(os.path.abspath(c.OUT)):
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] The output folder is not empty: specify another output folder or clean the current one')
 			sys.exit(1)
 
-		if os.listdir(os.path.abspath(args.output)):
 
-			print('Specified output folder is not empty. Specify another directory or clean the chosen one')
-			sys.exit(1)
+	if which('bedtools') is None:
 
-
-	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_HACk.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-	
-	print('Initialized .log file ' + os.path.abspath(args.output + '/VISOR_HACk.log'))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Error] bedtools must be in PATH')
+		sys.exit(1)
 
 	try:
 
-		with open(os.path.abspath(args.genome),'r') as file:
-
-			assert(file.readline().startswith('>')) #genome .file starts with '>'
+		ref=pyfaidx.Fasta(c.REF)
+		chrs=ref.keys()
 
 	except:
 
-		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
-		exitonerror(os.path.abspath(args.output))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Error] Reference file does not exist, is not readable or is not a valid FASTA')
+		sys.exit(1)
 
 
-	immutable_ref=pyfaidx.Fasta(os.path.abspath(args.genome)) #load referene, that will be used to modify real .fasta
-	classic_chrs = immutable_ref.keys() #allowed chromosomes
-	possible_variants = ['deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'SNP', 'MNP', 'tandem repeat expansion', 'tandem repeat contraction', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication', 'reciprocal translocation'] #allowed variants
-	valid_dna = 'ACGT' #allowed nucleotides
-	haplopattern=re.compile("^h[0-9]+$") #allowed haplotypes for inter-haplotypes SVs are h1,h2,h3 ...
+	#accepted variants
+	possible_variants = ['SNP', 'MNP', 'inversion', 'deletion', 'insertion', 'tandem duplication', 'inverted tandem duplication', 'perfect tandem repetition', 'approximate tandem repetition', 'tandem repeat expansion', 'tandem repeat contraction', 'reciprocal translocation', 'translocation cut-paste', 'translocation copy-paste', 'interspersed duplication']
+	valid_dna = 'ACGT'
+	haplopattern=re.compile("^h[0-9]+$") #allowed haplotypes for inter-haplotype variants (h1,h2,...)
 
-	bedlist=[]
+	#this will contain variants for each haplotype
+	d=dict()
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Validating variants in BED')
 
-	for bed in args.bedfile[0]:
+	for i,bed in enumerate(c.BED):
 
-		if bed not in bedlist:
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Validating BED ' + bed)
 
-			bedlist.append(bed) #remove possible duplicates but mantain input order that should be lost in set
+		try:
 
+			bedfile=pybedtools.BedTool(bed)
+			bedsrtd=bedfile.sort()
 
-	d=dict() #initialize one empty dict for each haplotype
+		except:
 
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] BED ' + bed + ' does not exist, is not readable or is not a valid BED')
+			sys.exit(1)
 
-	logging.info('Organizing SVs')
+		d["h{0}".format(i+1)]=dict() #one sub-dict for each BED/haplotype. This way of specifying different haplotypes works perfectly
 
+		for j,x in enumerate(bedsrtd):
 
-	for i,bed in enumerate(bedlist):
+			if x.chrom not in chrs:
 
-		if not os.path.exists(os.path.abspath(bed)):
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Line ' + str(j+1) + ': column 1 (chromosome name) contains an invalid chromosome (not included in the reference provided)')
+				sys.exit(1)
 
-			logging.error('.bed file ' + os.path.abspath(bed) + ' does not exist')
-			exitonerror(os.path.abspath(args.output))
+			#no need to check 2nd/3rd field, pybedtools already does
+			#check if 4th field is a valid/supported variant
 
-		else:
+			if x[3] not in possible_variants:
 
-			bedh = pybedtools.BedTool(os.path.abspath(bed))
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Line ' + str(j+1) + ': column 4 (variant type) contains an unsupported variant type')
+				sys.exit(1)
+
+			#check if 6th field can be converted to integer
 
 			try:
 
-				srtbedh = bedh.sort()
+				int(x[5])
 
 			except:
 
-				logging.error('Incorrect .bed format for .bed file ' + os.path.abspath(bed)  + '. Are you sure all the fields are tab-delimited?')
-				exitonerror(os.path.abspath(args.output))
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) must contain an integer')
+				sys.exit(1)
 
+			#now validate infos (5th field) for each variant
 
-			logging.info('Organizing SVs for ' + os.path.abspath(bed))
+			if x[3] == 'SNP':
 
-			
-			d["h{0}".format(i+1)]=dict()
+				if x[4] not in list(valid_dna): #single base must be a valid base. This also checks for length greater than 1
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid DNA base')
+					sys.exit(1)
 
-			for entries in srtbedh: 
+				if int(x[5]) != 0: #no random sequence at breakpoint: not a SV
 
-				if str(entries[0]) not in classic_chrs: #exclude errors in the first field
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) coherced to 0')
 
-					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file ' + os.path.abspath(bed))
-					exitonerror(os.path.abspath(args.output))
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-				try: #exclude errors in the second field
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],'')]
 
-					int(entries[1])
+				else:
 
-				except:
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],''))
 
-					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file  ' + os.path.abspath(bed) + '. Start must be an integer')
-					exitonerror(os.path.abspath(args.output))
+			elif x[3] == 'MNP':
 
+				if not all(y in list(valid_dna) for y in str(x[4])): #check that every base is a valid base
 
-				try: #exclude errors in the third field
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ':  column 5 (variant information) contains an invalid DNA sequence')
+					sys.exit(1)
 
-					int(entries[2])
+				if len(str(x[4])) != x.end-x.start +1: #check that the length of the sequence that has to be replaced mathces the length of a user-defined sequence
 
-				except:
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ':  column 5 (variant information) contains a sequence shorter/longer than region')
+					sys.exit(1)
 
-					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file  ' + os.path.abspath(bed) + '. End must be an integer')
-					exitonerror(os.path.abspath(args.output))
+				if int(x[5]) != 0: #no random sequence at breakpoint: not a SV
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) coherced to 0')
 
-				if (int(entries[2]) - int(entries[1]) == 0):
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed ' + os.path.abspath(bed) + '.')
-					exitonerror(os.path.abspath(args.output))
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],'')]
 
+				else:
 
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],''))
 
-				if str(entries[3]) not in possible_variants: #exclude errors in the fourth field
+			elif x[3] == 'inversion':
 
-					logging.error(str(entries[3]) + ' is not a valid variant in .bed ' + os.path.abspath(bed))
-					exitonerror(os.path.abspath(args.output))
+				if x[4] != 'None': #tolerate not-None, as there is only one chance
 
-				#exclude errors in the sixth field 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ':  column 5 (variant information) coherced to None')
+
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5]))) #if x[5] equal to 0, this is empty anyway
+
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
+
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],randomseq)]
+
+				else:
+
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],randomseq))
+
+			elif x[3] == 'deletion':
+
+				if x[4] not in {'None', '1bp'}: #these are the accepted possibilities by now
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid istruction. Must be either "None" or "1bp"')
+					sys.exit[1]
+
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
+
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
+
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],randomseq)]
+
+				else:
+
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],randomseq))
+
+			elif x[3] == 'insertion':
+
+				if not (all(y in list(valid_dna) for y in x[4].upper())): #sequence to insert must be a valid DNA string
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid DNA sequence')
+					sys.exit(1)
+
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
+
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
+
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4].upper(),randomseq)]
+
+				else:
+
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4].upper(),randomseq))
+
+			elif x[3] == 'tandem duplication' or x[3] == 'inverted tandem duplication': #same checks for these variants
 
 				try:
 
-					int(entries[5])
+					int(x[4])
 
 				except:
 
-					logging.error('Cannot convert ' + str(entries[5]) + ' to integer number in .bed file ' + os.path.abspath(bed) + '. Length of random sequence at breakpoint must be an integer')
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer')
+					sys.exit(1)
 
-				else: #everything fine for now
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-					if str(entries[3]) == 'SNP':
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], int(x[4]),randomseq)]
 
-						if str(entries[4]) not in valid_dna: #information is just a valid nucleotide
+				else:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA base included in A,C,T,G')
-							exitonerror(os.path.abspath(args.output))
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], int(x[4]),randomseq))
 
-						
-						if (int(entries[5])) != 0:
+			elif x[3] == 'perfect tandem repetition':
 
-							logging.warning('Incorrect length of random sequence at breakpoint ' + str(entries[5]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Coherced to 0')
+				column5=x[4].split(':') #info must be in this format
 
+				if len(column5) != 2:
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must be in string:integer format')
+					sys.exit(1)
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),'')]
+				if not (all(y in list(valid_dna) for y in column5[0].upper())): #sequence must be a valid DNA string
 
-						else:
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid DNA motif')
+					sys.exit(1)
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''))
+				try:
 
-					elif str(entries[3]) == 'MNP': #
+					int(column5[1])
 
-						if not all(x in valid_dna for x in str(entries[4])): #information is a valid nucleotide string:
+				except:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA string of A,C,T,G')
-							exitonerror(os.path.abspath(args.output))
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the number of repetitions')
+					sys.exit(1)
 
-						if len(str(entries[4])) != int(entries[2])-int(entries[1])+1:
+				if int(x[5]) != 0: #no random sequence at breakpoint: not a SV
 
-							logging.error('Incorrect length of sequence ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be the same length of the sequence between start and end')
-							exitonerror(os.path.abspath(args.output))
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) coherced to 0')
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],'')]
 
-						else:
+				else:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],''))
 
-					elif str(entries[3]) == 'inversion': #information must be None
+			elif x[3] == 'approximate tandem repetition':
 
-						if str(entries[4]) != 'None':
+				column5=x[4].split(':') #info must be in this format
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None')
-							exitonerror(os.path.abspath(args.output))
+				if len(column5) != 3:
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must be in string:integer:integer format')
+					sys.exit(1)
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+				if not (all(y in list(valid_dna) for y in column5[0].upper())): #sequence must be a valid DNA string
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid DNA motif')
+					sys.exit(1)
 
-						else:
+				try:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+					int(column5[1])
 
+				except:
 
-					elif str(entries[3]) == 'deletion': #information must be None
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the number of repetitions')
+					sys.exit(1)
 
-						if str(entries[4]) not in ('None', '1bp'):
+				try:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be None or 1bp, for single-base deletions')
-							exitonerror(os.path.abspath(args.output))
+					int(column5[2])
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+				except:
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the number of errors in repetition')
+					sys.exit(1)
 
-						else:
+				if int(x[5]) != 0: #no random sequence at breakpoint: not a SV
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5])))))
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) coherced to 0')
 
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-					elif str(entries[3]) == 'insertion': #information must be a valid DNA sequence
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],'')]
 
-						if not (all(i in valid_dna for i in entries[4].upper())): #validate sequence
+				else:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a valid DNA string with A,C,T,G characters')
-							exitonerror(os.path.abspath(args.output))
-								
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],''))
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper(), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+			elif x[3] == 'tandem repeat expansion' or x[3] == 'tandem repeat contraction': #same checks for these variants
 
-						else:
+				column5=x[4].split(':') #info must be in this format
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]).upper(), ''.join(random.choices(valid_dna, k=int(entries[5])))))
+				if len(column5) != 2:
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must be in string:integer format')
+					sys.exit(1)
 
-					elif str(entries[3]) == 'tandem duplication': #information must be an integer
+				if not (all(y in list(valid_dna) for y in column5[0].upper())): #sequence must be a valid DNA string
 
-						try:
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid DNA motif')
+					sys.exit(1)
 
-							int(entries[4])
+				try:
 
-						except:
+					int(column5[1])
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be an integer')
-							exitonerror(os.path.abspath(args.output))
+				except:
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the number of repetitions to add or subtract')
+					sys.exit(1)
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+				if int(x[5]) != 0: #no random sequence at breakpoint: not a SV
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]), ''.join(random.choices(valid_dna, k=int(entries[5]))))]
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] Line ' + str(j+1) + ': column 6 (length of random sequence to insert at breakpoint) coherced to 0')
 
-						else:
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, x[3], x[4],'')]
 
+				else:
 
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, x[3], x[4],''))
 
-					elif str(entries[3]) == 'inverted tandem duplication': #information must be an integer
+			elif x[3] == 'reciprocal translocation':
 
-						try:
+				column5=x[4].split(':') #info must be in this format
 
-							int(entries[4])
+				if len(column5) != 5:
 
-						except:
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must be in string:string:integer:string:string format')
+					sys.exit(1)
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be an integer')
-							exitonerror(os.path.abspath(args.output))
+				if not haplopattern.match(column5[0]):
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain a valid haplotype string')
+					sys.exit(1)
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+				if column5[1] not in chrs:
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid chromosome string (chromosome is not included in the reference provided)')
+					sys.exit(1)
 
-						else:
+				try:
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), int(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+					int(column5[2])
 
+				except:
 
-					elif str(entries[3]) == 'perfect tandem repetition': #perfect tandem repetition
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the breakpoint coordinate on the second chromosome')
+					sys.exit(1)
 
-						entr_4 = re.split('[:]',entries[4]) #Information must contain 2 fields
+				if column5[3] not in {'forward', 'reverse'} or column5[4] not in {'forward', 'reverse'}:
 
-						if len(entr_4) != 2:
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain valid orientations (either "forward" or "reverse")')
+					sys.exit(1)
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-							exitonerror(os.path.abspath(args.output))
+				#translocate second to first
 
+				newtype='deletion-insertion'
 
-						if not (all(i in valid_dna for i in entr_4[0].upper())): #check if motif is vaild DNA sequence
+				#get second sequence[2]
+				firstbase=int(column5[2])
+				lastbase=int(column5[2])+(x.end-x.start)
+				
+				if column5[4] == 'reverse':
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-							exitonerror(os.path.abspath(args.output))
+					transeq=ref[column5[1]][firstbase:lastbase].reverse.complement.seq
 
-						try:
+				else:
 
-							int(entr_4[1])
+					transeq=ref[column5[1]][firstbase:lastbase].seq
 
-						except:
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-							exitonerror(os.path.abspath(args.output))
+				if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
-						
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+					d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, newtype, transeq,randomseq)]
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
+				else:
 
-						else:
+					d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, newtype, transeq,randomseq))
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+				#translocate first to second
 
+				if column5[0] not in d.keys():
 
+					d[column5[0]] = dict() #initialize haplotype dict if not present
 
-					elif str(entries[3]) == 'approximate tandem repetition': #approximative tandem repetition
+				#get first sequence
+				
+				if column5[3] == 'reverse':
 
-						entr_4 = re.split('[:]',entries[4]) #Information must contain 2 fields
+					transeq=ref[x.chrom][x.start-1:x.end].reverse.complement.seq
 
-						if len(entr_4) != 3:
+				else:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations')
-							exitonerror(os.path.abspath(args.output))
+					transeq=ref[x.chrom][x.start-1:x.end].seq
 
-						if not (all(i in valid_dna for i in entr_4[0].upper())):
+				randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Motif must be a valid DNA motif')
-							exitonerror(os.path.abspath(args.output))
+				if column5[1] not in d[column5[0]].keys(): #store
 
-						try:
+					d[column5[0]][column5[1]] = [(firstbase+1, lastbase+1, newtype, transeq,randomseq)]
 
-							int(entr_4[1])
+				else:
 
-						except:
+					d[column5[0]][column5[1]].append((firstbase+1, lastbase+1, newtype, transeq,randomseq))
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Number must be an integer')
-							exitonerror(os.path.abspath(args.output))
+			elif x[3] == 'translocation cut-paste' or x[3] == 'translocation copy-paste' or x[3] == 'interspersed duplication': #same info for these 2
 
+				column5=x[4].split(':') #info must be in this format
 
-						try:
+				if len(column5) != 4:
 
-							int(entr_4[2])
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must be in string:string:integer:string format')
+					sys.exit(1)
 
-						except:
+				if not haplopattern.match(column5[0]):
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number:alterations. Alterations must be an integer')
-							exitonerror(os.path.abspath(args.output))
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain a valid haplotype string')
+					sys.exit(1)
 
+				if column5[1] not in chrs:
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) contains an invalid chromosome string (chromosome is not included in the reference provided)')
+					sys.exit(1)
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5]))))]
+				try:
 
-						else:
+					int(column5[2])
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]),''.join(random.choices(valid_dna, k=int(entries[5])))))
+				except:
 
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the breakpoint coordinate on the second chromosome')
+					sys.exit(1)
 
-					
-					elif str(entries[3]) == 'tandem repeat expansion' or str(entries[3]) == 'tandem repeat contraction': #Information must contain 2 fields
+				if column5[3] not in {'forward', 'reverse'}:
 
-						entr_4 = re.split('[:]',entries[4])
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain a valid orientation (either "forward" or "reverse")')
+					sys.exit(1)
 
-						if len(entr_4) != 2:
+				if column5[0] not in d.keys():
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number')
-							exitonerror(os.path.abspath(args.output))
+					d[column5[0]] = dict() #initialize haplotype dict if not present
 
-						if not (all(i in valid_dna for i in entr_4[0].upper())):
+				if x[3] == 'translocation cut-paste':
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Motif must be a valid DNA motif')
-							exitonerror(os.path.abspath(args.output))
+					newtype1='deletion'
+					newtype2='insertion'
 
-						try:
+					if column5[3] == 'reverse':
 
-							int(entr_4[1])
+						transeq=ref[x.chrom][x.start-1:x.end].reverse.complement.seq
 
-						except:
+					else:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with motif:number. Number must be an integer')
-							exitonerror(os.path.abspath(args.output))
+						transeq=ref[x.chrom][x.start-1:x.end].seq
 
+					randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
-						if (int(entries[5])) != 0:
+					#delete first
 
-							logging.warning('Incorrect length of random sequence at breakpoint ' + str(entries[5]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Coherced to 0')
+					if x.chrom not in d["h{0}".format(i+1)].keys(): #store
 
+						d["h{0}".format(i+1)][x.chrom] = [(x.start, x.end, newtype1, 'None',randomseq)]
 
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
+					else:
 
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), '')]
+						d["h{0}".format(i+1)][x.chrom].append((x.start, x.end, newtype1, 'None',randomseq))
 
-						else:
+					#insert in second
 
+					randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), str(entries[3]), str(entries[4]), ''))
-					
+					if column5[1] not in d[column5[0]].keys(): #store
 
-					elif str(entries[3]) == 'reciprocal translocation':
-								
+						d[column5[0]][column5[1]] = [(int(column5[2])-1,int(column5[2]),newtype2, transeq,randomseq)]
 
-						entr_4 = re.split('[:]',str(entries[4]))
+					else:
 
-						if len(entr_4) != 5:
+						d[column5[0]][column5[1]].append((int(column5[2])-1,int(column5[2]),newtype2, transeq,randomseq))
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2')
-							exitonerror(os.path.abspath(args.output))
+				else: #is copy-paste/intersperded dup
 
+					newtype='insertion'
 
-						if not haplopattern.match(str(entr_4[0])):
+					if column5[3] == 'reverse':
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Haplotype must be hN, with N being any integer.')
-							exitonerror(os.path.abspath(args.output))
+						transeq=ref[x.chrom][x.start-1:x.end].reverse.complement.seq
 
-						if str(entr_4[1]) not in classic_chrs:
+					else:
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Chromosome must be a valid chromosome')
-							exitonerror(os.path.abspath(args.output))
+						transeq=ref[x.chrom][x.start-1:x.end].seq
 
-						try:
+					randomseq=''.join(random.choices(valid_dna, k=int(x[5])))
 
-							int(entr_4[2])
+					#only insert
 
-						except:
+					if column5[1] not in d[column5[0]].keys(): #store
 
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Breakpoint must be an integer')
-							exitonerror(os.path.abspath(args.output))
+						d[column5[0]][column5[1]] = [(int(column5[2])-1,int(column5[2]),newtype, transeq,randomseq)]
 
+					else:
 
+						d[column5[0]][column5[1]].append((int(column5[2])-1,int(column5[2]),newtype, transeq,randomseq))
 
-						if str(entr_4[3]) not in ['forward', 'reverse'] or str(entr_4[4]) not in ['forward', 'reverse']:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation1:orientation2. Orientation1 and orientation2 must be forward or reverse')
-							exitonerror(os.path.abspath(args.output))
-
-
-
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
-
-
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entries[0]) not in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
-
-							
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'forward':
-
-							
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-ins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-						elif str(entries[0]) in d["h{0}".format(i+1)].keys() and str(entr_4[4]) == 'reverse':
-
-							
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'del-invins', immutable_ref[str(entr_4[1])][(int(entr_4[2])-1)+1:(int(entr_4[2])-1)+1+(int(entries[2])-int(entries[1]))].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-						
-						if str(entr_4[0]) not in d.keys():
-
-							d[entr_4[0]]=dict()
-
-
-						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-ins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])+1, int(entr_4[2])+1+(int(entries[2])-int(entries[1])), 'del-invins', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-					elif str(entries[3]) == 'translocation cut-paste':
-								
-
-						entr_4 = re.split('[:]',str(entries[4]))
-
-						if len(entr_4) != 4:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation.')
-							exitonerror(os.path.abspath(args.output))
-
-
-						if not haplopattern.match(str(entr_4[0])):
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be hN, with N being any integer.')
-							exitonerror(os.path.abspath(args.output))
-
-						if str(entr_4[1]) not in classic_chrs:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosome must be a valid chromosome.')
-							exitonerror(os.path.abspath(args.output))
-
-						try:
-
-							int(entr_4[2])
-
-						except:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-							exitonerror(os.path.abspath(args.output))
-
-
-						if str(entr_4[3]) not in ['forward', 'reverse']:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation must be forward or reverse')
-							exitonerror(os.path.abspath(args.output))
-
-
-						if str(entries[0]) not in d["h{0}".format(i+1)].keys():
-
-
-							d["h{0}".format(i+1)][str(entries[0])] = [(int(entries[1]), int(entries[2]), 'deletion', 'None',''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-						else:
-
-							d["h{0}".format(i+1)][str(entries[0])].append((int(entries[1]), int(entries[2]), 'deletion', 'None',''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-					
-
-						if str(entr_4[0]) not in d.keys():
-
-							d[entr_4[0]]=dict()
-
-
-						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-			
-					else: #is a translocation copy paste or interspersed duplication, they are the same
-
-
-						entr_4 = re.split('[:]',str(entries[4]))
-
-						if len(entr_4) != 4:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation.')
-							exitonerror(os.path.abspath(args.output))
-
-
-						if not haplopattern.match(str(entr_4[0])):
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Haplotype must be hN, with N being any integer.')
-							exitonerror(os.path.abspath(args.output))
-
-						if str(entr_4[1]) not in classic_chrs:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Chromosome must be a valid chromosome.')
-							exitonerror(os.path.abspath(args.output))
-
-						try:
-
-							int(entr_4[2])
-
-						except:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Breakpoint must be an integer')
-							exitonerror(os.path.abspath(args.output))
-
-
-						if str(entr_4[3]) not in ['forward', 'reverse']:
-
-							logging.error('Incorrect info ' + str(entries[4]) + ' in .bed ' + os.path.abspath(bed) + ' for variant ' + str(entries[3]) + '. Must be a string with haplotype:chromosome:breakpoint:orientation. Orientation must be forward or reverse')
-							exitonerror(os.path.abspath(args.output))
-
-					
-
-						if str(entr_4[0]) not in d.keys():
-
-							d[entr_4[0]]=dict()
-
-
-						if str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) =='forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) not in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-
-							d[str(entr_4[0])][str(entr_4[1])] = [(int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5]))))]
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'forward':
-
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'insertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-						elif str(entr_4[1]) in d[str(entr_4[0])].keys() and str(entr_4[3]) == 'reverse':
-
-							d[str(entr_4[0])][str(entr_4[1])].append((int(entr_4[2])-1, int(entr_4[2]), 'invinsertion', immutable_ref[str(entries[0])][int(entries[1])-1:int(entries[2])].seq,''.join(random.choices(valid_dna, k=int(entries[5])))))
-
-
-	logging.info('SVs organized')						
-	logging.info('Generating .fasta haplotypes with SVs')
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] BED validated and variants organized')
+	print('[' + now + '][Message] Generating modified FASTA haplotypes')
 
 	for dicts in d.keys():
-		
-		logging.info('Generating SVs for ' + str(dicts))
 
-		ParseDict(classic_chrs, immutable_ref, d[dicts], os.path.abspath(args.output + '/' + str(dicts) + '.fa'))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Generating haplotype ' + dicts)
+		hapout=os.path.abspath(c.OUT + '/' + dicts + '.fa')
+		HapMaker(ref,chrs,d[dicts],hapout)
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Indexing FASTA haplotype')
+		pyfaidx.Faidx(hapout)
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Done')
+	sys.exit(0)
 
-	logging.info('Haplotypes with SVs generated')
-	logging.info('Done')
-	print('Done')
-
-
-def exitonerror(output):
-
-	print('An error occured. Check .log file at ' + os.path.abspath(output + '/VISOR_HACk.log') + ' for more details.')
-	sys.exit(1)
-
-
-def write_unmodified_chromosome(chromosome, seq, output_fasta):
-
-	with open (os.path.abspath(output_fasta), 'a') as faout:
-
-		faout.write('>' + chromosome + '\n' + seq + '\n')
-
-
-def write_start_sequence(chromosome, seq, output_fasta):
-
-	with open (os.path.abspath(output_fasta), 'a') as faout:
-
-		faout.write('>' + chromosome + '\n' + seq )
-
-
-
-def write_sequence_between(seq, output_fasta):
-
-	with open (os.path.abspath(output_fasta), 'a') as faout:
-
-		faout.write(seq)
-
-
-
-def write_end_sequence(seq, output_fasta):
-
-	with open (os.path.abspath(output_fasta), 'a') as faout:
-
-		faout.write(seq + '\n')
-
-
-
-def Change_Random_Char(word):
-
-	length = len(word)
-	word = list(word)
-	k = random.sample(range(0,length),1)
-	k.sort()
-	nuc_list=['A','T','C','G']
-   
-	for index in k:
-
-		add_rem=word[index]
-		nuc_list.remove(add_rem)
-		word[index] = ''.join(random.sample(nuc_list,k=1))
-		nuc_list.append(add_rem)
-   
-	return('' . join(word))
-
-
-def Delete_Random_Char(word):
-
-	index = random.randint(0, len(word)-1)
-	word = word[:index] + word[index+1:]
-
-	return word
-
-
-def Insert_Random_Char(word):
-
-	nucs=['A','T','C','G']
-
-	index = random.randint(0, len(word)-1)
-	word = word[:index] + random.choice(nucs) + word[index:]
-
-	return word
-
-
-
-def Reverse(sequence, start, end):
-
-	new_seq = sequence[start-1:end][::-1]
-
-	return new_seq
-
-
-def PTR(infofield, sequence, start, end): #new ptr
-
-	info=re.split('[:]', infofield)
-	motif,length = str(info[0]), int(info[1])
-	new_seq= sequence[start-1:end] + motif*length
-
-	return new_seq
-
-
-def ATR(infofield, sequence, start, end): #new atr
-
-	info=re.split('[:]', infofield)
-	motif,length,altnum = str(info[0]), int(info[1]), int(info[2])
-	new_seq= motif*length
-
-	alterations=['insertion', 'deletion', 'substitution']
-
-	counter=0
-
-	while counter < altnum:
-
-		alt_type=random.choice(alterations)
-
-		if alt_type == 'substitution':
-
-			new_seq=Change_Random_Char(new_seq)
-
-		elif alt_type == 'deletion':
-
-			new_seq=Delete_Random_Char(new_seq)
-
-		else: #insertion
-
-			new_seq= Insert_Random_Char(new_seq)
-
-		counter +=1
-
-	return sequence[start-1:end] + new_seq
-
-
-def EXPTR(infofield, sequence, start, end): #expand tr
-
-	info=re.split('[:]', infofield)
-	motif,num=str(info[0]), int(info[1])
-	trseq=sequence[start-1:end]
-
-	firstbase=trseq[0]
-	exprep=trseq[1:] + motif*num
-
-	new_seq=firstbase + exprep
-
-	return new_seq
-
-
-def CTRTR(infofield, sequence, start, end): #contract tr
-
-	info=re.split('[:]', infofield)
-	motif,num=str(info[0]), int(info[1])
-
-	trseq=sequence[start-1:end]
-
-	firstbase=trseq[0]
-	rep=trseq[1:]
-	newind=len(motif)*num
-	delrep=rep[newind:]
-	new_seq=firstbase + delrep
-
-	return new_seq
-
-
-def ParseDict(chromosomes, fasta, dictionary, output_fasta):
-
-	trans = str.maketrans('ATGC', 'TACG')
-	skipped=0
-
-	for chrs in chromosomes:
-
-		chrom=fasta[chrs]
-		seq=chrom[:len(chrom)].seq
-
-		if chrs not in dictionary.keys(): #chromosome not there, write unchanged
-						
-			write_unmodified_chromosome(chrs, seq, output_fasta)
-
-		else:
-
-			alterations_list=dictionary[chrs]
-
-			if not len(alterations_list) == 1: #else is already sorted, as it has length 1
-
-				alterations_list=sorted(alterations_list, key=itemgetter(0,1))
-				
-				new_alterations_list=[]
-
-				l=0
-				
-				while l < len(alterations_list):
-
-					start,end,typ,info,seqatbreak=alterations_list[l]
-
-					if new_alterations_list==[]:
-
-						new_alterations_list.append((start,end,typ,info,seqatbreak))
-
-					else:
-
-						if (new_alterations_list[-1][0]<= start <= new_alterations_list[-1][1]) or (new_alterations_list[-1][0] <= end <= new_alterations_list[-1][1]):
-
-							logging.warning('Variant with coordinates ' + chrs + ':' + str(start) + '-' + str(end) + ' overlaps with variant ' + chrs + ':' + str(new_alterations_list[-1][0]) + '-' + str(new_alterations_list[-1][1]) + ' in the current haplotype. Skipped')
-							skipped+=1
-
-						else:
-
-							new_alterations_list.append((start,end,typ,info,seqatbreak))
-
-					l+=1
-
-			else:
-
-				new_alterations_list=alterations_list
-
-			i=0
-
-			while i < len(new_alterations_list):
-
-				start,end,typ,info,seqatbreak=new_alterations_list[i]
-
-				if start==0:
-
-					start+=1
-
-				if i == 0: #first entry for the cromosome, write until the first variant start
-
-					seq_until_start=seq[:start-1]
-
-					write_start_sequence(chrs, seq_until_start+seqatbreak, output_fasta)
-
-				if typ == 'inversion': #inverte sequence
-
-					alt_seq=Reverse(seq, start, end).translate(trans)
-
-					write_sequence_between(alt_seq, output_fasta)
-
-
-				elif typ == 'MNP': #change sequence
-
-					alt_seq=info
-
-					write_sequence_between(alt_seq, output_fasta)
-
-				elif typ == 'deletion': #write nothing; deletions and insertions are also valid for translocation, as they are translated before intro insertions and deletions
-
-					alt_seq=''
-
-					if end-start == 1: 
-
-						if info == 'None':
-
-							write_sequence_between(alt_seq, output_fasta)
-
-						else:
-
-							write_sequence_between(alt_seq+seq[end-1], output_fasta)
-
-					else:
-
-						write_sequence_between(alt_seq, output_fasta)
-
-				elif typ == 'insertion': #write specified insertion; deletions and insertions are also valid for translocation, are they are translated before intro insertions and deletions
-
-					alt_seq=info
-
-					write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
-
-				elif typ == 'invinsertion':
-
-					alt_seq=info[::-1].translate(trans)
-
-					write_sequence_between(seq[start-1:end]+alt_seq, output_fasta)
-
-
-				elif typ == 'del-ins':
-
-
-					write_sequence_between(info, output_fasta)
-
-
-				elif typ == 'del-invins':
-
-					alt_seq=info[::-1].translate(trans)
-
-
-					write_sequence_between(alt_seq, output_fasta)
-
-
-				elif typ == 'tandem duplication':
-
-					write_sequence_between(seq[start-1:end]*info, output_fasta)
-
-
-				elif typ == 'inverted tandem duplication':
-
-					write_sequence_between(seq[start-1:end] + (Reverse(seq, start, end).translate(trans) * (info-1)), output_fasta) #first part is not inverted, duplicated part it is
-
-				elif typ == 'SNP':
-
-					until_end=seq[start-1:end-1]
-
-					write_sequence_between(until_end+info, output_fasta)
-
-
-				elif typ == 'perfect tandem repetition': #perfect tandem repetition
-
-					alt_seq= PTR(info, seq, start, end)
-
-					write_sequence_between(alt_seq, output_fasta)
-
-
-				elif typ == 'approximate tandem repetition': # approximate tandem repetition
-
-
-					alt_seq=ATR(info,seq,start,end)
-
-					write_sequence_between(alt_seq, output_fasta)
-
-
-				elif typ == 'tandem repeat expansion': #expand a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
-
-
-					alt_seq=EXPTR(info,seq,start,end)
-
-					write_sequence_between(alt_seq, output_fasta)
-
-				elif typ == 'tandem repeat contraction': #contract a tandem repetition that is already present. Start-end are supposed to be as the one in repetitions .bed from ucsc
-
-					alt_seq=CTRTR(info,seq,start,end)
-				
-					write_sequence_between(alt_seq, output_fasta)
-
-				if i == len(new_alterations_list) -1:
-
-					write_end_sequence(seq[end:], output_fasta) #end not included, as it was included in the variant
-
-
-				elif i < len(new_alterations_list) -1:
-
-
-					nextstart=new_alterations_list[i+1][0]
-					thisend=end
-
-					write_sequence_between(seq[thisend:nextstart-1]+seqatbreak, output_fasta)
-
-				i+=1
-
-	if skipped > 0 :
-
-		logging.warning('Skipped ' + str(skipped) + ' SVs for the current haplotype as they overlapped others')

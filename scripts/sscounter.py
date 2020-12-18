@@ -2,150 +2,48 @@
 
 #Python 3 standard library
 
-from __future__ import print_function
 import os
 import sys
-from collections import defaultdict
-from shutil import which
+import re
 import argparse
 from argparse import HelpFormatter
-import subprocess
-import re
+from collections import defaultdict
+from datetime import datetime
 
 #additional modules
 
 import pysam
-import pyfaidx
 import plotly.plotly as py
 import plotly.graph_objs as go
 from plotly.offline import plot
 from plotly import tools
 
 
-def main():
 
+class AutoVivification(dict):
 
-	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This script is included in VISOR and was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI)''', formatter_class=CustomFormat) 
+	'''
+	Fast way to create nested dictionaries
+	'''
 
-	required = parser.add_argument_group('Required I/O arguments')
-
-	required.add_argument('-g','--genome', help='Reference genome', metavar='.fa', required=True)
-	required.add_argument('-bam', '--bamfile', help='Single-strand .bam file/s to plot', metavar='.bam', nargs='+', action='append', required=True)
-	required.add_argument('-o', '--output', help='Output folder', metavar='folder', required=True)
-
-
-	optional = parser.add_argument_group('Bin size')
-
-	optional.add_argument('-bin', '--binsize', help= 'Bin size for counting [200000]', metavar='', default=200000, type=int)
-	optional.add_argument('-l', '--label', help= 'Label/s to identify sample/s [None]', metavar='', nargs='+', action='append', default=None)
-	optional.add_argument('-c', '--chromosome', help= 'On ore more chromosomes to plot. If None, classic human chromosomes (chr1-22, chrX, chrY, chrM) are plotted [None]', metavar='', nargs='+', action='append', default=None)
-
-
-	args = parser.parse_args()
-
-
-	if not os.path.exists(os.path.abspath(args.output)):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output))
-
-		except:
-
-			print('It was not possible to create the results folder. Specify a path for which you have write permissions')
-			sys.exit(1)
-
-	else: #path already exists
-
-		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
-
-			print('You do not have write permissions on the directory in which results will be stored. Specify a folder for which you have write permissions')
-			sys.exit(1)
-
-
-
-	if args.label is not None:
-
+	def __getitem__(self, item):
+		
 		try:
 			
-			assert(len(args.label[0]) == len(args.bamfile[0]))
-			labels=args.label[0]
-
-		except:
-
-			print('Different number of samples and labels')
-			sys.exit(1)
-
-	else:
-
-		labels=[]
-
-		for i in range(len(args.bamfile[0])):
-
-			labels.append('.bam ' + str(i+1))
-
-	try:
-
-		with open(os.path.abspath(args.genome),'r') as file:
-
-			assert(file.readline().startswith('>')) 
-
-	except:
-
-		print('Reference file does not exist, is not readable or is not a valid .fasta file')
-		sys.exit(1)
-
-
-	if which('samtools') is None:
-
-		print('Samtools is required')
-		sys.exit(1)
-
-	else:
-
-		for bamfiles in args.bamfile[0]:
-
-			try:
-
-				subprocess.check_call(['samtools', 'quickcheck', os.path.abspath(bamfiles)])
-
-			except:
-
-				print(os.path.abspath(bamfiles), 'does not exist, is not readable or is not a valid .bam file')
-				sys.exit(1)
-
-
-	reslist=[]
-
-	progress = ProgressBar(len(args.bamfile[0]), fmt=ProgressBar.FULL)
-
-	print('Counting')
-
-
-	for bams in args.bamfile[0]:
-
-		watscount, crickcount = Count(os.path.abspath(args.genome), os.path.abspath(bams), args.binsize, args.chromosome)
-		reslist.append((watscount, crickcount))
+			return dict.__getitem__(self, item)
 		
-		progress.current += 1
-		progress()
-
-	progress.done()
-
-	print('Done')
-	print('Plotting')
-
-
-	Plotter(reslist,labels, os.path.abspath(args.output), args.chromosome)
-
-	print('Done')
-
-
-	sys.exit(0)
-
+		except KeyError:
+			
+			value = self[item] = type(self)()
+			
+			return value
 
 
 class CustomFormat(HelpFormatter):
+
+	'''
+	Custom Help format
+	'''
 
 	def _format_action_invocation(self, action):
 
@@ -183,304 +81,271 @@ class CustomFormat(HelpFormatter):
 
 
 
-class AutoVivification(dict):
+def WR(stranded_bam,chromosome,start,end):
 
-	def __getitem__(self, item):
+	'''
+	Extract Watson reads from strand-seq BAM
+	'''
+
+	WR = defaultdict(lambda: [None, None])
+
+	for read in stranded_bam.fetch(chromosome,start,end):
+
+		if read.is_proper_pair and not read.is_secondary and not read.is_supplementary:
+
+			if (read.is_read1 and not read.is_reverse) or (read.is_read2 and read.is_reverse): #read1 forward/ read2 reverse
+
+				if read.query_name not in WR:
+
+					if read.is_read1:
+
+						WR[read.query_name][0] = read
+
+					else:
+
+						WR[read.query_name][1] = read
+
+				else:
+
+					if read.is_read1:
+
+						yield read, WR[read.query_name][1]
+
+					else:
+
+						yield WR[read.query_name][0], read
+
+					del WR[read.query_name]
+
+
+
+def CR(stranded_bam,chromosome,start,end):
+
+	'''
+	Extract Crick reads from strand-seq BAM
+	'''
+
+	CR = defaultdict(lambda: [None, None])
+
+	for read in stranded_bam.fetch(chromosome,start,end):
+
+		if read.is_proper_pair and not read.is_secondary and not read.is_supplementary:
+
+			if (read.is_read1 and read.is_reverse) or (read.is_read2 and not read.is_reverse): #read2 forward and read1 reverse
+
+				if read.query_name not in CR:
+
+					if read.is_read1:
+
+						CR[read.query_name][0] = read
+
+					else:
+
+						CR[read.query_name][1] = read
+
+				else:
+
+					if read.is_read1:
+
+						yield read, CR[read.query_name][1]
+
+					else:
+
+						yield CR[read.query_name][0], read
+
+
+					del CR[read.query_name]
+
+
+def Count(bamfilein,binsize,chromosomes):
+
+	'''
+	Count Watons and Crick pairs
+	'''
+
+	bam = pysam.AlignmentFile(bamfilein, "rb", require_index=True)
+	header=bam.header
+	cdict=dict()
+	chromosomes_info=list(header.items())[1][1]
+
+	for i in range(len(chromosomes_info)):
+
+		key,val=chromosomes_info[i].values()
+		cdict[key]=val
+
+	if chromosomes is not None: #in that case we want all the chromosomes in BAM header
+
+		unwanted=set(cdict)-set(chromosomes[0])
 		
-		try:
-			
-			return dict.__getitem__(self, item)
-		
-		except KeyError:
-			
-			value = self[item] = type(self)()
-			
-			return value
+		for unwanted_key in unwanted: 
 
+			del cdict[unwanted_key]
 
-
-class ProgressBar(object):
-
-	DEFAULT = 'Progress: %(bar)s %(percent)3d%%'
-	FULL = '%(bar)s %(current)d/%(total)d (%(percent)3d%%) %(remaining)d to go'
-
-	def __init__(self, total, width=40, fmt=DEFAULT, symbol='=',output=sys.stderr):
-		
-		assert len(symbol) == 1
-
-		self.total = total
-		self.width = width
-		self.symbol = symbol
-		self.output = output
-		self.fmt = re.sub(r'(?P<name>%\(.+?\))d',r'\g<name>%dd' % len(str(total)), fmt)
-		self.current = 0
-
-	def __call__(self):
-
-		percent = self.current / float(self.total)
-		size = int(self.width * percent)
-		remaining = self.total - self.current
-		bar = '[' + self.symbol * size + ' ' * (self.width - size) + ']'
-		args = {
-			'total': self.total,
-			'bar': bar,
-			'current': self.current,
-			'percent': percent * 100,
-			'remaining': remaining
-		}
-
-		print('\r' + self.fmt % args, file=self.output, end='')
-
-	def done(self):
-
-		self.current = self.total
-		self()
-		print('', file=self.output)
-
-
-
-
-def Plotter(reslist, labels, output, chromosomes):
-
-	if chromosomes is None:
-
-		classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-
-	else:
-
-		classic_chrs = chromosomes[0]
-
-	for chroms in classic_chrs:
-
-		chromtraces=[]
-
-		for i,res in enumerate(reslist):
-
-			watson_trace=res[0] #watson trace for bam file
-			crick_trace=res[1] #crick trace for bam file
-
-			wats_chromdict=watson_trace[chroms]
-			crick_chromdict=crick_trace[chroms]
-
-			if i == 0:
-
-				tracewatson=go.Bar(
-					x = list(wats_chromdict.keys()),
-					y = list(wats_chromdict.values()),
-					marker = dict(color = '#F3A461'),
-					text=list(wats_chromdict.values()),
-					hoverinfo = 'text+name',
-					name = 'watson',
-					legendgroup='a')
-				
-				tracecrick= go.Bar(
-					x = list(crick_chromdict.keys()),
-					y = [-x for x in list(crick_chromdict.values())],
-					marker = dict(color = '#668B8C'),
-					text=list(crick_chromdict.values()),
-					hoverinfo = 'text+name',
-					name = 'crick',
-					legendgroup='b'
-					)
-
-			else:
-
-				tracewatson=go.Bar(
-					x = list(wats_chromdict.keys()),
-					y = list(wats_chromdict.values()),
-					marker = dict(color = '#F3A461'),
-					text=list(wats_chromdict.values()),
-					hoverinfo = 'text+name',
-					name = 'watson',					
-					showlegend = False,
-					legendgroup='a')
-				
-				tracecrick= go.Bar(
-					x = list(crick_chromdict.keys()),
-					y = [-x for x in list(crick_chromdict.values())],
-					marker = dict(color = '#668B8C'),
-					text=list(crick_chromdict.values()),
-					hoverinfo = 'text+name',
-					name = 'crick',					
-					showlegend = False,
-					legendgroup='b'
-					)
-			
-			
-			chromtraces.append((tracewatson,tracecrick))
-
-
-		fig = tools.make_subplots(rows=len(chromtraces), cols=1, subplot_titles=labels,vertical_spacing=0.1,print_grid=False)
-		
-		for i in range(len(chromtraces)):
-
-			wats=chromtraces[i][0]
-			crick=chromtraces[i][1]
-
-			fig.append_trace(wats, i+1,1)
-			fig.append_trace(crick, i+1, 1)
-
-		fig['layout'].update(height=600*len(chromtraces), title=chroms)
-
-		for i in range(len(chromtraces)):
-
-			if i == 0:
-
-				fig['layout']['yaxis']['title'] = 'Count'
-				fig['layout']['xaxis']['title'] = 'Genomic position'
-
-			else:
-
-				fig['layout']['yaxis' + str(i+1)]['title'] = 'Count'
-				fig['layout']['xaxis' + str(i+1)]['title'] = 'Genomic position'
-
-
-		plot(fig, filename = os.path.abspath(output + '/' + chroms + '.html'), auto_open=False)
-
-
-
-
-def Count(genomein, bamfilein, binsize, chromosomes):
-
-
-	if chromosomes is None:
-
-		classic_chrs = ['chr{}'.format(x) for x in list(range(1,23)) + ['X', 'Y', 'M']] #allowed chromosomes
-
-	else:
-
-		classic_chrs = chromosomes[0]
-
-	watscount=AutoVivification()
+	watsoncount=AutoVivification()
 	crickcount=AutoVivification()
 	
-	bam = pysam.AlignmentFile(os.path.abspath(bamfilein), "rb")
-	genome=pyfaidx.Fasta(os.path.abspath(genomein))
+	for c,s in cdict.items():
 
-
-	for chrs in classic_chrs:
-
-
-		chrom=genome[chrs]
 		start=0
-		chrom_end=len(chrom[:len(chrom)].seq)
-		end= start + binsize
+		chrom_end=s
+		end=start+binsize
 
-		while start <= chrom_end:
+		while end <= chrom_end:
 
-			listw=watson(bam, chrs, start, end)
-			listc=crick(bam, chrs, start, end)
+			listw=WR(bam,c,start,end)
+			listc=CR(bam,c,start,end)
 
-			watscount[chrs][start] = len(list(listw))
-			crickcount[chrs][start] = len(list(listc))
+			watsoncount[c][start] = len(list(listw))
+			crickcount[c][start] = len(list(listc))
 
-			start += binsize
-			end += binsize
-
-			if chrom_end - start < binsize:
-
-				end = chrom_end
-
+			start+=binsize
+			end+=binsize
 
 	bam.close()
 
-	return watscount, crickcount
+	return watsoncount,crickcount
 
 
 
+def SSplot(wats_count,crick_count, output):
 
-def watson(bam, chromosome, start, end):
+	'''
+	Plot distribution of W/C reads along chromosome
+	'''
 
-	read_dict = defaultdict(lambda: [None, None])
+	chromtraces=[]
+	chromnames=list(wats_count.keys())
 
-	for read in bam.fetch(chromosome, start, end):
+	for l,chroms in enumerate(wats_count.keys()):
 
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
+		wats_chromdict=wats_count[chroms]
+		crick_chromdict=crick_count[chroms]
 
-			continue
+		legend=True if l == 0 else False
 
-		elif read.is_read1 and read.is_reverse: #if read1 is reverse skip
-
-			continue
-
-		elif read.is_read2 and not read.is_reverse: #if read2 is not reverse skip
-
-			continue
-
-		else: #read 1 is forward and read 2 is reverse
-
-			qname = read.query_name
-
-			if qname not in read_dict:
-
-				if read.is_read1:
-
-					read_dict[qname][0] = read
-
-				else:
-
-					read_dict[qname][1] = read
-			else:
-
-				if read.is_read1:
-
-					yield read, read_dict[qname][1]
+		tracewatson=go.Bar(
+			x = list(wats_chromdict.keys()),
+			y = list(wats_chromdict.values()),
+			marker = dict(color = '#F3A461'),
+			text=list(wats_chromdict.values()),
+			hoverinfo = 'text+name',
+			name = 'watson',
+			legendgroup='a',
+			showlegend=legend)
 				
-				else:
+		tracecrick= go.Bar(
+			x = list(crick_chromdict.keys()),
+			y = [-x for x in list(crick_chromdict.values())],
+			marker = dict(color = '#668B8C'),
+			text=list(crick_chromdict.values()),
+			hoverinfo = 'text+name',
+			name = 'crick',
+			legendgroup='b',
+			showlegend=legend
+			)
+			
+		chromtraces.append((tracewatson,tracecrick))
 
-					yield read_dict[qname][0], read
-
-				del read_dict[qname]
-
-
+	fig = tools.make_subplots(rows=len(chromtraces), cols=1,vertical_spacing=0.1,print_grid=False,subplot_titles=chromnames)
+		
+	for i in range(len(chromtraces)):
 
 
+		fig.append_trace(chromtraces[i][0],i+1,1)
+		fig.append_trace(chromtraces[i][1],i+1,1)
 
-def crick(bam, chromosome, start, end):
+		if i == 0:
 
-	read_dict = defaultdict(lambda: [None, None])
+			fig['layout']['yaxis']['title'] = 'Count'
+			#fig['layout']['xaxis']['title'] = 'Genomic position'
 
-	for read in bam.fetch(chromosome, start, end):
+		elif 0 < i < len(chromtraces)-1 :
 
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
-
-			continue
-
-		elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
-
-			continue
-
-		elif read.is_read2 and read.is_reverse: #if read2 is reverse skip
-
-			continue
+			fig['layout']['yaxis' + str(i+1)]['title'] = 'Count'
+			#fig['layout']['xaxis' + str(i+1)]['title'] = 'Genomic position'
 
 		else:
 
-			qname = read.query_name
+			fig['layout']['yaxis' + str(i+1)]['title'] = 'Count'
+			fig['layout']['xaxis' + str(i+1)]['title'] = 'Genomic position'
 
-			if qname not in read_dict:
 
-				if read.is_read1:
+	fig['layout'].update(height=600*len(chromtraces), title='Watson/Crick Counts')
 
-					read_dict[qname][0] = read
-
-				else:
-
-					read_dict[qname][1] = read
-			else:
-
-				if read.is_read1:
-
-					yield read, read_dict[qname][1]
-				
-				else:
-
-					yield read_dict[qname][0], read
-
-				del read_dict[qname]
+	plot(fig, filename = output, auto_open=False)
 
 
 
+def main():
+
+	'''
+	Execute the code and store the resulting plot to HTML
+
+	'''
+
+	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This script is included in VISOR and was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI)''', formatter_class=CustomFormat) 
+
+	required = parser.add_argument_group('Required I/O arguments')
+
+	required.add_argument('-b','--bamfile', help='strand-seq BAM', metavar='BAM', required=True)
+	required.add_argument('-o', '--output', help='output browsable HTML', metavar='HTML', required=True)
+
+	optional = parser.add_argument_group('Additional parameters')
+
+	optional.add_argument('--binsize', help= 'bin size for counting watson and crick reads [200000]', metavar='', default=200000, type=int)
+	optional.add_argument('--chromosome', help= 'one or more chromosomes to plot. If None, plot all chromosomes from BAM header [None]', metavar='', nargs='+', action='append', default=None)
+
+	args = parser.parse_args()
+
+
+	BAM=os.path.abspath(args.bamfile)
+	OUT=os.path.abspath(args.output)
+
+	if not OUT.endswith('.html'):
+
+		OUT = OUT+'.html'
+
+
+	try:
+
+		pysam.quickcheck(BAM)
+
+	except:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Errror] BAM ' + BAM + ' does not exist, is not readable or is not a valid BAM')
+		sys.exit(1)
+
+
+	if not os.path.exists(BAM + '.bai'):
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] Missing ' + BAM + ' index. Creating')
+
+		try:
+
+			pysam.index(BAM)
+
+		except:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Errror] BAM ' + BAM + ' could not be indexed')
+			sys.exit(1)	
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Counting Watson/Crick reads')
+
+	watsoncount,crickcount = Count(BAM,args.binsize,args.chromosome)
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Plotting')
+
+	SSplot(watsoncount,crickcount,OUT)
+
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Done')
+	sys.exit(0)
 
 
 if __name__ == '__main__':

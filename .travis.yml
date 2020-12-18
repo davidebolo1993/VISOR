@@ -1,0 +1,41 @@
+os:
+  
+  - linux
+
+language:
+  
+  - python
+
+python:
+
+  - "3.8"
+
+before_install:
+  
+  - sudo apt-get update -q
+  - sudo apt-get install -y -q wget build-essential g++ cmake libz-dev libcurl4-openssl-dev libssl-dev libbz2-dev liblzma-dev libncurses5-dev
+  - sudo apt-get clean
+  - wget https://github.com/arq5x/bedtools2/releases/download/v2.29.1/bedtools-2.29.1.tar.gz && tar -zxvf bedtools-2.29.1.tar.gz && cd bedtools2 && make && sudo make install && cd ..
+  - wget https://github.com/samtools/htslib/releases/download/1.11/htslib-1.11.tar.bz2 && tar -vxjf htslib-1.11.tar.bz2 && cd htslib-1.11 && make && sudo make install && cd ..
+  - wget https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2 && tar -vxjf samtools-1.11.tar.bz2 && cd samtools-1.11 && make && sudo make install && cd .. 
+  - git clone https://github.com/lh3/minimap2.git && cd minimap2 && make && sudo make install && cd ..
+
+install:
+  
+  - pip install -r requirements.txt #install BadRead
+  - python setup.py install
+
+script:
+
+  - bash test/test.sh
+
+notifications:
+
+  email:
+
+    recipients:
+
+      - davidebolognini7@gmail.com
+
+    on_success: always
+    on_failure: always

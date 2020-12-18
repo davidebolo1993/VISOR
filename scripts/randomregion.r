@@ -11,23 +11,22 @@ suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(regioneR))
 
 option_list = list(
-  make_option(c("-d", "--dimensions"), action="store", type='character', help=".tsv file with chromosomes dimensions (as result from 'cut -f1,2 genome.fa.fai') [required]"),
+  make_option(c("-d", "--dimensions"), action="store", type='character', help="TSV file with chromosome dimensions (as result from 'cut -f1,2 genome.fa.fai') [required]"),
   make_option(c("-n", "--number"), action="store", default=100, type='numeric', help="number of intervals [100]"),
   make_option(c("-l", "--length"), action="store", default=200000, type='numeric', help="mean intervals length [200000]"),
   make_option(c("-s", "--standarddev"), action="store", default=0, type='numeric', help="standard deviation for intervals length [0]"),
-  make_option(c("-x", "--exclude"), action="store", default=NULL, type='character', help="exclude regions in .bed [optional]"),
+  make_option(c("-x", "--exclude"), action="store", default=NULL, type='character', help="exclude regions in BED [optional]"),
   make_option(c("-v", "--variants"), action="store", type='character', help="variants types (-v 'deletion,tandem duplication,inversion') [required]"),
   make_option(c("-r", "--ratio"), action="store", type='character', help="variants proportions (-r '30:30:40')) [required]"),
   make_option(c("-i", "--idhaplo"), action="store", type='numeric', default=1, help="haplotype number [1]")
 )
 
-
 opt = parse_args(OptionParser(option_list=option_list))
 
-possiblevariants<-c('deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'perfect tandem repetition', 'approximate tandem repetition', 'translocation copy-paste', 'translocation cut-paste' ,  'reciprocal translocation')
+possiblevariants<-c('deletion', 'insertion', 'inversion', 'tandem duplication', 'inverted tandem duplication', 'translocation copy-paste', 'translocation cut-paste' ,  'reciprocal translocation')
 
 if (is.null(opt$dimensions)) {
-  stop('-d/--dimensions .tsv file is required')
+  stop('-d/--dimensions TSV file is required')
 } else {
   genome<-read.table(file.path(opt$dimensions), sep='\t', header = F)
 }
@@ -90,23 +89,6 @@ for(i in (1:nrow(df))) {
     motif<-paste(sample(alphabet, num, replace = T), collapse='')
     info[i]<-motif
     breakseqlen[i]<-sample(0:10,1)    
-  } else if (df$type[i] == 'perfect tandem repetition') {
-    df$start[i]<-df$end[i]-1
-    num<-sample(10:100,1)
-    motiflen<-sample(1:6,1)
-    alphabet<-c('A', 'T', 'C', 'G')
-    motif<-paste(sample(alphabet, motiflen, replace = T), collapse='')
-    info[i]<-paste(motif,num, sep=':')
-    breakseqlen[i]<-sample(0:10,1) 
-  } else if (df$type[i] == 'approximate tandem repetition') {
-    df$start[i]<-df$end[i]-1
-    num<-sample(10:100,1)
-    motiflen<-sample(1:6,1)
-    alphabet<-c('A', 'T', 'C', 'G')
-    motif<-paste(sample(alphabet, motiflen, replace = T), collapse='')
-    slen<-motiflen*num
-    info[i]<-paste(motif,num,round(slen/100*10),sep=':')
-    breakseqlen[i]<-sample(0:10,1) 
   } else if (df$type[i] == 'translocation cut-paste' | df$type[i] == 'translocation copy-paste') {
     newregion<-createRandomRegions(1, length.mean=opt$length, length.sd=opt$standarddev, genome=genome, mask=newexclude, non.overlapping=TRUE)
     chromosome<-as.character(seqnames(newregion))
@@ -132,5 +114,3 @@ for(i in (1:nrow(df))) {
 final<-data.frame(df,info,breakseqlen, stringsAsFactors = FALSE)
 
 write.table(final,file = '',quote = FALSE, col.names = FALSE, row.names = FALSE, sep='\t')
-
-

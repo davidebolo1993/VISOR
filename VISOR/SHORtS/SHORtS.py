@@ -1,1023 +1,1288 @@
-#!/usr/bin/python env
+#!/usr/bin/python3 env
 
 #python 3 standard library
 
 import os
 import sys
 import glob
-import logging
 import re
-from shutil import which
 import subprocess
+import math
+import multiprocessing
+import resource
 import random
+from datetime import datetime
 from collections import defaultdict
+from shutil import which
 
 #additional modules
 
 import pybedtools
 import pysam
 import pyfaidx
-
-
-def run(parser,args):
-
-
-	#validate ouput
-
-	if not os.path.exists(os.path.abspath(args.output)):
-
-		try:
-
-			os.makedirs(os.path.abspath(args.output))
-
-		except:
-
-			print('It was not possible to create the output folder. Specify a path for which you have write permissions')
-			sys.exit(1)
-
-	else: #path already exists
-
-		if not os.access(os.path.dirname(os.path.abspath(args.output)),os.W_OK): #path exists but no write permissions on that folder
-
-			print('You do not have write permissions on the output folder. Specify a folder for which you have write permissions')
-			sys.exit(1)
-
-
-		if os.listdir(os.path.abspath(args.output)):
-
-			print('Specified output folder is not empty. Specify another directory or clean the chosen one')
-			sys.exit(1)
-
-
-	logging.basicConfig(filename=os.path.abspath(args.output + '/VISOR_SHORtS.log'), filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-	print('Initialized .log file ' + os.path.abspath(args.output + '/VISOR_SHORtS.log'))
-
-	#check if external tools can be executed
-
-	external_tools=['wgsim', 'bwa', 'samtools']
-
-	for tools in external_tools:
-
-		if which(tools) is None:
-
-			logging.error(tools + ' was not found as an executable command. Install ' + tools + ' and re-run VISOR SHORtS')
-			exitonerror(os.path.abspath(args.output))
-
-
-	#validate genome
-
-
-	try:
-
-		with open(os.path.abspath(args.genome),'r') as file:
-
-			assert(file.readline().startswith('>')) 
-
-	except:
-
-		logging.error('Reference file does not exist, is not readable or is not a valid .fasta file')
-		exitonerror(os.path.abspath(args.output))
-
-
-	if not os.path.exists(os.path.abspath(args.genome + '.sa')):
-
-		try:
-
-			logging.info('Creating bwa index for reference genome')
-			BWA_Index(os.path.abspath(args.genome))
-
-		except:
-
-			logging.error('It was not possible to generate bwa index for reference genome')
-			exitonerror(os.path.abspath(args.output))
-
-
-	#validate .bed with regions to simulate
-
-
-	bed = pybedtools.BedTool(os.path.abspath(args.bedfile))
-
-	
-	try:
-
-		srtbed = bed.sort() #sorting here is not necessary, but allows to look for general formatting errors
-
-	except:
-
-		logging.error('Incorrect .bed format for -bed/--bedfile')
-		exitonerror(os.path.abspath(args.output))
-
-
-	#validate SCEBED if single-strand
-
-	if args.type=='strand-seq':
-
-		if args.scebedfile is not None:
-
-			scebed=pybedtools.BedTool(os.path.abspath(args.scebedfile))
-
-			try:
-
-				srtscebed = scebed.sort()
-
-			except:
-
-				logging.error('Incorrect .bed format for --scebedfile')
-				exitonerror(os.path.abspath(args.output))
-
-		else:
-
-			srtscebed = None
-
-
-	inputs=args.sample[0]
-
-	if len(inputs) > 1:
-
-		if args.clonefraction is None:
-
-			logging.error('When specifying multiple -s/--sample, multiple --clonefraction percentages must be specified')
-			exitonerror(os.path.abspath(args.output))
-
-		else: #something has been specified
-
-			fractions=args.clonefraction[0]
-
-			if len(fractions) != len(inputs):
-
-				logging.error('When specifying multiple -s/--sample, the same number of --clonefraction percentages must be specified')
-				exitonerror(os.path.abspath(args.output))
-
-			for fraction in fractions:
-
-				try:
-
-					float(fraction)
-
-				except:
-
-					logging.error('Each fraction percentage in --clonefraction must be a float')
-					exitonerror(os.path.abspath(args.output))
-
-
-			totalfraction = sum(map(float,fractions))
-
-			if totalfraction > 100:
-
-				logging.error('Sum of fractions percentages in --clonefraction cannot exceed 100.0')
-				exitonerror(os.path.abspath(args.output))
-
-
-	fa=pyfaidx.Fasta(os.path.abspath(args.genome))
-	generate=os.path.abspath(os.path.dirname(__file__) + '/generate.sh')
-
-	renamer=False
-
-	if args.addprefix:
-
-		renamer=os.path.abspath(os.path.dirname(__file__) + '/renamer.sh')
-
-	classic_chrs = fa.keys() #allowed chromosomes
-	tag=args.noaddtag
-	logging.info('Running simulations')
-
-	if len(inputs) == 1: #just one folder, use a classic doulbe-strand or single-strand simulations
-
-		logging.info('Single input for -s/--sample')
-
-		if args.type == 'bulk':
-
-			logging.info('Bulk data')
-
-		else:
-
-			logging.info('Strand-seq data')
-
-		#find .fasta in folder
-
-		fastas = glob.glob(os.path.abspath(inputs[0] + '/*.fa'))
-
-		if fastas == []:
-
-			logging.error('Given folder ' + inputs[0] + ' does not contain any valid .fasta inputs')
-			exitonerror(os.path.abspath(args.output))
-
-		for folder,fasta in enumerate(fastas):
-
-			logging.info('Simulating from haplotype ' + os.path.abspath(fasta))
-
-			os.makedirs(os.path.abspath(args.output + '/h' + str(folder+1))) #create directory for this haplotype
-
-			counter=0
-
-			for entries in srtbed: #validate each entry
-
-				counter+=1
-				
-				if str(entries[0]) not in classic_chrs:
-
-					logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
-					exitonerror(os.path.abspath(args.output))
-					
-				try:
-
-					int(entries[1])
-
-				except:
-
-					logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-					exitonerror(os.path.abspath(args.output))
-
-
-				try:
-
-					int(entries[2])
-
-				except:
-
-					logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-					exitonerror(os.path.abspath(args.output))
-
-
-				if (int(entries[2]) - int(entries[1]) == 0):
-
-					logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-					exitonerror(os.path.abspath(args.output))
-
-
-				try:
-
-					float(entries[3])
-
-				except:
-
-					logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-					exitonerror(os.path.abspath(args.output))
-
-
-				try:
-
-					allelic=float(entries[4])
-
-				except:
-
-					logging.error('Cannot convert ' + str(entries[4]) + ' to float number in .bed file. Sample fraction must be a float percentage')
-					exitonerror(os.path.abspath(args.output))
-
-
-				if allelic > 100:
-
-					logging.error('Purity value cannot exceed 100.0 in .bed file.')
-					exitonerror(os.path.abspath(args.output))
-
-				try:
-
-					if args.type == 'bulk':
-
-						m=ClassicSimulate(tag, os.path.abspath(args.genome), args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter), allelic, args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)), folder+1, 1, renamer)
-						
-						if type(m) == str:
-
-							continue
-
-					else: #generate single-stranded data
-
-
-						if not os.path.exists(os.path.abspath(fasta + '.sa')):
-
-							try:
-
-								logging.info('Creating bwa index for ' + os.path.abspath(fasta))
-								BWA_Index(os.path.abspath(fasta))
-
-							except:
-
-								logging.error('It was not possible to generate bwa index for ' + os.path.abspath(fasta))
-								exitonerror(os.path.abspath(args.output))
-
-						haploname = os.path.basename(os.path.abspath(fasta)).split('.')[0] #this is important only if scebed is given
-
-						m=SSSimulate(args.threads, os.path.abspath(fasta), str(entries[0]), int(entries[1]), int(entries[2]), args.error, (args.coverage / 100 * float(entries[3]))/len(fastas), args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/h' + str(folder+1)))
-						
-						if type(m) == str:
-
-							continue
-
-						else:
-
-							SingleStrand(haploname, str(entries[0]), generate, os.path.abspath(args.genome), args.threads, os.path.abspath(args.output + '/h' + str(folder+1) + '/region.tmp.srt.bam'), str(counter), args.noise, os.path.abspath(args.output + '/h' + str(folder+1)), srtscebed)
-
-				except:
-
-					
-					logging.exception('Something went wrong during simulations for ' + os.path.abspath(fasta) + '. Log is below.')
-		
-		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
-
-		if args.type == 'bulk':
-
-			logging.info('Merging bulk data')
-
-			bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
-
-			with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
-
-				for bam in bams:
-
-					bamstomerge.write(bam + '\n')
-
-			subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
-			subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-			os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
-
-			for bam in bams:
-
-				os.remove(bam)
-				os.remove(bam + '.bai')
-
-			for dirs in subdirs: #now they are empty and vcan be removed safely
-
-				os.rmdir(dirs)
-
-		else: # args.type is single-strand, merge watsons from same haplos and cricks from same haplos. Additional script to merge between haplos.
-
-			logging.info('Merging watson and crick .bam files for each haplotype')
-
-			for dirs in subdirs:
-
-				watsons=[]
-				cricks=[]
-
-				watsons.extend(glob.glob(os.path.abspath(dirs) + '/*watson.srt.bam'))
-				cricks.extend(glob.glob(os.path.abspath(dirs) + '/*crick.srt.bam'))
-
-				with open(os.path.abspath(dirs + '/watsonstomerge.txt'),'w') as watsonstomerge:
-
-					for wats in watsons:
-
-						watsonstomerge.write(wats + '\n')
-
-				subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(dirs + '/watsonstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')], stderr=open(os.devnull, 'wb'))
-				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-				os.remove(os.path.abspath(dirs + '/watsonstomerge.txt'))
-
-				for wats in watsons:
-
-					os.remove(wats)
-					os.remove(wats + '.bai')
-
-
-				with open(os.path.abspath(dirs + '/crickstomerge.txt'),'w') as crickstomerge:
-
-					for cri in cricks:
-
-						crickstomerge.write(cri + '\n')
-
-				subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(dirs + '/crickstomerge.txt'), os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')], stderr=open(os.devnull, 'wb'))
-				subprocess.call(['samtools', 'index', os.path.abspath(dirs + '/' + args.identifier + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-				os.remove(os.path.abspath(dirs + '/crickstomerge.txt'))
-
-				for cri in cricks:
-
-					os.remove(cri)
-					os.remove(cri + '.bai') #there will be an additional script to generate WC .bam files
-
-
-	else: # simulate subclones with bulk data
-
-		logging.info('Multiple inputs for -s/--sample. Assuming each input is a subclone')
-		logging.info('Bulk data')
-
-		for fract,inp in enumerate(inputs): #each input is now a subclone
-
-			logging.info('Simulating from clone ' + os.path.abspath(inp))
-
-			os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1)))
-
-			subfastas=glob.glob(os.path.abspath(inp) + '/*.fa')
-			subfastasfraction= float(fractions[fract]) #percentage of this clone in total in the final .bam
-			eachhaplofraction=subfastasfraction/len(subfastas)
-
-			for folder,subfasta in enumerate(subfastas):
-
-				logging.info('Simulating from haplotype ' + os.path.abspath(subfasta))
-
-				os.makedirs(os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)))
-
-				counter=0
-
-				for entries in srtbed: #validate each entry
-
-					counter +=1
-					
-					if str(entries[0]) not in classic_chrs:
-
-						logging.error(str(entries[0]) + ' is not a valid chromosome in .bed file.')
-						exitonerror(os.path.abspath(args.output))
-
-					try:
-
-						int(entries[1])
-
-					except:
-
-						logging.error('Cannot convert ' + str(entries[1]) + ' to integer number in .bed file. Start must be an integer')
-						exitonerror(os.path.abspath(args.output))
-
-
-					try:
-
-						int(entries[2])
-
-					except:
-
-						logging.error('Cannot convert ' + str(entries[2]) + ' to integer number in .bed file. End must be an integer')
-						exitonerror(os.path.abspath(args.output))
-
-
-					if (int(entries[2]) - int(entries[1]) == 0):
-
-						logging.error('Start ' + str(entries[1]) + ' and end ' + str(entries[2]) + ' cannot have the same value in .bed file')
-						exitonerror(os.path.abspath(args.output))
-
-
-					try:
-
-						float(entries[3])
-
-					except:
-
-						logging.error('Cannot convert ' + str(entries[3]) + ' to float number in .bed file. Capture bias must be a float')
-						exitonerror(os.path.abspath(args.output))
-
-
-					try:
-
-						m=ClassicSimulate(tag,os.path.abspath(args.genome), args.threads, os.path.abspath(subfasta), str(entries[0]), int(entries[1]), int(entries[2]), str(counter),100.0, args.error, ((args.coverage / 100 * float(entries[3]))/100)*eachhaplofraction, args.length, args.indels, args.probability, args.insertsize, args.standardev, os.path.abspath(args.output + '/clone' + str(fract+1) + '/h' + str(folder+1)), folder+1, fract+1, renamer)
-
-						if type(m) == str:
-
-							continue
-
-					except:
-
-						logging.exception('Something went wrong during simulations for ' + os.path.abspath(subfasta) + '. Log is below.')
-
-		subdirs=[os.path.join(os.path.abspath(args.output), o) for o in os.listdir(os.path.abspath(args.output)) if os.path.isdir(os.path.join(os.path.abspath(args.output),o))]
-		bams = [y for x in os.walk(os.path.abspath(args.output)) for y in glob.glob(os.path.join(x[0], '*.srt.bam'))]
-
-		logging.info('Merging bulk data')
-
-		with open(os.path.abspath(args.output + '/bamstomerge.txt'), 'w') as bamstomerge:
-
-			for bam in bams:
-
-				bamstomerge.write(bam + '\n')
-
-
-		subprocess.call(['samtools', 'merge', '-@', str(args.threads-1), '-b', os.path.abspath(args.output + '/bamstomerge.txt'), os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')], stderr=open(os.devnull, 'wb'))
-		subprocess.call(['samtools', 'index', os.path.abspath(args.output + '/' + args.identifier + '.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-		os.remove(os.path.abspath(args.output + '/bamstomerge.txt'))
-
-		for bam in bams:
-
-			os.remove(bam)
-			os.remove(bam + '.bai')
-
-
-		for subs in subdirs:
-
-			subsub=[os.path.join(os.path.abspath(subs), o) for o in os.listdir(os.path.abspath(subs)) if os.path.isdir(os.path.join(os.path.abspath(subs),o))]
-
-			for s in subsub: #more safe than other solutions
-
-				os.rmdir(s)
-
-			os.rmdir(subs)
-
-
-	logging.info('Done')
-	print('Done')
-
-def exitonerror(output):
-
-	print('An error occured. Check .log file at ' + os.path.abspath(output + '/VISOR_SHORtS.log') + ' for more details.')
-	sys.exit(1)
+from pywgsim import wgsim
+import mappy as mp
+
+
+class c():
+
+	'''
+	Container. This stores argparser parameters. Used to pass multiple parameters at once.
+	'''
+
+	OUT = ''
+	REF = ''
+	BED = ''
+	SAMPLES = list()
+
+	#other variables
+
+	refall=None
+	threads=0
+
+	#pywgsim
+
+	coverage=0
+	regioncoverage=0
+	error=0
+	distance=0
+	stdev=0
+	length=0
+	mutation=0
+	indels=0
+	extindels=0
+
+	#bulk
+
+	clonefraction=None
+	cperc=0
+	fperc=0
+	ffiles=None
+	ffile=None
+	sampledir=''
+	haplodir=''
+	clonenumber=0
+	hapnumber=0
+	r_number=0
+	tag=False
+
+	#strand-seq parameters
+
+	strandseq=False
+	sce_bed=None
+	sce_bedregion=[]
+	noise=0.00
+	hapid=''
+	cellid=''
+	cellnum=0
+	cellref=0
+	cellhap=0
+	singlecellnum=0
+
+
+def redirect_stdout():
+
+	'''
+	Suppress c/c++/fortran stdout, keep python print calls
+	'''
+
+	sys.stdout.flush() # <--- important when redirecting to files
+	newstdout = os.dup(1)
+	devnull = os.open(os.devnull, os.O_WRONLY)
+	os.dup2(devnull, 1)
+	os.close(devnull)
+	sys.stdout = os.fdopen(newstdout, 'w')
+
+
+def Chunks(l,n):
+
+	'''
+	Split list in chunks based on number of threads
+	'''
+
+	return [l[i:i+n] for i in range(0, len(l), n)]
 
 
 def atoi(text):
 
-    return int(text) if text.isdigit() else text
+	'''
+	Convert text to integers
+	'''
+
+	return int(text) if text.isdigit() else text
+
 
 def natural_keys(text):
-    
-    return [ atoi(c) for c in re.split(r'(\d+)', text)]
 
-
-def BWA_Index(fasta):
-
-	subprocess.call(['bwa', 'index', os.path.abspath(fasta)], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-
-
-def ModifyReadTags(inbam, haplonum, clone):
-
-	bam=pysam.AlignmentFile(os.path.abspath(inbam), 'rb')
-
-	outbam=pysam.AlignmentFile(os.path.abspath(inbam + '.tmp'), "wb", template=bam)
-
-	for reads in bam.fetch():
-
-		new_tags = reads.tags
-		new_tags.append(('HP', haplonum))
-		new_tags.append(('CL', clone))
-		reads.tags = new_tags
-		outbam.write(reads)
-
-	bam.close()
-	outbam.close()
-
-	os.remove(os.path.abspath(inbam))
-	os.remove(os.path.abspath(inbam + '.bai'))
-	os.rename(os.path.abspath(inbam + '.tmp'), os.path.abspath(inbam))
-
-
-
-def ClassicSimulate(tag,genome, cores, haplotype, chromosome, start, end, label, allelic, error, coverage, length, indels, probability, insertsize, standarddev, output, haplonum, clone, renamer):
-
-	#prepare region
-
-	fa=pyfaidx.Fasta(os.path.abspath(haplotype))
-
-	if chromosome not in fa.keys():
-
-		message='Abort'
-		return message
-
-	chr_= fa[chromosome]
-	seq = chr_[:len(chr_)].seq
-
-	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
-
-		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
+	'''
+	Natural sort
+	'''
 	
-	regionfa=pyfaidx.Fasta(os.path.abspath(output + '/region.tmp.fa'))
-	chrf=regionfa[chromosome + ':' + str(start) +  '-' +str(end)]
-	seqfa=chrf[:len(chrf)].seq
-	Ns=seqfa.count('N')
+	return [ atoi(c) for c in re.split(r'(\d+)', text)]
 
-	if len(seq) < end-start:
 
-		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
-		numreads= round((coverage*(len(seq)-Ns))/ length)/2 #calculate chosen coverage and divide by 2 'cause they are pairs
+def RTag(sli,c):
+
+	'''
+	Add CL/HP-tag to BAM upon request (slows a bit)
+
+	'''
+
+	for s in sli:
+
+		save = pysam.set_verbosity(0)
+		bamfilein=pysam.AlignmentFile(s, mode='rb', require_index=False)
+		pysam.set_verbosity(save)
+
+		with pysam.AlignmentFile(s+'.tmp', mode='wb', template=bamfilein) as bamfileout:
+
+			for r in bamfilein.fetch(until_eof=True):
+
+				r.set_tag('CL', c.clonenumber, 'i')
+				r.set_tag('HP', c.hapnumber, 'i')
+				bamfileout.write(r)
+
+		bamfilein.close()
+		os.remove(s)
+		os.rename(s+'.tmp', s)
+
+
+def MergeAll(c):
+
+	'''
+	Merge all the Watson/Crick BAM files in directory
+	'''
+
+	TypeW=glob.glob(os.path.abspath(c.haplodir) + '/*.W.srt.bam')
+
+
+	if len(TypeW) == 0:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] No BAM generated for the current simulation')
+
+	elif len(TypeW) > 1:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Merging Watson BAM for current cell/haplotype')
+
+		BAML=os.path.abspath(c.haplodir+'/bamlist.txt')
+		BAMO=os.path.abspath(c.haplodir+'/W.srt.bam')
+
+		with open(BAML, 'w') as bamlist:
+
+			for s in TypeW:
+
+				bamlist.write(s+'\n')
+
+		merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+		subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+		pysam.index(BAMO)
+
+		for b in TypeW:
+
+			os.remove(b)
+
+		os.remove(BAML)
 
 	else:
 
-		numreads=round((coverage*(end-start-Ns))/ length)/2 
+		newbam=os.path.abspath(os.path.dirname(TypeW[0])+ '/W.srt.bam')
+		os.rename(TypeW[0],newbam)
+		pysam.index(newbam)
 
-	if not allelic == 100:
+	TypeC=glob.glob(os.path.abspath(c.haplodir) + '/*.C.srt.bam')
 
-		with open(os.path.abspath(output + '/reference.region.tmp.fa'), 'w') as regionout:
+	if len(TypeC) == 0:
 
-			subprocess.call(['samtools', 'faidx', genome, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] No BAM generated for the current simulation')
 
-		numreads1 = round((numreads/100)*allelic)		
-		numreads2 = numreads - numreads1
+	elif len(TypeC) > 1:
 
-		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads1), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/region.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
-		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev), '-N', str(numreads2), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/reference.region.tmp.fa'), os.path.abspath(output + '/reference.region.1.fq'), os.path.abspath(output + '/reference.region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Merging Crick BAM for current cell/haplotype')
 
-		with open (os.path.abspath(output + '/region.1.fq'), 'w') as regionout:
+		BAML=os.path.abspath(c.haplodir+'/bamlist.txt')
+		BAMO=os.path.abspath(c.haplodir+'/C.srt.bam')
 
-			subprocess.call(['cat', os.path.abspath(output + '/region.region.1.fq'), os.path.abspath(output + '/reference.region.1.fq')], stdout=regionout, stderr=open(os.devnull, 'wb'))
+		with open(BAML, 'w') as bamlist:
 
+			for s in TypeC:
 
-		os.remove(os.path.abspath(output + '/region.region.1.fq'))
-		os.remove(os.path.abspath(output + '/reference.region.1.fq'))
+				bamlist.write(s+'\n')
 
+		merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+		subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+		pysam.index(BAMO)
 
-		with open (os.path.abspath(output + '/region.2.fq'), 'w') as regionout:
+		for b in TypeC:
 
-			subprocess.call(['cat', os.path.abspath(output + '/region.region.2.fq'), os.path.abspath(output + '/reference.region.2.fq')], stdout=regionout, stderr=open(os.devnull, 'wb'))
+			os.remove(b)
 
-
-		os.remove(os.path.abspath(output + '/region.region.2.fq'))
-		os.remove(os.path.abspath(output + '/reference.region.2.fq'))
-
-		os.remove(os.path.abspath(output + '/reference.region.tmp.fa'))
-
-
-	else:
-
-		subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-d', str(insertsize), '-s', str(standarddev),'-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
-
-	
-	os.remove(os.path.abspath(output + '/region.tmp.fa'))
-	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
-
-	#re-parse fastq?
-
-	if renamer:
-
-		subprocess.call(['bash', renamer, os.path.abspath(output), 'C' + str(clone) + '_H' + str(haplonum)],stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-
-	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
-
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/region.1.fq'))
-	os.remove(os.path.abspath(output + '/region.2.fq'))
-
-	with open(os.path.abspath(output + '/region.tmp.bam'), 'w') as bamout:
-
-		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/region.tmp.sam')], stdout=bamout, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/region.tmp.sam'))
-
-	with open(os.path.abspath(output + '/' + label + '.srt.bam'), 'w') as srtbamout:
-
-		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/region.tmp.bam'))
-
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
-	
-	if tag:
-
-		ModifyReadTags(os.path.abspath(output + '/' + label + '.srt.bam'), haplonum, clone)
-
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-
-
-def SSSimulate(cores, haplotype, chromosome, start, end, error, coverage, length, indels, probability, insertsize, standarddev, output):
-
-	#prepare region
-
-	fa=pyfaidx.Fasta(os.path.abspath(haplotype))
-
-	if chromosome not in fa.keys():
-
-		message='Abort'
-		return message
-
-	chr_= fa[chromosome]
-	seq = chr_[:len(chr_)].seq
-
-	with open(os.path.abspath(output + '/region.tmp.fa'), 'w') as regionout:
-
-		subprocess.call(['samtools', 'faidx', haplotype, chromosome + ':' + str(start) +  '-' +str(end)], stdout=regionout, stderr=open(os.devnull, 'wb'))
-
-	regionfa=pyfaidx.Fasta(os.path.abspath(output + '/region.tmp.fa'))
-	chrf=regionfa[chromosome + ':' + str(start) +  '-' +str(end)]
-	seqfa=chrf[:len(chrf)].seq
-	Ns=seqfa.count('N')
-
-	if len(seq) < end-start:
-
-		logging.warning(str(chromosome) + ' in haplotype ' + os.path.abspath(haplotype) + ' is shorter than region to simulate.')
-		numreads= round((coverage*(len(seq)-Ns)) / length)/2 #calculate chosen coverage and divide by 2 'cause they are pairs
+		os.remove(BAML)
 
 	else:
 
-		numreads= round((coverage*(end-start-Ns)) / length)/2 
-	
-	#simulate reads
+		newbam=os.path.abspath(os.path.dirname(TypeC[0])+ '/C.srt.bam')
+		os.rename(TypeC[0],newbam)
+		pysam.index(newbam)
 
-	subprocess.call(['wgsim', '-e', str(error), '-r', str(error), '-N', str(numreads), '-1', str(length), '-2', str(length), '-R', str(indels), '-X', str(probability), os.path.abspath(output + '/region.tmp.fa'), os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stderr=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'))
 
-	os.remove(os.path.abspath(output + '/region.tmp.fa'))
-	os.remove(os.path.abspath(output + '/region.tmp.fa.fai'))
+def BulkSim(w,c):
 
-	#align to modified reference
+	'''
+	Perform bulk simulations and re-align to the un-modified reference
+	'''
 
-	with open(os.path.abspath(output + '/region.tmp.sam'), 'w') as samout:
+	hfa=pyfaidx.Fasta(c.ffile)
 
-		subprocess.call(['bwa', 'mem', '-t', str(cores), haplotype, os.path.abspath(output + '/region.1.fq'), os.path.abspath(output + '/region.2.fq')], stdout=samout, stderr=open(os.devnull, 'wb'))
+	if w.chrom not in hfa.keys():
 
-	with open(os.path.abspath(output + '/region.tmp.bam'), 'w') as bamout:
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] Chromosome ' + w.chrom + ' not found in ' + c.ffile + '. Skipped simulation')
 
-		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/region.tmp.sam')], stdout=bamout, stderr=open(os.devnull, 'wb'))
+	else:
 
-	os.remove(os.path.abspath(output + '/region.tmp.sam'))
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Preparing simulation from ' + c.ffile + '. Clone ' + str(c.clonenumber) + '. Haplotype ' + str(c.hapnumber))
 
-	with open(os.path.abspath(output + '/region.tmp.srt.bam'), 'w') as srtbamout:
+		chr_= hfa[w.chrom]
+		seq_ = chr_[w.start-1:w.end].seq
+		tmpfa=os.path.abspath(c.haplodir + '/' + 'htmp.fa')
+		region=w.chrom+'_'+str(w.start)+'_'+str(w.end)
 
-		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/region.tmp.bam')], stdout=srtbamout, stderr=open(os.devnull, 'wb'))
+		with open(tmpfa, 'w') as tmpfout: #write temporary fa for sampling reads
 
-	os.remove(os.path.abspath(output + '/region.tmp.bam'))
+			tmpfout.write('>' + region + '\n' + '\n'.join(re.findall('.{1,60}', seq_)) + '\n')
 
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/region.tmp.srt.bam')],stderr=open(os.devnull, 'wb'))
+		Ns=seq_.count('N') #normalize coverage on Ns
+		Nreads=round(((c.regioncoverage*(len(seq_)-Ns))/c.length)/2) #for paired-end sequencing
 
+		mate1h=os.path.abspath(c.haplodir + '/hr1.tmp.fq')
+		mate2h=os.path.abspath(c.haplodir + '/hr2.tmp.fq')
 
-def SingleStrand(haploname, chromosome, generate, genome, cores, bamfilein, label, noisefraction, output, scebed):
+		if float(w[4]) < 100.0:
 
-	bam = pysam.AlignmentFile(bamfilein, "rb")
+			tmpref=os.path.abspath(c.haplodir + '/' + 'rtmp.fa')
+			seq__=c.refall[w.chrom][w.start-1:w.end].seq
+			
+			with open(tmpref, 'w') as tmpfout: #write temporary fa for sampling reads
 
-	watslist=list(watson_orientation(bam))	
-	cricklist=list(crick_orientation(bam))
+				tmpfout.write('>' + region + '\n' + '\n'.join(re.findall('.{1,60}', seq__)) + '\n')
 
-	if scebed is not None:
+			#simulate part from reference and part from haplotype
 
-		for entries in scebed:
+			haploreadsN=round(Nreads/100*float(w[4]))
 
-			if str(entries[3]) == haploname: #perform SCE only on wanted haplotypes
+			hapcov=haploreadsN*c.length*2/((w.end-w.start)-Ns)
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Simulated coverage for this region will be ' + str(hapcov))
 
-				if str(entries[0]) == chromosome:
+			refreadsN=Nreads-haploreadsN
+			refcov=refreadsN*c.length*2/((w.end-w.start)-Ns)
+			print('[' + now + '][Message] Simulated coverage for the corresponding reference region will be ' + str(refcov))
+			
+			mate1r=os.path.abspath(c.haplodir + '/rr1.tmp.fq')
+			mate2r=os.path.abspath(c.haplodir + '/rr2.tmp.fq')
 
-					watsinregion = list(watson_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
-					crickinregion = list(crick_orientation_inregion(bam, chromosome, int(entries[1]), int(entries[2])))
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Simulating')
 
-					watslist=list(set(watslist)-set(watsinregion)) + crickinregion
-					cricklist = list(set(cricklist)-set(crickinregion)) + watsinregion
+			wgsim.core(r1=mate1h, r2=mate2h, ref=tmpfa, err_rate=c.error, mut_rate=c.mutation, indel_frac=c.indels, indel_ext=c.extindels, N=haploreadsN, dist=c.distance, stdev=c.stdev, size_l=c.length, size_r=c.length,max_n=0.05, is_hap=0, is_fixed=0, seed=0)
+			wgsim.core(r1=mate1r, r2=mate2r, ref=tmpref, err_rate=c.error, mut_rate=c.mutation, indel_frac=c.indels, indel_ext=c.extindels, N=refreadsN, dist=c.distance, stdev=c.stdev, size_l=c.length, size_r=c.length,max_n=0.05, is_hap=0, is_fixed=0, seed=0)
 
+			os.remove(tmpfa)
+			os.remove(tmpref)
 
-	with open(os.path.abspath(output + '/watsonreads.txt'), 'w') as watsonreads:
+			mate1hnew=os.path.abspath(c.haplodir + '/hr1.fq')
+			mate2hnew=os.path.abspath(c.haplodir + '/hr2.fq')
 
-		for read1,read2 in watslist:
-				
-			watsonreads.write(read1.query_name + '\n')
-			watsonreads.write(read2.query_name + '\n')	
+			with open(mate1hnew,'w') as out1, open(mate2hnew,'w') as out2:
 
+				for (name1,seq1,qual1),(name2,seq2,qual2) in zip(mp.fastx_read(mate1h),mp.fastx_read(mate2h)):
 
+					#change name1/name2
 
-	with open(os.path.abspath(output + '/crickreads.txt'), 'w') as crickreads:
+					newname1='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + name1 
+					newname2='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + name2
 
-		for read1,read2 in cricklist:
-				
-			crickreads.write(read1.query_name + '\n')
-			crickreads.write(read2.query_name + '\n')	
+					read1=[newname1, seq1, '+', qual1]
+					read2=[newname2, seq2, '+', qual2]
 
+					out1.write('\n'.join(x for x in read1) + '\n')
+					out2.write('\n'.join(x for x in read2) + '\n')
 
-	if noisefraction > 0:
+			os.remove(mate1h)
+			os.remove(mate2h)
 
-		discordant_pair_watson= round((len(watslist)*noisefraction)/100)
-		discordant_pair_crick= round((len(cricklist)*noisefraction)/100)
+			with open(mate1hnew,'a') as out1, open(mate2hnew,'a') as out2:
 
-		sample_crick=random.sample(cricklist,discordant_pair_watson)
+				for (name1,seq1,qual1),(name2,seq2,qual2) in zip(mp.fastx_read(mate1r),mp.fastx_read(mate2r)):
 
-		with open(os.path.abspath(output + '/watsonreads.txt'), 'a') as watsonreads:
+					#change name1/name2
 
-			for read1,read2 in sample_crick:
+					newname1='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fr_' + name1 
+					newname2='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fr_' + name2
 
-				watsonreads.write(read1.query_name + '\n')
-				watsonreads.write(read2.query_name + '\n')	
+					read1=[newname1, seq1, '+', qual1]
+					read2=[newname2, seq2, '+', qual2]
 
+					out1.write('\n'.join(read1) + '\n')
+					out2.write('\n'.join(read2) + '\n')
 
-		sample_watson=random.sample(watslist,discordant_pair_crick)
+			os.remove(mate1r)
+			os.remove(mate2r)
 
-		with open(os.path.abspath(output + '/crickreads.txt'), 'a') as crickreads:
-
-			for read1,read2 in sample_watson:
-
-				crickreads.write(read1.query_name + '\n')
-				crickreads.write(read2.query_name + '\n')	
-
-
-
-	bam.close()
-
-	os.remove(bamfilein)
-	os.remove(bamfilein + '.bai')
-
-
-
-	subprocess.call(['bash', generate, os.path.abspath(output)])
-
-	os.remove(os.path.abspath(output + '/watsonreads.txt'))
-	os.remove(os.path.abspath(output + '/crickreads.txt'))
-
-
-	with open(os.path.abspath(output + '/watson.tmp.sam'), 'w') as watsonsam:
-
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/watson.1.fq'), os.path.abspath(output + '/watson.2.fq')], stdout=watsonsam, stderr=open(os.devnull, 'wb'))
-
-
-	with open(os.path.abspath(output + '/crick.tmp.sam'), 'w') as cricksam:
-
-		subprocess.call(['bwa', 'mem', '-t', str(cores), genome, os.path.abspath(output + '/crick.1.fq'), os.path.abspath(output + '/crick.2.fq')], stdout=cricksam, stderr=open(os.devnull, 'wb'))
-
-
-	os.remove(os.path.abspath(output + '/watson.1.fq'))
-	os.remove(os.path.abspath(output + '/watson.2.fq'))
-
-	os.remove(os.path.abspath(output + '/crick.1.fq'))
-	os.remove(os.path.abspath(output + '/crick.2.fq'))
-
-
-	with open(os.path.abspath(output + '/watson.tmp.bam'), 'w') as watsonbam:
-
-		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/watson.tmp.sam')], stdout=watsonbam, stderr=open(os.devnull, 'wb'))
-
-
-	with open(os.path.abspath(output + '/crick.tmp.bam'), 'w') as crickbam:
-
-		subprocess.call(['samtools', 'view', '-b', os.path.abspath(output + '/crick.tmp.sam')], stdout=crickbam, stderr=open(os.devnull, 'wb'))
-
-	os.remove(os.path.abspath(output + '/watson.tmp.sam'))
-	os.remove(os.path.abspath(output + '/crick.tmp.sam'))
-
-
-	with open(os.path.abspath(output + '/' + label + '.watson.srt.bam'), 'w') as watsonsort:
-
-		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/watson.tmp.bam')], stdout=watsonsort, stderr=open(os.devnull, 'wb'))
-
-
-	with open(os.path.abspath(output + '/' + label + '.crick.srt.bam'), 'w') as cricksort:
-
-		subprocess.call(['samtools', 'sort', '-@', str(cores-1), os.path.abspath(output + '/crick.tmp.bam')], stdout=cricksort, stderr=open(os.devnull, 'wb'))
-
-
-	os.remove(os.path.abspath(output + '/watson.tmp.bam'))
-	os.remove(os.path.abspath(output + '/crick.tmp.bam'))
-
-
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.watson.srt.bam')],stderr=open(os.devnull, 'wb'))
-	subprocess.call(['samtools', 'index', os.path.abspath(output + '/' + label + '.crick.srt.bam')],stderr=open(os.devnull, 'wb'))
-
-
-
-def watson_orientation_inregion(bam, chromosome, start, end):
-
-	read_dict = defaultdict(lambda: [None, None])
-
-	for read in bam.fetch(chromosome, start, end):
-
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
-
-			continue
-
-		elif read.is_read1 and read.is_reverse: #if read1 is reverse skip
-
-			continue
-
-		elif read.is_read2 and not read.is_reverse: #if read2 is not reverse skip
-
-			continue
-
-		else: #read 1 is forward and read 2 is reverse
-
-			qname = read.query_name
-
-			if qname not in read_dict:
-
-				if read.is_read1:
-
-					read_dict[qname][0] = read
-
-				else:
-
-					read_dict[qname][1] = read
-			else:
-
-				if read.is_read1:
-
-					yield read, read_dict[qname][1]
-				
-				else:
-
-					yield read_dict[qname][0], read
-
-				del read_dict[qname]
-
-
-
-
-def crick_orientation_inregion(bam, chromosome, start, end):
-
-	read_dict = defaultdict(lambda: [None, None])
-
-	for read in bam.fetch(chromosome, start, end):
-
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
-
-			continue
-
-		elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
-
-			continue
-
-		elif read.is_read2 and read.is_reverse: #if read2 is reverse skip
-
-			continue
+			#split in chunks for multiprocessing
 
 		else:
 
-			qname = read.query_name
+			hapcov=Nreads*c.length*2/((w.end-w.start)-Ns)
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Simulated coverage for this region will be ' + str(hapcov))
 
-			if qname not in read_dict:
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Simulating')
 
-				if read.is_read1:
+			wgsim.core(r1=mate1h, r2=mate2h, ref=tmpfa, err_rate=c.error, mut_rate=c.mutation, indel_frac=c.indels, indel_ext=c.extindels, N=Nreads, dist=c.distance, stdev=c.stdev, size_l=c.length, size_r=c.length,max_n=0.05, is_hap=0,  is_fixed=0, seed=0)
 
-					read_dict[qname][0] = read
+			os.remove(tmpfa)
 
-				else:
+			mate1hnew=os.path.abspath(c.haplodir + '/hr1.fq')
+			mate2hnew=os.path.abspath(c.haplodir + '/hr2.fq')
 
-					read_dict[qname][1] = read
-			else:
+			with open(mate1hnew,'w') as out1, open(mate2hnew,'w') as out2:
 
-				if read.is_read1:
+				for (name1,seq1,qual1),(name2,seq2,qual2) in zip(mp.fastx_read(mate1h),mp.fastx_read(mate2h)):
 
-					yield read, read_dict[qname][1]
-				
-				else:
+					#change name1/name2
 
-					yield read_dict[qname][0], read
+					newname1='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + name1 
+					newname2='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + name2
 
-				del read_dict[qname]
+					read1=[newname1, seq1, '+', qual1]
+					read2=[newname2, seq2, '+', qual2]
 
+					out1.write('\n'.join(read1) +'\n')
+					out2.write('\n'.join(read2) + '\n')
 
+			os.remove(mate1h)
+			os.remove(mate2h)
 
+		
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Mapping simulated reads to the reference genome')
 
+		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.srt.bam')
 
-def watson_orientation(bam):
+		sam_cmd = ['minimap2', '-ax', 'sr', '--MD', '--cs', '-Y', '--sam-hit-only', '-t', str(c.threads), '-R', '@RG\\tID:illumina\\tSM:bulk', c.REF, mate1hnew, mate2hnew]
+		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
+		
+		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
+		bout=open(BAM, 'wb')
+		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
+		bout.close()
 
-	read_dict = defaultdict(lambda: [None, None])
-
-	for read in bam.fetch():
-
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
-
-			continue
-
-		elif read.is_read1 and read.is_reverse: #if read1 is reverse skip
-
-			continue
-
-		elif read.is_read2 and not read.is_reverse: #if read2 is not reverse skip
-
-			continue
-
-		else: #read 1 is forward and read 2 is reverse
-
-			qname = read.query_name
-
-			if qname not in read_dict:
-
-				if read.is_read1:
-
-					read_dict[qname][0] = read
-
-				else:
-
-					read_dict[qname][1] = read
-			else:
-
-				if read.is_read1:
-
-					yield read, read_dict[qname][1]
-				
-				else:
-
-					yield read_dict[qname][0], read
-
-				del read_dict[qname]
+		os.remove(mate1hnew)
+		os.remove(mate2hnew)
 
 
+def StrandSim(w,c):
 
-def crick_orientation(bam):
+	'''
+	Perform first part of strand-seq simulations and re-align to the original haplotype
+	'''
 
-	read_dict = defaultdict(lambda: [None, None])
+	hfa=pyfaidx.Fasta(c.ffile)
 
-	for read in bam.fetch():
+	if w.chrom not in hfa.keys():
 
-		if not read.is_proper_pair or read.is_secondary or read.is_supplementary:
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] Chromosome ' + w.chrom + ' not found in ' + c.ffile + '. Skipped simulation')
 
-			continue
+	else:
 
-		elif read.is_read1 and not read.is_reverse: #if read1 is not reverse skip
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Preparing simulation from ' + c.ffile + '. Haplotype ' + str(c.hapnumber))
 
-			continue
+		chr_= hfa[w.chrom]
+		seq_ = chr_[w.start-1:w.end].seq
+		tmpfa=os.path.abspath(c.haplodir + '/' + 'htmp.fa')
+		region=w.chrom+'_'+str(w.start)+'_'+str(w.end)
 
-		elif read.is_read2 and read.is_reverse: #if read2 is reverse skip
+		with open(tmpfa, 'w') as tmpfout: #write temporary fa for sampling reads
 
-			continue
+			tmpfout.write('>' + region + '\n' + '\n'.join(re.findall('.{1,60}', seq_)) + '\n')
+
+		Ns=seq_.count('N') #normalize coverage on Ns
+		Nreads=round(((c.regioncoverage*(len(seq_)-Ns))/c.length)/2) #for paired-end sequencing
+
+		mate1h=os.path.abspath(c.haplodir + '/hr1.tmp.fq')
+		mate2h=os.path.abspath(c.haplodir + '/hr2.tmp.fq')
+
+		hapcov=Nreads*c.length*2/((w.end-w.start)-Ns)
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Simulated coverage for this region will be ' + str(hapcov))
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Simulating')
+
+		wgsim.core(r1=mate1h, r2=mate2h, ref=tmpfa, err_rate=c.error, mut_rate=c.mutation, indel_frac=c.indels, indel_ext=c.extindels, N=Nreads, dist=c.distance, stdev=c.stdev, size_l=c.length, size_r=c.length,max_n=0.05, is_hap=0,  is_fixed=0, seed=0)
+
+		os.remove(tmpfa)
+
+		mate1hnew=os.path.abspath(c.haplodir + '/hr1.fq')
+		mate2hnew=os.path.abspath(c.haplodir + '/hr2.fq')
+
+		with open(mate1hnew,'w') as out1, open(mate2hnew,'w') as out2:
+
+			for (name1,seq1,qual1),(name2,seq2,qual2) in zip(mp.fastx_read(mate1h),mp.fastx_read(mate2h)):
+
+				#change name1/name2
+
+				newname1='@c' + str(c.singlecellnum) + 'h' + str(c.hapnumber) + 'fh_' + name1
+				newname2='@c' + str(c.singlecellnum) + 'h' + str(c.hapnumber) + 'fh_' + name2
+
+				read1=[newname1, seq1, '+', qual1]
+				read2=[newname2, seq2, '+', qual2]
+
+				out1.write('\n'.join(read1) +'\n')
+				out2.write('\n'.join(read2) + '\n')
+
+		os.remove(mate1h)
+		os.remove(mate2h)
+	
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Mapping simulated reads to the corresponding haplotype')
+
+		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.srt.bam')
+
+		sam_cmd = ['minimap2', '-ax', 'sr', '--MD', '--cs', '-Y','--sam-hit-only','-t', str(c.threads),c.ffile, mate1hnew, mate2hnew]
+		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
+		
+		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
+		bout=open(BAM, 'wb')
+		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
+		bout.close()
+
+		os.remove(mate1hnew)
+		os.remove(mate2hnew)
+
+		#now re-parse BAM file to keep only Watson/Crick reads
+		#Watson reads: read1 forward, read2 reverse
+		#Crick reads: read2 forward, read1 reverse
+
+		ivf=None
+
+		if len(c.sce_bedregion) != 0:
+
+			sce_string=''
+
+			for s in c.sce_bedregion:
+
+				if s[3] == c.cellid and s[4] == c.hapid:
+
+					sce_string+=s.chrom+'\t'+str(s.start)+'\t'+str(s.end)+'\n'
+
+			if sce_string != '':
+
+				sce_fromscratch=pybedtools.BedTool(sce_string.rstrip(),from_string=True)
+				ivf=sce_fromscratch.as_intervalfile() #intervals where to perform SCE events
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Detected one ore more SCE event for current cell/haplotype')
+
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Extracting Watson (R1F,R2R) and Crick (R1R,R2F) reads')
+
+		save = pysam.set_verbosity(0)
+		bamstrand=pysam.AlignmentFile(BAM, 'rb', require_index=False) #until-eof consumes the bamfile
+		pysam.set_verbosity(save)
+		Wreads=list(WR(bamstrand,ivf))
+		bamstrand.close()
+
+
+		save = pysam.set_verbosity(0)
+		bamstrand=pysam.AlignmentFile(BAM, 'rb', require_index=False) #re-open for second round
+		pysam.set_verbosity(save)
+		Creads=list(CR(bamstrand,ivf))
+		bamstrand.close()
+
+		os.remove(BAM)
+
+		if c.noise > 0:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Adding noise to strands')
+
+			CtoW=random.sample(Creads,round(len(Wreads)/100*c.noise))
+			Wreads+=CtoW
+
+			WtoC=random.sample(Wreads,round(len(Creads)/100*c.noise))
+			Creads+=WtoC
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Writing Watson and Crick FASTQ')
+
+		w1=os.path.abspath(c.haplodir + '/' + str(c.r_number)+'.w1.fq')
+		w2=os.path.abspath(c.haplodir + '/' + str(c.r_number)+'.w2.fq')
+
+		c1=os.path.abspath(c.haplodir + '/' + str(c.r_number)+'.c1.fq')
+		c2=os.path.abspath(c.haplodir + '/' + str(c.r_number)+'.c2.fq')
+
+		with open(w1, 'w') as wout1, open(w2, 'w') as wout2:
+
+			for r1,r2 in Wreads:
+
+				if r1.get_tag('OS') == 'W': #this is true W
+
+					read1=['@'+r1.query_name, r1.query_sequence, '+', '2'*c.length]
+					read2=['@'+r2.query_name, mp.revcomp(r2.query_sequence), '+', '2'*c.length]
+
+				else: #write to Watson, but is Crick
+
+					read1=['@'+r1.query_name, mp.revcomp(r1.query_sequence), '+', '2'*c.length]
+					read2=['@'+r2.query_name, r2.query_sequence, '+', '2'*c.length]
+
+				wout1.write('\n'.join(read1) +'\n')
+				wout2.write('\n'.join(read2) +'\n')
+
+		with open(c1, 'w') as cout1, open(c2, 'w') as cout2:
+
+			for r1,r2 in Creads:
+
+				if r1.get_tag('OS') == 'C': #this is true C
+
+					read1=['@'+r1.query_name, mp.revcomp(r1.query_sequence), '+', '2'*c.length]
+					read2=['@'+r2.query_name, r2.query_sequence, '+', '2'*c.length]
+
+				else: #write to Crick, but is Watson
+
+					read1=['@'+r1.query_name, r1.query_sequence, '+', '2'*c.length]
+					read2=['@'+r2.query_name, mp.revcomp(r2.query_sequence), '+', '2'*c.length]
+
+				cout1.write('\n'.join(read1) +'\n')
+				cout2.write('\n'.join(read2) +'\n')
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Mapping Watson and Crick reads to the original reference')
+
+		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.W.srt.bam')
+
+		sam_cmd = ['minimap2', '-ax', 'sr', '--MD', '--cs', '-Y', '--sam-hit-only','-t', str(c.threads), '-R', '@RG\\tID:illumina\\tSM:strand', c.REF, w1, w2]
+		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
+
+		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
+		bout=open(BAM, 'wb')
+		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
+		bout.close()
+
+		os.remove(w1)
+		os.remove(w2)
+
+		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.C.srt.bam')
+
+		sam_cmd = ['minimap2', '-ax', 'sr', '--MD', '--cs', '-Y', '--sam-hit-only','-t', str(c.threads),'-R', '@RG\\tID:illumina\\tSM:strand',c.REF, c1, c2]
+		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
+
+		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
+		bout=open(BAM, 'wb')
+		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
+		bout.close()
+
+		os.remove(c1)
+		os.remove(c2)
+
+
+def WR(stranded_bam, ivf):
+
+	'''
+	Extract Watson reads from strand-seq BAM. Switch Crick and Watson if hit in ivf
+	'''
+
+	WR = defaultdict(lambda: [None, None])
+
+	for read in stranded_bam.fetch(until_eof=True):
+
+		if read.is_proper_pair and not read.is_secondary and not read.is_supplementary:
+
+			if ivf is None: #no need to check for intervals match
+
+				if (read.is_read1 and not read.is_reverse) or (read.is_read2 and read.is_reverse): #read1 forward/ read2 reverse
+
+					read.set_tag('OS', 'W', 'Z') #used for debugging
+
+					if read.query_name not in WR:
+
+						if read.is_read1:
+
+							WR[read.query_name][0] = read
+
+						else:
+
+							WR[read.query_name][1] = read
+
+					else:
+
+						if read.is_read1:
+
+							yield read, WR[read.query_name][1]
+
+						else:
+
+							yield WR[read.query_name][0], read
+
+
+						del WR[read.query_name]
+
+			else: #there is a region to perform W-C switch in
+
+				query=pybedtools.Interval(read.reference_name,read.reference_start,read.reference_end)
+
+				if ivf.any_hits(query) >=1: #yeld Crick as Watson
+
+					if (read.is_read1 and read.is_reverse) or (read.is_read2 and not read.is_reverse): #read2 forward and read1 reverse
+
+						read.set_tag('OS', 'C', 'Z') #used for debugging
+
+						if read.query_name not in WR:
+
+							if read.is_read1:
+
+								WR[read.query_name][0] = read
+
+							else:
+
+								WR[read.query_name][1] = read
+
+						else:
+
+							if read.is_read1:
+
+								yield read, WR[read.query_name][1]
+
+							else:
+
+								yield WR[read.query_name][0], read
+
+							del WR[read.query_name]
+
+				else: #Classic Watson Reads
+
+					if (read.is_read1 and not read.is_reverse) or (read.is_read2 and read.is_reverse): #read1 forward and read2 reverse
+
+						read.set_tag('OS', 'W', 'Z') #used for debugging
+
+						if read.query_name not in WR:
+
+							if read.is_read1:
+
+								WR[read.query_name][0] = read
+
+							else:
+
+								WR[read.query_name][1] = read
+
+						else:
+
+							if read.is_read1:
+
+								yield read, WR[read.query_name][1]
+
+							else:
+
+								yield WR[read.query_name][0], read
+
+							del WR[read.query_name]
+
+def CR(stranded_bam, ivf):
+
+	'''
+	Extract Crick reads from strand-seq BAM. Switch Watson and Crick if hit in ivf
+	'''
+
+	CR = defaultdict(lambda: [None, None])
+
+	for read in stranded_bam.fetch(until_eof=True):
+
+		if read.is_proper_pair and not read.is_secondary and not read.is_supplementary:
+
+			if ivf is None: #no need to check for intervals match
+
+				if (read.is_read1 and read.is_reverse) or (read.is_read2 and not read.is_reverse): #read2 forward and read1 reverse
+
+					read.set_tag('OS', 'C', 'Z') #used for debugging
+
+					if read.query_name not in CR:
+
+						if read.is_read1:
+
+							CR[read.query_name][0] = read
+
+						else:
+
+							CR[read.query_name][1] = read
+
+					else:
+
+						if read.is_read1:
+
+							yield read, CR[read.query_name][1]
+
+						else:
+
+							yield CR[read.query_name][0], read
+
+
+						del CR[read.query_name]
+
+			else: #there is a region to perform W-C switch in
+
+				query=pybedtools.Interval(read.reference_name,read.reference_start,read.reference_end)
+
+				if ivf.any_hits(query) >=1: #yeld Watson as Crick
+
+					if (read.is_read1 and not read.is_reverse) or (read.is_read2 and read.is_reverse):
+
+						read.set_tag('OS', 'W', 'Z') #used for debugging
+
+						if read.query_name not in CR:
+
+							if read.is_read1:
+
+								CR[read.query_name][0] = read
+
+							else:
+
+								CR[read.query_name][1] = read
+
+						else:
+
+							if read.is_read1:
+
+								yield read, CR[read.query_name][1]
+
+							else:
+
+								yield CR[read.query_name][0], read
+
+							del CR[read.query_name]
+
+				else: #Classic Crick Read
+
+					if (read.is_read1 and read.is_reverse) or (read.is_read2 and not read.is_reverse): #read2 forward and read1 reverse
+
+						read.set_tag('OS', 'C', 'Z') #used for debugging
+
+						if read.query_name not in CR:
+
+							if read.is_read1:
+
+								CR[read.query_name][0] = read
+
+							else:
+
+								CR[read.query_name][1] = read
+
+						else:
+
+							if read.is_read1:
+
+								yield read, CR[read.query_name][1]
+
+							else:
+
+								yield CR[read.query_name][0], read
+
+							del CR[read.query_name]
+
+
+def run(parser,args):
+
+	'''
+	Check arguments, run functions
+	'''
+
+	redirect_stdout()# block pywgsim stdout
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] VISOR SHORtS v1.1')
+
+	#fill container
+
+	c.OUT=os.path.abspath(args.output)
+	c.REF=os.path.abspath(args.genome)
+	c.BED=os.path.abspath(args.bedfile)
+	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
+	c.strandseq=args.strandseq
+
+
+	if c.strandseq and len(c.SAMPLES) > 1:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] When performing strand-seq simulations, only 1 sample must be given as input')
+		sys.exit(1)
+
+	#main
+
+	if not os.path.exists(c.OUT):
+
+		try:
+
+			os.makedirs(c.OUT)
+
+		except:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Cannot create the output folder')
+			sys.exit(1)
+
+	else:
+
+		if not os.access(os.path.abspath(c.OUT),os.W_OK):
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Missing write permissions on the output folder')
+			sys.exit(1)
+			
+		elif os.listdir(os.path.abspath(c.OUT)):
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] The output folder is not empty: specify another output folder or clean the current one')
+			sys.exit(1)
+
+
+	required=['bedtools', 'minimap2', 'samtools']
+
+	for x in required:
+
+		if which(x) is None:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] ' + x +' must be in PATH')
+			sys.exit(1)
 
 		else:
 
-			qname = read.query_name
+			#check version (only for samtools?)
+			if x == 'samtools':
 
-			if qname not in read_dict:
+				major,minor=subprocess.check_output(['samtools', '--version']).decode('utf-8').split('\n')[0].split('samtools ')[1].split('.')
 
-				if read.is_read1:
+				if int(major) < 1 or int(minor) < 9:
 
-					read_dict[qname][0] = read
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Required samtools version >= 1.9')
+					sys.exit(1)
+
+			elif x == 'minimap2':
+
+				major,minor=subprocess.check_output(['minimap2', '--version']).decode('utf-8').rstrip().split('-')[0].split('.')
+
+				if int(major) < 2 or int(minor) < 17:
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Required minimap2 version >= 2.17')
+					sys.exit(1)
+
+	try:
+
+		c.refall=pyfaidx.Fasta(c.REF)
+
+	except:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Error] Reference file does not exist, is not readable or is not a valid FASTA')
+		sys.exit(1)
+
+	try:
+
+		bedfile=pybedtools.BedTool(c.BED)
+		bedsrtd=bedfile.sort()
+
+	except:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Error] BED ' + c.BED + ' does not exist, is not readable or is not a valid BED')
+		sys.exit(1)
+
+	#validate all the fields in the input BED
+
+	for j,x in enumerate(bedsrtd):
+
+		if x.chrom not in c.refall.keys(): #not a chromosome in reference file
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Line ' + str(j+1) + ': column 1 (chromosome name) contains an invalid chromosome (not included in the reference provided)')
+			sys.exit(1)
+
+		try:
+
+			assert(float(x[3]) <= 100.0) #check value and type same time
+
+		except:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Line ' + str(j+1) + ': column 4 (capture bias percentage) must be a float not greater than 100.0')
+			sys.exit(1)
+
+		try:
+
+			float(x[4])
+
+		except:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (purity percentage) must be a float')
+			sys.exit(1)
+
+	c.tag=args.tag
+	c.threads=args.threads
+	c.noise=args.noise
+
+	if c.threads > multiprocessing.cpu_count():
+
+		c.threads=multiprocessing.cpu_count()-1
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Warning] Specified number of cores exceeds the number of cores available. Using all but one')
+
+	#fill c with wgsim parameters for simulations 
+
+	c.coverage=args.coverage
+	c.error=args.error
+	c.distance=args.distance
+	c.stdev=args.stdev
+	c.length=args.length
+	c.mutation=args.mutation
+	c.indels=args.indels
+	c.extindels=args.extindels
+
+	if not c.strandseq:
+
+		if len(c.SAMPLES) > 1:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Preparing for bulk simulations with multiple clones')
+
+			if args.clonefraction is None:
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Multiple clones but their percentages are not specified. Provide coherent clone percentages')	
+				sys.exit(1)
+
+			else:		
+
+				c.clonefraction=[float(x) for x in args.clonefraction[0]]
+
+				if len(c.clonefraction) != len(c.SAMPLES):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] ' + str(len(c.SAMPLES)) + ' clones but ' + str(len(c.clonefraction)) + ' percentages specified')
+					sys.exit(1)
+
+				if sum(x for x in c.clonefraction) != 100.0:
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Sum of percentages must equal 100.0')
+					sys.exit(1)
+
+		else:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Preparing for bulk simulations with a single clone')
+			c.clonefraction=[100.0]
+
+		allbams=[]
+		hapdirs=[]
+		clonedirs=[]
+
+		for i,x in enumerate(c.SAMPLES):
+
+			clonebams=[]
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Processing clone ' + str(i+1))
+			c.sampledir=os.path.abspath(c.OUT + '/clone' + str(i+1))
+			clonedirs.append(c.sampledir)
+			os.makedirs(c.sampledir)
+			c.ffiles=sorted(glob.glob(os.path.abspath(x) + '/*.fa'), key=natural_keys)
+			c.cperc=c.clonefraction[i]
+			c.fperc=c.cperc/len(c.ffiles) #sample/clone percentage divided equally for each FASTA
+			c.clonenumber=i+1
+
+			for k,s in enumerate(c.ffiles):
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Processing haplotype ' + str(k+1))
+				c.haplodir=os.path.abspath(c.sampledir + '/h' + str(k+1))
+				hapdirs.append(c.haplodir)
+				os.makedirs(c.haplodir)
+				c.ffile=c.ffiles[k]
+				c.hapnumber=k+1
+
+				for w in bedsrtd: #do not use multi-processing on this as minimap2 may require too much memory
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Message] Simulating from region ' + w.chrom + ':' + str(w.start) + '-' + str(w.end))
+					c.r_number+=1
+					c.regioncoverage=(c.coverage/100*float(w[3]))/100*c.fperc #this takes into account also number of fasta files to split coverage by
+					BulkSim(w,c)
+
+				c.r_number=0
+				hsam=glob.glob(os.path.abspath(c.haplodir) + '/*.bam')
+
+				if len(hsam) == 0:
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Warning] No BAM generated for the current haplotype')
 
 				else:
 
-					read_dict[qname][1] = read
+					if c.tag:
+
+						reg=len(hsam)
+						chunk_size=reg/c.threads
+						slices=Chunks(hsam,math.ceil(chunk_size))
+						processes = []
+
+						now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+						print('[' + now + '][Message] Adding CL- and HP-tags to BAM')
+
+						for sli in slices:
+
+							p=multiprocessing.Process(target=RTag, args=(sli,c))
+							p.start()
+							processes.append(p)
+
+						for p in processes:
+
+							p.join()
+
+				clonebams.extend(hsam)
+
+			if len(clonebams) == 0:
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Warning] No BAM generated for the current clone')
+
+			allbams.extend(clonebams)
+
+		if len(allbams) == 0:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Warning] No BAM generated for the current simulation')
+
+		else:
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Merging simulated BAM')
+
+			maxfile=round(resource.getrlimit(resource.RLIMIT_NOFILE)[0]/2) #use half of the lower bound
+			
+			if len(allbams) >= maxfile:
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Lots of BAM here! Merging progressively')
+
+				chunk_size=len(allbams)/maxfile
+				slices=Chunks(allbams,math.ceil(chunk_size))
+				BAML=os.path.abspath(c.OUT+'/bamlist.txt')
+
+				for v,sli in enumerate(slices):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Message] Round ' + str(v+1) + ' of merging')
+
+					BAMO=os.path.abspath(c.OUT+'/' + str(v+1) + '.sim.srt.bam')
+
+					with open(BAML, 'w') as bamlist:
+
+						for s in sli:
+
+							bamlist.write(s+'\n')
+
+					merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+					subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Final round of merging')
+
+				finalbams=glob.glob(os.path.abspath(c.OUT) + '/*.bam')
+				BAMO=os.path.abspath(c.OUT+'/sim.srt.bam')
+					
+				with open(BAML, 'w') as bamlist:
+
+					for s in finalbams:
+
+						bamlist.write(s+'\n')
+
+				merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+				subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+				pysam.index(BAMO)
+
+				#remove sub-merged BAM files
+
+				for b in finalbams:
+
+					os.remove(b)				
+
 			else:
 
-				if read.is_read1:
+				BAML=os.path.abspath(c.OUT+'/bamlist.txt')
+				BAMO=os.path.abspath(c.OUT+'/sim.srt.bam')
 
-					yield read, read_dict[qname][1]
-				
-				else:
+				with open(BAML, 'w') as bamlist:
 
-					yield read_dict[qname][0], read
+					for s in allbams:
 
-				del read_dict[qname]
+						bamlist.write(s+'\n')
+
+				merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO] #this can ideally be called also with '--write-index' but from 1.10 on
+				subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+				pysam.index(BAMO)
+
+			os.remove(BAML) #remove BAM list
+
+			for b in allbams: #remove all the initial BAM files
+
+				os.remove(b)
+
+			#clean directories
+			#haplotpye-directories
+
+			for d in hapdirs:
+
+				os.rmdir(d)
+
+			#clone-directories
+
+			for d in clonedirs:
+
+				os.rmdir(d)
+
+	else:
+
+		#debug errors for wrong arguments as input
+
+		c.cellnum=args.cells
+		c.cellref=round(c.cellnum/100*args.refcells) #round to integer
+		c.cellhap=c.cellnum-c.cellref
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] ' +str(c.cellref) + ' cells will be simulated from reference')
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] ' +str(c.cellhap) + ' cells will be simulated from sample')
+
+		if args.sce is not None:
+
+			c.sce_bed=os.path.abspath(args.sce)
+
+			try:
+
+				sce_bedfile=pybedtools.BedTool(c.sce_bed)
+				sce_bedsrtd=sce_bedfile.sort()
+
+			except:
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] BED ' + c.sce_bed + ' does not exist, is not readable or is not a valid BED')
+				sys.exit(1)
+
+			for s in sce_bedsrtd:
+
+				c.sce_bedregion.append(s)
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][Message] Preparing for strand-seq simulation with ' + str(c.cellnum) + ' single cells')
+
+		if c.cellref > 0:
+
+			counterref=0
+
+			for cr in range(c.cellref):
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Processing reference cell ' + str(cr+1))
+				c.singlecellnum+=1
+				c.sampledir=os.path.abspath(c.OUT + '/reference_cell' + str(cr+1))
+				os.makedirs(c.sampledir)
+				c.ffiles=[c.REF, c.REF]
+				c.cperc=100.0 #all from diploid reference
+				c.fperc=c.cperc/len(c.ffiles) #sample/clone percentage divided equally for each FASTA
+				c.cellid='reference_cell'+str(cr+1) #for SCE events, if SCE BED provided
+
+				for k,s in enumerate(c.ffiles):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Message] Processing haplotype ' + str(k+1))
+					c.haplodir=os.path.abspath(c.sampledir + '/h' + str(k+1))
+					os.makedirs(c.haplodir)
+					c.ffile=c.ffiles[k]
+					c.hapid='haplotype' + str(k+1) #for SCE events, if SCE BED provided
+					c.hapnumber=k+1
+
+					for w in bedsrtd:
+
+						now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+						print('[' + now + '][Message] Simulating from region ' + w.chrom + ':' + str(w.start) + '-' + str(w.end))
+						c.r_number+=1
+						c.regioncoverage=c.coverage/100*c.fperc #this takes into account just number of fasta files to split coverage by
+						StrandSim(w,c)
+
+					#merge all watson/crick in haplotype. Assume they cannot exceed resource limit for a single haplotype of a single cell
+					MergeAll(c)
+					c.r_number=0
+
+				counterref+=1
+
+				if counterref == c.cellref: #break on occurrence
+
+					break
+
+		if c.cellhap > 0:
+
+			counterhap=0
+
+			for cr in range(c.cellhap):
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Message] Processing sample cell ' + str(cr+1))
+				c.singlecellnum+=1
+				c.sampledir=os.path.abspath(c.OUT + '/sample_cell' + str(cr+1))
+				os.makedirs(c.sampledir)
+				c.ffiles=sorted(glob.glob(os.path.abspath(c.SAMPLES[0]) + '/*.fa'), key=natural_keys)
+				c.cperc=100.0 #all from sample (can have any ploidy)
+				c.fperc=c.cperc/len(c.ffiles) #sample/clone percentage divided equally for each FASTA
+				c.cellid='sample_cell'+str(cr+1) #for SCE events, if SCE BED provided
+
+				for k,s in enumerate(c.ffiles):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Message] Processing haplotype ' + str(k+1))
+					c.haplodir=os.path.abspath(c.sampledir + '/h' + str(k+1))
+					os.makedirs(c.haplodir)
+					c.ffile=c.ffiles[k]
+					c.hapid='haplotype' + str(k+1) #for SCE events, if SCE BED provided
+					c.hapnumber=k+1
+
+					for w in bedsrtd:
+
+						now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+						print('[' + now + '][Message] Simulating from region ' + w.chrom + ':' + str(w.start) + '-' + str(w.end))
+						c.r_number+=1
+						c.regioncoverage=c.coverage/100*c.fperc #this takes into account just number of fasta files to split coverage by
+						StrandSim(w,c)
+
+					MergeAll(c)
+					c.r_number=0
+
+				counterhap+=1
+
+				if counterhap == c.cellhap: #break on occurrence
+
+					break
+
+	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Done')
+	sys.exit(0)

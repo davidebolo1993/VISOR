@@ -1,8 +1,1 @@
-include VISOR/LASeR/model_qc_clr
-include VISOR/LASeR/model_qc_ccs
-include VISOR/LASeR/renamer.sh
-include VISOR/SHORtS/generate.sh
-include VISOR/SHORtS/renamer.sh
 include VISOR/XENIA/4M-with-alts-february-2016.txt.gz
-include VISOR/XENIA/clean.sh
-include VISOR/XENIA/organize.sh
