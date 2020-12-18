@@ -25,9 +25,10 @@ RUN curl -LO https://github.com/samtools/htslib/releases/download/1.11/htslib-1.
 #get samtools
 RUN curl -LO https://github.com/samtools/samtools/releases/download/1.11/samtools-1.11.tar.bz2 && tar -vxjf samtools-1.11.tar.bz2 && cd samtools-1.11 && make && make install
 #get minimap2
-RUN git clone https://github.com/lh3/minimap2.git && cd minimap2 && make && echo "export PATH=${PWD}/minimap2:$PATH" > ~/.bashrc
+RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.17/minimap2-2.17_x64-linux.tar.bz2 | tar -jxvf -
+ENV PATH="${PATH}:/minimap2-2.17_x64-linux"
 #get VISOR and the required python dependencies
-RUN git clone https://github.com/davidebolo1993/VISOR.git && cd VISOR && pip install -r requirements.txt && python setup.py install
+RUN git clone https://github.com/davidebolo1993/VISOR.git && cd VISOR && pip install -r requirements.txt && pip install --upgrade cython && python setup.py install
 
 #Pull with:
 #sudo docker pull davidebolo1993/visor
