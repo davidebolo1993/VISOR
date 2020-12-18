@@ -5,6 +5,7 @@ echo ""
 samtools --version
 minimap2 --version
 bedtools --version
+badread --version
 echo ""
 echo ""
 echo "Checking VISOR installation"
@@ -29,22 +30,22 @@ echo "Testing VISOR SHORtS"
 echo ""
 echo ""
 VISOR SHORtS -h
-VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/shorts_out_singleclone --coverage 1 #this is just for testing, no need to spend a lot of time on this
-VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out test/hack_out -o test/shorts_out_multiclone --coverage 1 --clonefraction 50 50 --tag #this is just for testing, no need to spend a lot of time on this
-VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/shorts_out_strandseq --coverage 1 --strandseq --cells 1 --sce test/sce.bed --noise 5.0
+VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/shorts_out_singleclone --coverage 0.0001 #this is just for testing, no need to spend a lot of time on this
+VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out test/hack_out -o test/shorts_out_multiclone --coverage 0.0001 --clonefraction 50 50 --tag #this is just for testing, no need to spend a lot of time on this
+VISOR SHORtS -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/shorts_out_strandseq --coverage 0.0001 --strandseq --cells 1 --sce test/sce.bed --noise 5.0
 echo ""
 echo ""
 echo "Testing VISOR LASeR"
 echo ""
 echo ""
 VISOR LASeR -h
-VISOR LASeR -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/laser_out_singleclone --coverage 0.01 #this is just for testing, no need to spend a lot of time on this
-VISOR LASeR -g smallref.fa -b test/shorts.bed -s test/hack_out test/hack_out -o test/laser_out_multiclone --coverage 0.01 --clonefraction 50 50 --tag #this is just for testing, no need to spend a lot of time on this
+VISOR LASeR -g smallref.fa -b test/shorts.bed -s test/hack_out -o test/laser_out_singleclone --coverage 0.00001 --threads 2 #this is just for testing, no need to spend a lot of time on this
+VISOR LASeR -g smallref.fa -b test/shorts.bed -s test/hack_out test/hack_out -o test/laser_out_multiclone --coverage 0.00001 --clonefraction 50 50 --tag --threads 2 #this is just for testing, no need to spend a lot of time on this
 echo ""
 echo ""
 echo "Testing VISOR XENIA"
 echo ""
 echo ""
-VISOR XENIA -s test/hack_out -b test/shorts.bed -o test/xenia_out --coverage 1 #this is just for testing, no need to spend a lot of time on this
+VISOR XENIA -s test/hack_out -b test/shorts.bed -o test/xenia_out --coverage 0.0001 #this is just for testing, no need to spend a lot of time on this
 echo ""
 echo ""
