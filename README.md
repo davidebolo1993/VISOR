@@ -28,4 +28,4 @@ VISOR has been applied to simulate Strand-seq data in:
 
 VISOR has been applied to simulate repeat contractions/expansions in long-read data, as described in:
 
-> Davide Bolognini, Ashley D Sanders, Jan O Korbel, Alberto Magi, Vladimir Benes, Tobias Rausch. [TRiCoLOR: tandem repeat profiling using whole-genome long-read sequencing data](https://academic.oup.com/gigascience/article/9/10/giaa101/5918863?searchresult=1). GigaScience. 2020 Oct 7.
+> Davide Bolognini, Alberto Magi, Vladimir Benes, Jan O Korbel, Tobias Rausch. [TRiCoLOR: tandem repeat profiling using whole-genome long-read sequencing data](https://academic.oup.com/gigascience/article/9/10/giaa101/5918863?searchresult=1). GigaScience. 2020 Oct 7.
