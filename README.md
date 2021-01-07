@@ -18,7 +18,7 @@ Please have a look at [VISOR documentation](https://davidebolo1993.github.io/vis
 
 Are you using VISOR in your works? Please cite:
 
-> Davide Bolognini, Alberto Magi, Vladimir Benes, Jan O Korbel, Tobias Rausch. [VISOR: a versatile haplotype-aware structural variant simulator for short and long read sequencing](https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btz719/5582674/). Bioinformatics. 2019 Oct 7.
+> Davide Bolognini, Ashley Sanders, Jan O Korbel, Alberto Magi, Vladimir Benes, Tobias Rausch. [VISOR: a versatile haplotype-aware structural variant simulator for short and long read sequencing](https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btz719/5582674/). Bioinformatics. 2019 Oct 7.
 
 ## Related works
 
