@@ -1,0 +1,11 @@
+Metadata-Version: 1.1
+Name: VISOR
+Version: 1.1
+Summary: VarIant SimulatOR
+Home-page: https://github.com/davidebolo1993/VISOR.git
+Author: Davide Bolognini
+Author-email: davidebolognini7@gmail.com
+License: LICENSE.txt
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires: python (>= 3.6)
