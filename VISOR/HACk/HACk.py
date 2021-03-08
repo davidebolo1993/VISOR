@@ -183,7 +183,7 @@ def HapMaker(pyref,pychroms,hapdict,hapfout):
 
 				elif ty == 'deletion-insertion':
 
-					final_seq+=inf+sb
+						final_seq+=inf+sb
 
 				elif ty == 'tandem duplication':
 
@@ -243,9 +243,9 @@ def HapMaker(pyref,pychroms,hapdict,hapfout):
 					index=len(motif)*int(number)
 					final_seq+=pyseq[s-1].seq+rep[index:]
 
-				if i < len(altsfltrd)-1: #till next start
+					if i < len(altsfltrd)-1: #till next start
 
-					final_seq+=pyseq[e:altsfltrd[i+1][0]-1].seq
+						final_seq+=pyseq[e:altsfltrd[i+1][0]-1].seq
 
 				elif i == len(altsfltrd)-1: #till chromosome end
 
@@ -671,7 +671,7 @@ def run(parser,args):
 
 				#get second sequence[2]
 				firstbase=int(column5[2])
-				lastbase=int(column5[2])+(x.end-x.start)
+				lastbase=int(column5[2])+(x.end-x.start+1)
 				
 				if column5[4] == 'reverse':
 
@@ -711,11 +711,11 @@ def run(parser,args):
 
 				if column5[1] not in d[column5[0]].keys(): #store
 
-					d[column5[0]][column5[1]] = [(firstbase+1, lastbase+1, newtype, transeq,randomseq)]
+					d[column5[0]][column5[1]] = [(firstbase+1, lastbase, newtype, transeq,randomseq)]
 
 				else:
 
-					d[column5[0]][column5[1]].append((firstbase+1, lastbase+1, newtype, transeq,randomseq))
+					d[column5[0]][column5[1]].append((firstbase+1, lastbase, newtype, transeq,randomseq))
 
 			elif x[3] == 'translocation cut-paste' or x[3] == 'translocation copy-paste' or x[3] == 'interspersed duplication': #same info for these 2
 
