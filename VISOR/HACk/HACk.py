@@ -183,7 +183,7 @@ def HapMaker(pyref,pychroms,hapdict,hapfout):
 
 				elif ty == 'deletion-insertion':
 
-						final_seq+=inf+sb
+					final_seq+=inf+sb
 
 				elif ty == 'tandem duplication':
 
@@ -243,9 +243,9 @@ def HapMaker(pyref,pychroms,hapdict,hapfout):
 					index=len(motif)*int(number)
 					final_seq+=pyseq[s-1].seq+rep[index:]
 
-					if i < len(altsfltrd)-1: #till next start
+				if i < len(altsfltrd)-1: #till next start
 
-						final_seq+=pyseq[e:altsfltrd[i+1][0]-1].seq
+					final_seq+=pyseq[e:altsfltrd[i+1][0]-1].seq
 
 				elif i == len(altsfltrd)-1: #till chromosome end
 
