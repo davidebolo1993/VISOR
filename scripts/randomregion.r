@@ -84,7 +84,7 @@ for(i in (1:nrow(df))) {
     info[i] <- '2'
   } else if (df$type[i] == 'insertion') {
     df$start[i]<-df$end[i]-1
-    num<-sample(10:1000,1)
+    num<-round(rnorm(1, mean=opt$length, sd=opt$standarddev)) #adapt mean and stdev for insertions to those specified by the user
     alphabet<-c('A', 'T', 'C', 'G')
     motif<-paste(sample(alphabet, num, replace = T), collapse='')
     info[i]<-motif
