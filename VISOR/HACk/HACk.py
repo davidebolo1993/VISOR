@@ -354,7 +354,18 @@ def run(parser,args):
 				print('[' + now + '][Error] Line ' + str(j+1) + ': column 1 (chromosome name) contains an invalid chromosome (not included in the reference provided)')
 				sys.exit(1)
 
-			#no need to check 2nd/3rd field, pybedtools already does
+			if x.start <= 0 or x.start > len(ref[x.chrom]):
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Line ' + str(j+1) + ': column 2 (chromosome start) contains an invalid coordinate (lower than chromosome start or greater than chromosome end)')
+				sys.exit(1)
+
+			if x.end > len(ref[x.chrom]): #this can't be 0 I guess
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][Error] Line ' + str(j+1) + ': column 3 (chromosome end) contains an invalid coordinate (greater than chromosome end)')				
+				sys.exit(1)
+
 			#check if 4th field is a valid/supported variant
 
 			if x[3] not in possible_variants:
@@ -672,6 +683,18 @@ def run(parser,args):
 				#get second sequence[2]
 				firstbase=int(column5[2])
 				lastbase=int(column5[2])+(x.end-x.start+1)
+
+				if firstbase <= 0 or firstbase > len(ref[column5[1]]):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) breakpoint coordinate lies outside chromosome (lower than chromosome start or greater than chromosome end)')
+					sys.exit(1)
+
+				if lastbase > len(ref[column5[1]]): #last base can't be 0 as it is start (that can't be lower than 0) + something.
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) breakpoint coordinate lies outside chromosome (greater than chromosome end)')					
+					sys.exit(1)
 				
 				if column5[4] == 'reverse':
 
@@ -748,6 +771,12 @@ def run(parser,args):
 					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) must contain an integer specifying the breakpoint coordinate on the second chromosome')
 					sys.exit(1)
+
+				if int(column5[2]) <= 0 or int(column5[2]) > len(ref[column5[1]]):
+
+					now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+					print('[' + now + '][Error] Line ' + str(j+1) + ': column 5 (variant information) breakpoint coordinate lies outside chromosome (lower than chromosome start or greater than chromosome end)')
+					sys.exit(1)				
 
 				if column5[3] not in {'forward', 'reverse'}:
 
