@@ -29,6 +29,7 @@ def main():
 
 	#this won't be used yet. This is just for future reference and implementation (Store a VCF with variants inserted)
 
+
 	optional = parser_hack.add_argument_group('Additional parameters')
 
 	optional.add_argument('--vcf', help=argparse.SUPPRESS, action='store_true')
