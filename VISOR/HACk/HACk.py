@@ -25,7 +25,7 @@ class c():
 	OUT = ''
 	REF = ''
 	BED = list()
-
+	store = False
 
 class Overlap():
 
@@ -270,7 +270,8 @@ def run(parser,args):
 	c.OUT=os.path.abspath(args.output)
 	c.REF=os.path.abspath(args.genome)
 	c.BED=[os.path.abspath(x) for x in args.bedfile[0]]
-
+	c.store=args.vcf #but not yet used. Just for future reference
+	
 	#main
 
 	if not os.path.exists(c.OUT):

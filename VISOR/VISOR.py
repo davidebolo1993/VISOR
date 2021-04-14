@@ -27,8 +27,13 @@ def main():
 	required.add_argument('-b', '--bedfile', help='one ore more variant file in BED-like format (one for each haplotype), as specified in https://davidebolo1993.github.io/visordoc/usage/usage.html#hack-bed', metavar='BED', nargs='+', action='append', required=True)
 	required.add_argument('-o', '--output', help='output folder with FASTA haplotypes', metavar='FOLDER', required=True)
 
-	parser_hack.set_defaults(func=run_subtool)
+	#this won't be used yet. This is just for future reference and implementation (Store a VCF with variants inserted)
 
+	optional = parser_hack.add_argument_group('Additional parameters')
+
+	optional.add_argument('--vcf', help=argparse.SUPPRESS, action='store_true')
+
+	parser_hack.set_defaults(func=run_subtool)
 
 	## SHORtS ##
 	
@@ -109,8 +114,8 @@ def main():
 	badread.add_argument('--identity_min', help='minimum sequencing identity [90]', metavar='', default=90, type=int)
 	badread.add_argument('--identity_max', help='maximum sequencing identity [95]', metavar='', default=95, type=int)
 	badread.add_argument('--identity_stdev', help='stdev of sequencing identity [5]', metavar='', default=5, type=int)
-	badread.add_argument('--error_model', help='error model. Can be "nanopore", "pacbio" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore]', metavar='', default='nanopore', type=str)
-	badread.add_argument('--qscore_model', help='quality score model. Can be "nanopore", "pacbio" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore]', metavar='', default='nanopore', type=str)
+	badread.add_argument('--error_model', help='error model. Can be "nanopore2018", "nanopore2020", "pacbio2016" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2020]', metavar='', default='nanopore2020', type=str)
+	badread.add_argument('--qscore_model', help='quality score model. Can be "nanopore2018", "nanopore2020", "pacbio2016" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2020]', metavar='', default='nanopore2020', type=str)
 	badread.add_argument('--junk_reads', help='percentage of low-complexity reads [0.5]', metavar='', default=0.5, type=float)
 	badread.add_argument('--random_reads', help='percentage of randomly generated reads [0.0]', metavar='', default=0.0, type=float)
 	badread.add_argument('--chimera_reads', help='percentage of different reads that are joined together [0.0]', metavar='', default=0.0, type=float)
