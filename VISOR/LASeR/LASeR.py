@@ -238,6 +238,7 @@ def BulkSim(w,c):
 						for name,seq,qual in readfq(infile):
 				
 							newname='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + '|'.join(name.split(' '))
+							newname='|'.join(newname.split('|')[:2])
 							
 							read=[newname, seq, '+', qual]
 
@@ -271,6 +272,7 @@ def BulkSim(w,c):
 						for name,seq,qual in readfq(infile):
 				
 							newname='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fr_' + '|'.join(name.split(' '))
+							newname='|'.join(newname.split('|')[:2])
 							
 							read=[newname, seq, '+', qual]
 
@@ -317,6 +319,7 @@ def BulkSim(w,c):
 						for name,seq,qual in readfq(infile):
 				
 							newname='@c' + str(c.clonenumber) + 'h' + str(c.hapnumber) + 'fh_' + '|'.join(name.split(' '))
+							newname='|'.join(newname.split('|')[:2])
 							
 							read=[newname, seq, '+', qual]
 
@@ -332,7 +335,7 @@ def BulkSim(w,c):
 
 		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.srt.bam')
 
-		sam_cmd = ['minimap2', '-ax', c.mmpreset , '--MD', '--cs', '-Y', '--sam-hit-only', '-t', str(c.threads), '-R', RGstring, c.REF, matehnew]
+		sam_cmd = ['minimap2', '-ax', c.mmpreset , '--MD', '--cs', '-Y', '-t', str(c.threads), '-R', RGstring, c.REF, matehnew]
 		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
 		
 		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
