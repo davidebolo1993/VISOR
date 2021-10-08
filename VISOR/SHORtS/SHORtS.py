@@ -13,7 +13,7 @@ import resource
 import random
 from datetime import datetime
 from collections import defaultdict
-from shutil import which
+from shutil import which,copyfileobj
 
 #additional modules
 
@@ -39,6 +39,7 @@ class c():
 
 	refall=None
 	threads=0
+	fastq=False
 
 	#pywgsim
 
@@ -383,6 +384,23 @@ def BulkSim(w,c):
 		bout=open(BAM, 'wb')
 		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
 		bout.close()
+
+		if c.fastq:
+
+			fastq1=os.path.abspath(c.OUT + '/r1.fq')
+			fastq2=os.path.abspath(c.OUT + '/r2.fq')
+			
+			with open(fastq1,'a') as wfd:
+
+				with open(mate1hnew,'r') as fd:
+
+					copyfileobj(fd, wfd)
+
+			with open(fastq2,'a') as wfd:
+
+				with open(mate2hnew,'r') as fd:
+					
+					copyfileobj(fd, wfd)
 
 		os.remove(mate1hnew)
 		os.remove(mate2hnew)
@@ -817,7 +835,7 @@ def run(parser,args):
 	c.BED=os.path.abspath(args.bedfile)
 	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
 	c.strandseq=args.strandseq
-
+	c.fastq=args.fastq
 
 	if c.strandseq and len(c.SAMPLES) > 1:
 

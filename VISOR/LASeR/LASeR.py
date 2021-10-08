@@ -13,7 +13,7 @@ import resource
 import random
 from datetime import datetime
 from collections import defaultdict
-from shutil import which
+from shutil import which,copyfileobj
 
 #additional modules
 
@@ -39,6 +39,7 @@ class c():
 	refall=None
 	threads=0
 	mmpreset='map-ont'
+	fastq=False
 
 	#BadRead
 
@@ -343,6 +344,16 @@ def BulkSim(w,c):
 		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
 		bout.close()
 
+		if c.fastq:
+
+			fastq1=os.path.abspath(c.OUT + '/r.fq')
+			
+			with open(fastq1,'a') as wfd:
+
+				with open(matehnew,'r') as fd:
+
+					copyfileobj(fd, wfd)
+
 		os.remove(matehnew)
 
 
@@ -361,6 +372,7 @@ def run(parser,args):
 	c.REF=os.path.abspath(args.genome)
 	c.BED=os.path.abspath(args.bedfile)
 	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
+	c.fastq=args.fastq
 
 	#main
 
