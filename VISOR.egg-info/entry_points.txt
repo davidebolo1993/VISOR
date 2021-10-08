@@ -1,3 +1,0 @@
-[console_scripts]
-VISOR = VISOR.VISOR:main
-
