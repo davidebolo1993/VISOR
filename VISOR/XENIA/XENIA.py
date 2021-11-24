@@ -257,7 +257,7 @@ def Gzipper(sli,):
 		os.remove(s)
 
 
-def MolSim(processor,molecule,seq_,w,c):
+def MolSim(processor,molecule,hfa,w,c):
 
 	'''
 	Parallelize 10X linked reads simulation
@@ -272,7 +272,7 @@ def MolSim(processor,molecule,seq_,w,c):
 		chromend=str(w.start+mol.end)
 
 		header='MOL:' + moleculenumber + '_GEM:' + moleculedroplet + '_BAR:' + barcodestring + '_CHROM:' + w.chrom + '_START:' + chromstart + '_END:' + chromend
-		seq__=seq_[w.start+mol.start-1:w.start+mol.end]
+		seq__=hfa[w.chrom][w.start+mol.start-1:w.start+mol.end].seq
 
 		truedim=mol.length-seq__.count('N')
 		N=int(truedim*c.molcov)/(c.length*2)
@@ -396,7 +396,7 @@ def LinkedSim(w,c):
 		for i,molecule in enumerate(slices):
 
 			processor='p'+str(i+1)
-			p=multiprocessing.Process(target=MolSim, args=(processor,molecule,seq_,w,c))
+			p=multiprocessing.Process(target=MolSim, args=(processor,molecule,hfa,w,c))
 			p.start()
 			processes.append(p)
 		

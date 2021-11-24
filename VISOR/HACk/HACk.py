@@ -142,8 +142,13 @@ def HapMaker(pyref,pychroms,hapdict,hapfout):
 			if len(ov.intervals()) < len(ranges):
 
 				diff=len(ranges)-len(ov.intervals())
+				excluded=sorted(list(set(ranges)-set(ov.intervals())),key=itemgetter(0,1))
 				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-				print('[' + now + '][Warning] ' + str(diff) + ' variants will be skipped for current chromosome as they overlap others (only the first occuring among overlapping variants will be kept)')
+				print('[' + now + '][Warning] ' + str(diff) + ' variants will be skipped for current chromosome as they overlap intervals with other variants (only the first occuring among overlapping variants will be kept):')
+
+				for x in excluded:
+					
+					print(chrs + ':' + str(x[0]) + '-' + str(x[1]))
 
 			altsfltrd=[x for x in alts if (x[0],x[1],x[2]) in ov.intervals()] #exclude also different types
 
