@@ -418,7 +418,7 @@ def run(parser,args):
 			#check version (only for samtools?)
 			if x == 'samtools':
 
-				major,minor,patch=subprocess.check_output(['samtools', '--version']).decode('utf-8').split('\n')[0].split('samtools ')[1].split('.')
+				major,minor=subprocess.check_output(['samtools', '--version']).decode('utf-8').split('\n')[0].split('samtools ')[1].split('.')[:2]
 
 				if int(major) < 1 or int(minor) < 9:
 
