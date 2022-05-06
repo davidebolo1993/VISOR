@@ -40,6 +40,7 @@ class c():
 	refall=None
 	threads=0
 	fastq=False
+	compress=False
 
 	#pywgsim
 
@@ -389,18 +390,26 @@ def BulkSim(w,c):
 
 			fastq1=os.path.abspath(c.OUT + '/r1.fq')
 			fastq2=os.path.abspath(c.OUT + '/r2.fq')
-			
-			with open(fastq1,'a') as wfd:
 
-				with open(mate1hnew,'r') as fd:
+			if c.compress:
+				import gzip
+				wfd1=gzip.open(fastq1 + '.gz','ab')
+				wfd2=gzip.open(fastq2 + '.gz','ab')
+				fd1=open(mate1hnew,'rb')
+				fd2=open(mate2hnew,'rb')
+			else:
+				wfd1=open(fastq1,'a')
+				wfd2=open(fastq2,'a')
+				fd1=open(mate1hnew,'r')
+				fd2=open(mate2hnew,'r')
 
-					copyfileobj(fd, wfd)
+			copyfileobj(fd1, wfd1)
+			copyfileobj(fd2, wfd2)
 
-			with open(fastq2,'a') as wfd:
-
-				with open(mate2hnew,'r') as fd:
-					
-					copyfileobj(fd, wfd)
+			fd1.close()
+			fd2.close()
+			wfd1.close()
+			wfd2.close()
 
 		os.remove(mate1hnew)
 		os.remove(mate2hnew)
@@ -836,6 +845,7 @@ def run(parser,args):
 	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
 	c.strandseq=args.strandseq
 	c.fastq=args.fastq
+	c.compress=args.compress
 
 	if c.strandseq and len(c.SAMPLES) > 1:
 
