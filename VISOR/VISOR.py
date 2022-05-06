@@ -4,6 +4,8 @@ import sys
 import argparse
 from argparse import HelpFormatter
 
+from VISOR import __version__
+
 #v1.0->v1.1 added logo
 
 def main():
@@ -182,7 +184,7 @@ def main():
 
 	#print help if no subcommand nor --help provided
 
-	print(r"""
+	print(fr"""
 
 	 ___      ___ ___  ________  ________  ________     
 	|\  \    /  /|\  \|\   ____\|\   __  \|\   __  \    
@@ -190,7 +192,7 @@ def main():
 	 \ \  \/  / / \ \  \ \_____  \ \  \\\  \ \   _  _\  
 	  \ \    / /   \ \  \|____|\  \ \  \\\  \ \  \\  \| 
 	   \ \__/ /     \ \__\____\_\  \ \_______\ \__\\ _\ 
-	    \|__|/       \|__|\_________\|_______|\|__|\|__| v 1.1
+	    \|__|/       \|__|\_________\|_______|\|__|\|__| v{__version__}
 	                     \|_________|                   
                                                     	                                                                        
 	""")

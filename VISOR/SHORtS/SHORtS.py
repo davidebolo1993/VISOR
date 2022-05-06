@@ -23,6 +23,8 @@ import pyfaidx
 from pywgsim import wgsim
 import mappy as mp
 
+from VISOR import __version__
+
 
 class c():
 
@@ -835,7 +837,7 @@ def run(parser,args):
 	redirect_stdout()# block pywgsim stdout
 
 	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-	print('[' + now + '][Message] VISOR SHORtS v1.1')
+	print('[' + now + '][Message] VISOR SHORtS v' + __version__)
 
 	#fill container
 

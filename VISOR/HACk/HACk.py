@@ -16,6 +16,8 @@ from shutil import which
 import pybedtools
 import pyfaidx
 
+from VISOR import __version__
+
 class c():
 
 	'''
@@ -268,7 +270,7 @@ def run(parser,args):
 	'''
 
 	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-	print('[' + now + '][Message] VISOR HACk v1.1')
+	print('[' + now + '][Message] VISOR HACk v' + __version__)
 
 	#fill container
 

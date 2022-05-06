@@ -22,6 +22,7 @@ import pysam
 import pyfaidx
 #import mappy as mp #not calling mp.fastx_read 'cause is removing part of the read name (same behaviour of readfq from Heng)
 
+from VISOR import __version__
 
 class c():
 
@@ -372,7 +373,7 @@ def run(parser,args):
 	'''
 
 	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-	print('[' + now + '][Message] VISOR LASeR v1.1')
+	print('[' + now + '][Message] VISOR LASeR v' + __version__)
 
 	#fill container
 
