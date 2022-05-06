@@ -20,6 +20,8 @@ import pyfaidx
 from pywgsim import wgsim
 import numpy as np
 
+from VISOR import __version__
+
 barcodepath=os.path.abspath(os.path.dirname(__file__) + '/4M-with-alts-february-2016.txt.gz')
 
 class c():
@@ -414,7 +416,7 @@ def run(parser,args):
 	redirect_stdout()# block pywgsim stdout
 
 	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-	print('[' + now + '][Message][BETA] VISOR XENIA v1.1')
+	print('[' + now + '][Message][BETA] VISOR XENIA v' + __version__)
 
 	#fill container
 

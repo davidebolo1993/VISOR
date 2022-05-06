@@ -22,6 +22,7 @@ import pysam
 import pyfaidx
 #import mappy as mp #not calling mp.fastx_read 'cause is removing part of the read name (same behaviour of readfq from Heng)
 
+from VISOR import __version__
 
 class c():
 
@@ -40,6 +41,7 @@ class c():
 	threads=0
 	mmpreset='map-ont'
 	fastq=False
+	compress=False
 
 	#BadRead
 
@@ -347,12 +349,19 @@ def BulkSim(w,c):
 		if c.fastq:
 
 			fastq1=os.path.abspath(c.OUT + '/r.fq')
-			
-			with open(fastq1,'a') as wfd:
 
-				with open(matehnew,'r') as fd:
+			if c.compress:
+				import gzip
+				wfd=gzip.open(fastq1 + '.gz','ab')
+				fd=open(matehnew,'rb')
+			else:
+				wfd=open(fastq1,'a')
+				fd=open(matehnew,'r')
 
-					copyfileobj(fd, wfd)
+			copyfileobj(fd, wfd)
+
+			fd.close()
+			wfd.close()
 
 		os.remove(matehnew)
 
@@ -364,7 +373,7 @@ def run(parser,args):
 	'''
 
 	now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-	print('[' + now + '][Message] VISOR LASeR v1.1')
+	print('[' + now + '][Message] VISOR LASeR v' + __version__)
 
 	#fill container
 
@@ -373,6 +382,7 @@ def run(parser,args):
 	c.BED=os.path.abspath(args.bedfile)
 	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
 	c.fastq=args.fastq
+	c.compress=args.compress
 
 	#main
 
