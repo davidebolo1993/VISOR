@@ -1,5 +1,6 @@
 # VISOR
 [![Build Status](https://travis-ci.com/davidebolo1993/VISOR.svg?branch=master)](https://travis-ci.com/davidebolo1993/VISOR)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat)](http://bioconda.github.io/recipes/visor/README.html)
 
 <div style="width: 180px; margin: 0 auto;"><a href="https://surveillance.cancer.gov/genetic-simulation-resources/"><img src="https://surveillance.cancer.gov/gsr/static/img/gsr_tile.jpg" alt="Catalogued on GSR" width="180" height="60" /></a></div>
 
