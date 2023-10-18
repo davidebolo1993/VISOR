@@ -16,7 +16,7 @@ ENV PATH=/miniconda/bin:${PATH}
 RUN conda update -y conda
 RUN conda create -y -n visorenv python=3.8
 RUN echo "source activate visorenv" > ~/.bashrc
-ENV PATH /miniconda/envs/visorenv/bin:$PATH
+ENV PATH=/miniconda/envs/visorenv/bin:${PATH}
 RUN conda install -y -n visorenv -c bioconda bedtools
 RUN conda install -y -n visorenv -c r r-base
 #RUN conda install -y -n visorenv -c bioconda bioconductor-biocinstaller bioconductor-regioner r-optparse
