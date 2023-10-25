@@ -142,6 +142,7 @@ def main():
 	optional.add_argument('--tag', help='tag simulated BAM by clone (CL-tag) and haplotype (HP-tag)', action='store_true')
 	optional.add_argument('--fastq', help='store synthetic reads in FASTQ format in the output folder', action='store_true')
 	optional.add_argument('--compress', help='gzip compress output FASTQ', action='store_true')
+	optional.add_argument('--skip_mapping', help='skip mapping', action='store_true')
 
 	parser_long.set_defaults(func=run_subtool)
 

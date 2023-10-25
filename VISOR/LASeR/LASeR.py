@@ -42,6 +42,7 @@ class c():
 	mmpreset='map-ont'
 	fastq=False
 	compress=False
+	skip_mapping=False
 
 	#BadRead
 
@@ -337,28 +338,29 @@ def BulkSim(w,c):
 
 					os.remove(fname)
 
-		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-		print('[' + now + '][Message] Mapping simulated reads to the reference genome')
+		if not c.skip_mapping:
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][Message] Mapping simulated reads to the reference genome')
 
-		RGid='nanopore' if c.mmpreset== 'map-ont' else 'pacbio'
-		RGstring='@RG\\tID:'+RGid+'\\tSM:bulk'
+			RGid='nanopore' if c.mmpreset== 'map-ont' else 'pacbio'
+			RGstring='@RG\\tID:'+RGid+'\\tSM:bulk'
 
-		BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.srt.bam')
+			BAM=os.path.abspath(c.haplodir+'/'+str(c.r_number)+'.srt.bam')
 
-		sam_cmd = ['minimap2', '-ax', c.mmpreset , '--MD', '--cs', '-Y', '-t', str(c.threads), '-R', RGstring, c.REF, matehnew]
-		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
-		
-		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-		print('[' + now + '][COMMAND] ' + " ".join(sam_cmd))
+			sam_cmd = ['minimap2', '-ax', c.mmpreset , '--MD', '--cs', '-Y', '-t', str(c.threads), '-R', RGstring, c.REF, matehnew]
+			bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
+			
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][COMMAND] ' + " ".join(sam_cmd))
 
-		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
-		bout=open(BAM, 'wb')
+			p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
+			bout=open(BAM, 'wb')
 
-		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-		print('[' + now + '][COMMAND] ' + " ".join(bam_cmd))
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][COMMAND] ' + " ".join(bam_cmd))
 
-		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
-		bout.close()
+			p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
+			bout.close()
 
 		if c.fastq:
 
@@ -397,6 +399,7 @@ def run(parser,args):
 	c.SAMPLES=[os.path.abspath(x) for x in args.sample[0]]
 	c.fastq=args.fastq
 	c.compress=args.compress
+	c.skip_mapping=args.skip_mapping
 
 	#main
 
