@@ -348,8 +348,15 @@ def BulkSim(w,c):
 		sam_cmd = ['minimap2', '-ax', c.mmpreset , '--MD', '--cs', '-Y', '-t', str(c.threads), '-R', RGstring, c.REF, matehnew]
 		bam_cmd = ['samtools', 'sort', '-@', str(round(c.threads/2)), '-o', BAM]
 		
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][COMMAND] ' + " ".join(sam_cmd))
+
 		p1=subprocess.Popen(sam_cmd, stderr=open(os.devnull, 'wb'), stdout=subprocess.PIPE)
 		bout=open(BAM, 'wb')
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][COMMAND] ' + " ".join(bam_cmd))
+
 		p2=subprocess.run(bam_cmd, stdin=p1.stdout, stderr=open(os.devnull, 'wb'), stdout=bout)
 		bout.close()
 
@@ -695,6 +702,10 @@ def run(parser,args):
 						bamlist.write(s+'\n')
 
 				merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+
+				now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+				print('[' + now + '][COMMAND] ' + " ".join(merge_command))
+
 				subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 
 			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -710,6 +721,10 @@ def run(parser,args):
 					bamlist.write(s+'\n')
 
 			merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO]
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][COMMAND] ' + " ".join(merge_command))
+
 			subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 			pysam.index(BAMO)
 
@@ -731,6 +746,10 @@ def run(parser,args):
 					bamlist.write(s+'\n')
 
 			merge_command = ['samtools', 'merge', '-@', str(c.threads), '-c', '-b', BAML, BAMO] #this can ideally be called also with '--write-index' but from 1.10 on
+
+			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+			print('[' + now + '][COMMAND] ' + " ".join(merge_command))
+
 			subprocess.call(merge_command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
 			pysam.index(BAMO)
 
