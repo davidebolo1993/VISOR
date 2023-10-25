@@ -47,10 +47,13 @@ class c():
 
 	coverage=0
 	regioncoverage=0
-	error='nanopore2023'
-	quality='nanopore2023'
+	error=''
+	quality=''
 	length=tuple()
+	distribution=''
 	identity=tuple()
+	qscore=tuple()
+
 	junk=0
 	random=0
 	chimeras=0
@@ -149,11 +152,15 @@ def MultiBadRead(processor,c, tmpfa, hapcov, mateh):
 	Write multiple FASTQ files that will be concatenated in the end
 	'''
 
-	badread_hap_cmd=['badread', 'simulate', '--reference', tmpfa, '--quantity', str(hapcov/c.threads)+'X', '--length', ','.join(str(x) for x in c.length), '--identity', ','.join(str(x) for x in c.identity), '--start_adapter_seq', '', '--end_adapter_seq', '', '--error_model', c.error, '--qscore_model', c.quality, '--junk_reads', str(c.junk), '--random_reads', str(c.random), '--chimeras', str(c.chimeras), '--glitches', ','.join(str(x) for x in c.glitch)]
+	beta_or_normal = ['--identity', ','.join(str(x) for x in c.identity)] if c.distribution == 'beta' else ['--identity', ','.join(str(x) for x in c.qscore)]
+	badread_hap_cmd=['badread', 'simulate', '--reference', tmpfa, '--quantity', str(hapcov/c.threads)+'X', '--length', ','.join(str(x) for x in c.length)] + beta_or_normal + ['--start_adapter_seq', '', '--end_adapter_seq', '', '--error_model', c.error, '--qscore_model', c.quality, '--junk_reads', str(c.junk), '--random_reads', str(c.random), '--chimeras', str(c.chimeras), '--glitches', ','.join(str(x) for x in c.glitch)]
 
 	tmpout=os.path.abspath(mateh+'.'+processor)
 
 	with open(tmpout, 'w') as mateout:
+
+		now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+		print('[' + now + '][COMMAND] ' + " ".join(badread_hap_cmd))
 
 		subprocess.call(badread_hap_cmd, stdout=mateout, stderr=open(os.devnull, 'wb')) 
 
@@ -509,7 +516,9 @@ def run(parser,args):
 	#fill c with wgsim parameters for simulations 
 
 	c.coverage=args.coverage
-	c.identity=(args.identity_min,args.identity_max,args.identity_stdev)
+	c.distribution=args.distribution
+	c.identity=(args.identity_mean,args.identity_max,args.identity_stdev)
+	c.qscore=(args.qscore_mean, args.qscore_stdev)
 	c.length=(args.length_mean, args.length_stdev)
 	c.error=args.error_model
 
