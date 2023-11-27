@@ -1,7 +1,5 @@
 from setuptools import setup,find_packages
 
-
-
 setup(name='VISOR',      
   version=1.1,
   description='VarIant SimulatOR',
@@ -11,7 +9,7 @@ setup(name='VISOR',
   author_email='davidebolognini7@gmail.com',
   license='LICENSE.txt',
   dependency_links=['https://github.com/rrwick/Badread/tarball/master#egg=Badread'],
-  install_requires=['pyfaidx>=0.5.5.2', 'pysam>=0.15.0', 'pywgsim>=0.3.3', 'pybedtools>=0.8.0', 'mappy>=2.17', 'plotly==3.10.0', 'numpy>=1.15.3'],
+  install_requires=['pyfaidx', 'pysam', 'pywgsim', 'pybedtools', 'mappy', 'plotly==3.10.0', 'numpy'],
   zip_safe=False,
   packages=find_packages(),
   include_package_data=True,

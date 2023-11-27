@@ -354,7 +354,7 @@ def run(parser,args):
 
 		d["h{0}".format(i+1)]=dict() #one sub-dict for each BED/haplotype. This way of specifying different haplotypes works perfectly
 
-		for j,x in enumerate(bedsrtd):
+		for j,x in enumerate(bedfile): ##parse input bed rather than sorted - otherwise error index is wrong
 
 			if x.chrom not in chrs:
 

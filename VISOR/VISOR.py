@@ -20,6 +20,7 @@ def main():
 	#v1.0->v1.1 -bed changed to -b (-bed is not accepted anymore)
 	#v1.0->v1.1 removed logging module dependency. Now printing warnings/errors/messages. Easier debugging
 	#v1.0->v1.1 final FASTA is 60-char per line FASTA. Indexed using pyfaidx. Post-processing by samtools is not required
+	#v1.1->v1.2_fix Fix index error when parsing initial .bed file
 
 	parser_hack = subparsers.add_parser('HACk', help='HAplotype Creator. Generates one or more haplotypes in FASTA format containing SVs specified in BED-like format')
 
@@ -101,6 +102,7 @@ def main():
 	#v1.0->v1.1 Removed several calls to samtools index which were not required. A unique index is built in the end, after merging
 	#v1.0->v1.1 Long-read simulations are performed using BadRead. This is slower than Pbsim, but can be accelerated using multiple cores. BadRead gives users control over a wide variety of parameters, which were not supported by Pbsim
 	#v1.0->v1.1 Removed calls to external bash scripts
+	#v1.1->v1.2_fix Change badread to badread v4.0, allow floats, change models
 
 	parser_long = subparsers.add_parser('LASeR', help='Long reAds SimulatoR. Simulate long-read BAM from FASTA files using regions specified in BED-like format')
 
@@ -116,11 +118,11 @@ def main():
 	badread.add_argument('--coverage', help='mean coverage for simulated regions [30.0]', metavar='', default=30.0, type=float) #badread handles this internally
 	badread.add_argument('--length_mean', help='mean length of simulated reads [15000]', metavar='', default=15000, type=int)
 	badread.add_argument('--length_stdev', help='length stdev of simulated reads [13000]', metavar='', default=13000, type=int)
-	badread.add_argument('--identity_min', help='minimum sequencing identity [90]', metavar='', default=90, type=int)
-	badread.add_argument('--identity_max', help='maximum sequencing identity [95]', metavar='', default=95, type=int)
-	badread.add_argument('--identity_stdev', help='stdev of sequencing identity [5]', metavar='', default=5, type=int)
-	badread.add_argument('--error_model', help='error model. Can be "nanopore2018", "nanopore2020", "pacbio2016" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2020]', metavar='', default='nanopore2020', type=str)
-	badread.add_argument('--qscore_model', help='quality score model. Can be "nanopore2018", "nanopore2020", "pacbio2016" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2020]', metavar='', default='nanopore2020', type=str)
+	badread.add_argument('--identity_min', help='minimum sequencing identity [90.0]', metavar='', default=90.0, type=float)
+	badread.add_argument('--identity_max', help='maximum sequencing identity [95.0]', metavar='', default=95.0, type=float)
+	badread.add_argument('--identity_stdev', help='stdev of sequencing identity [5.0]', metavar='', default=5.0, type=float)
+	badread.add_argument('--error_model', help='error model. Can be "nanopore2023", "nanopore2020", "nanopore2018", "pacbio2016", "random" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2023]', metavar='', default='nanopore2023', type=str)
+	badread.add_argument('--qscore_model', help='quality score model. Can be "nanopore2023", "nanopore2020", "nanopore2018", "pacbio2016", "random", "ideal" or a model provided by the user using instructions at https://github.com/rrwick/Badread/wiki/Generating-error-and-qscore-models [nanopore2023]', metavar='', default='nanopore2020', type=str)
 	badread.add_argument('--junk_reads', help='percentage of low-complexity reads [0.5]', metavar='', default=0.5, type=float)
 	badread.add_argument('--random_reads', help='percentage of randomly generated reads [0.0]', metavar='', default=0.0, type=float)
 	badread.add_argument('--chimera_reads', help='percentage of different reads that are joined together [0.0]', metavar='', default=0.0, type=float)
@@ -138,7 +140,7 @@ def main():
 	optional.add_argument('--threads', help='number of cores to use for simulation (BadRead is rather slow with a single core) and mapping (minimap2 with preset for nanopore or pacbio reads) [1]', metavar='', type=int, default=1)
 	optional.add_argument('--tag', help='tag simulated BAM by clone (CL-tag) and haplotype (HP-tag)', action='store_true')
 	optional.add_argument('--fastq', help='store synthetic reads in FASTQ format in the output folder', action='store_true')
-	optional.add_argument('--compress', help='gzip compress output FASTQ', action='store_true')
+	optional.add_argument('--compress', help='Compress output FASTQ using gzip', action='store_true')
 
 	parser_long.set_defaults(func=run_subtool)
 

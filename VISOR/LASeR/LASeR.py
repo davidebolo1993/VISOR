@@ -14,6 +14,7 @@ import random
 from datetime import datetime
 from collections import defaultdict
 from shutil import which,copyfileobj
+import gzip
 
 #additional modules
 
@@ -47,8 +48,8 @@ class c():
 
 	coverage=0
 	regioncoverage=0
-	error='nanopore2020'
-	quality='nanopore2020'
+	error='nanopore2023'
+	quality='nanopore2023'
 	length=tuple()
 	identity=tuple()
 	junk=0
@@ -351,10 +352,12 @@ def BulkSim(w,c):
 			fastq1=os.path.abspath(c.OUT + '/r.fq')
 
 			if c.compress:
-				import gzip
+
 				wfd=gzip.open(fastq1 + '.gz','ab')
 				fd=open(matehnew,'rb')
+			
 			else:
+			
 				wfd=open(fastq1,'a')
 				fd=open(matehnew,'r')
 
@@ -513,26 +516,26 @@ def run(parser,args):
 	c.length=(args.length_mean, args.length_stdev)
 	c.error=args.error_model
 
-	if c.error != 'nanopore2020' and c.error != 'nanopore2018' and c.error != 'pacbio2016': #then, should be a file
+	if c.error not in ['nanopore2023', 'nanopore2020', 'nanopore2018', 'pacbio2016', 'random']: #then, should be a file
 
 		c.error=os.path.abspath(args.error_model)
 
 		if not os.path.exists(c.error):
 
 			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-			print('[' + now + '][Error] Specified error model is not one of the accepted preset ("nanopore2020", "nanopore2018" or "pacbio2016") neither is a path to a trained error model for badread')
+			print('[' + now + '][Error] Specified error model is not one of the accepted preset ("nanopore2023", "nanopore2020", "nanopore2018", "pacbio2016" or "random") neither is a path to a trained error model for badread')
 			sys.exit(1)
 
 	c.quality=args.qscore_model
 
-	if c.quality != 'nanopore2020' and c.quality != 'nanopore2018' and c.quality != 'pacbio2016': #then, should be a file
+	if c.quality not in ['nanopore2023', 'nanopore2020', 'nanopore2018', 'pacbio2016', 'random', 'ideal']: #then, should be a file
 
 		c.quality=os.path.abspath(args.qscore_model)
 
 		if not os.path.exists(c.quality):
 
 			now=datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-			print('[' + now + '][Error] Specified quality model is not one of the accepted preset ("nanopore2020", "nanopore2018" or "pacbio2016") neither is a path to a trained quality model for badread')
+			print('[' + now + '][Error] Specified quality model is not one of the accepted preset ("nanopore2023", "nanopore2020", "nanopore2018", "pacbio2016", "random" or "ideal") neither is a path to a trained quality model for badread')
 			sys.exit(1)
 
 	c.junk=args.junk_reads
