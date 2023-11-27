@@ -1,6 +1,6 @@
 from setuptools import setup,find_packages
 
-setup(name='VISOR',      
+setup(name='VISOR',
   version=1.1,
   description='VarIant SimulatOR',
   url='https://github.com/davidebolo1993/VISOR.git',
