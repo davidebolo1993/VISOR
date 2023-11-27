@@ -47,7 +47,7 @@ RUN curl -LO https://github.com/samtools/samtools/releases/download/1.18/samtool
     && make install
 
 #get minimap2
-RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 tar -jxvf -
+RUN curl -L https://github.com/lh3/minimap2/releases/download/v2.26/minimap2-2.26_x64-linux.tar.bz2 | tar -jxvf -
 ENV PATH /opt/minimap2-2.26_x64-linux:$PATH
 
 #get bedtools
