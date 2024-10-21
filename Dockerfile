@@ -26,7 +26,7 @@ RUN apt-get install -y nano \
     libssl-dev libbz2-dev \
     liblzma-dev \
     libncurses5-dev \
-    python3-distutils python3-dev python3-pip python3-edlib \
+    python3-dev python3-pip python3-edlib \
     && apt-get -y clean all \
     && rm -rf /var/cache
 
