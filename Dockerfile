@@ -58,6 +58,6 @@ RUN curl -LO https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtoo
 #get VISOR and the required python dependencies
 RUN git clone https://github.com/davidebolo1993/VISOR.git \
     && cd VISOR \
-    && pip install -r requirements.txt \
-    && pip install --upgrade cython \
-    && pip install .
+    && pip install -r requirements.txt --break-system-packages \
+    && pip install --break-system-packages --upgrade cython \
+    && pip install --break-system-packages .
