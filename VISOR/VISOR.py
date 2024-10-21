@@ -3,6 +3,7 @@
 import sys
 import argparse
 from argparse import HelpFormatter
+from datetime import datetime
 
 from VISOR import __version__
 
@@ -224,6 +225,18 @@ def main():
 		sys.argv[1] = 'XENIA'
 
 	args = parser.parse_args()
+
+	now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+	print('[' + now + '][Message] Running VISOR with the following arguments:')
+	print()
+
+	maxl = max(len(arg) for arg in vars(args))
+	for arg in vars(args):
+		if arg not in ['func']:
+			arg_value = getattr(args, arg)
+			print('{:<{width}}: {}'.format(arg, arg_value, width=maxl))
+
+	print()
 	args.func(parser, args)
 
 

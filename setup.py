@@ -1,7 +1,7 @@
 from setuptools import setup,find_packages
 
 setup(name='VISOR',
-  version=1.1,
+  version='1.1.3',
   description='VarIant SimulatOR',
   url='https://github.com/davidebolo1993/VISOR.git',
   requires=['python (>= 3.6)'],
