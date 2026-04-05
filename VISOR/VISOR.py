@@ -37,6 +37,7 @@ def main():
 	optional = parser_hack.add_argument_group('Additional parameters')
 
 	optional.add_argument('--vcf', help=argparse.SUPPRESS, action='store_true')
+	optional.add_argument('--seed', help='seed for random generator', metavar='SEED', type=int, default=42)
 
 	parser_hack.set_defaults(func=run_subtool)
 
